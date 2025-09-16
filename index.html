@@ -470,6 +470,9 @@
                 <div class="card">
                     <div class="card-header">
                         <h2 class="card-title">Recent Races</h2>
+                        <button onclick="refreshData()" style="padding: 8px 16px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                            🔄 Refresh Data
+                        </button>
                     </div>
                     <div class="card-body">
                         <table>
@@ -486,94 +489,10 @@
                             </thead>
                             <tbody id="racesTableBody">
                                 <tr>
-                                    <td>16-04-25</td>
-                                    <td>Jægersro</td>
-                                    <td>1</td>
-                                    <td><strong>Majestic</strong></td>
-                                    <td>Oliver Wilson</td>
-                                    <td>02:04.6</td>
-                                    <td>3.00</td>
-                                </tr>
-                                <tr>
-                                    <td>16-04-25</td>
-                                    <td>Bro Park</td>
-                                    <td>1</td>
-                                    <td><strong>Speed Demon</strong></td>
-                                    <td>Jacob Johansen</td>
-                                    <td>01:26.3</td>
-                                    <td>8.75</td>
-                                </tr>
-                                <tr>
-                                    <td>15-04-25</td>
-                                    <td>Aarhus</td>
-                                    <td>1</td>
-                                    <td><strong>Royal Fortune</strong></td>
-                                    <td>Anna Pilroth</td>
-                                    <td>01:41.7</td>
-                                    <td>4.25</td>
-                                </tr>
-                                <tr>
-                                    <td>15-04-25</td>
-                                    <td>Klampenborg</td>
-                                    <td>1</td>
-                                    <td><strong>Dreamcatcher</strong></td>
-                                    <td>Carlos Lopez</td>
-                                    <td>01:24.9</td>
-                                    <td>6.50</td>
-                                </tr>
-                                <tr>
-                                    <td>14-04-25</td>
-                                    <td>Øvrevoll</td>
-                                    <td>1</td>
-                                    <td><strong>Viking Storm</strong></td>
-                                    <td>Per-Anders Gråberg</td>
-                                    <td>01:52.4</td>
-                                    <td>2.50</td>
-                                </tr>
-                                <tr>
-                                    <td>14-04-25</td>
-                                    <td>Jægersro</td>
-                                    <td>1</td>
-                                    <td><strong>Quick Silver</strong></td>
-                                    <td>Oliver Wilson</td>
-                                    <td>01:12.8</td>
-                                    <td>12.00</td>
-                                </tr>
-                                <tr>
-                                    <td>13-04-25</td>
-                                    <td>Bro Park</td>
-                                    <td>1</td>
-                                    <td><strong>Northern Light</strong></td>
-                                    <td>Anna Pilroth</td>
-                                    <td>02:05.1</td>
-                                    <td>3.25</td>
-                                </tr>
-                                <tr>
-                                    <td>13-04-25</td>
-                                    <td>Aarhus</td>
-                                    <td>1</td>
-                                    <td><strong>Thunder Strike</strong></td>
-                                    <td>Carlos Lopez</td>
-                                    <td>01:42.3</td>
-                                    <td>5.50</td>
-                                </tr>
-                                <tr>
-                                    <td>12-04-25</td>
-                                    <td>Klampenborg</td>
-                                    <td>2</td>
-                                    <td><strong>Tearaway Two</strong></td>
-                                    <td>Angel Alekov</td>
-                                    <td>01:25.7</td>
-                                    <td>4.75</td>
-                                </tr>
-                                <tr>
-                                    <td>12-04-25</td>
-                                    <td>Klampenborg</td>
-                                    <td>1</td>
-                                    <td><strong>Midnight Oil</strong></td>
-                                    <td>Anna Pilroth</td>
-                                    <td>01:25.6</td>
-                                    <td>4.00</td>
+                                    <td colspan="7" style="text-align: center; padding: 2rem;">
+                                        <div class="spinner" style="margin: 0 auto;"></div>
+                                        Loading races from Google Sheets...
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -588,44 +507,12 @@
                     <div class="card-body">
                         <ul class="performer-list" id="topPerformers">
                             <li class="performer-item">
-                                <span class="performer-rank">1</span>
+                                <span class="performer-rank">⏳</span>
                                 <div class="performer-info">
-                                    <div class="performer-name">Carlos Lopez</div>
-                                    <div class="performer-stats">42 wins from 187 rides</div>
+                                    <div class="performer-name">Loading...</div>
+                                    <div class="performer-stats">Calculating from your data</div>
                                 </div>
-                                <div class="performer-winrate">22.5%</div>
-                            </li>
-                            <li class="performer-item">
-                                <span class="performer-rank">2</span>
-                                <div class="performer-info">
-                                    <div class="performer-name">Anna Pilroth</div>
-                                    <div class="performer-stats">38 wins from 156 rides</div>
-                                </div>
-                                <div class="performer-winrate">24.4%</div>
-                            </li>
-                            <li class="performer-item">
-                                <span class="performer-rank">3</span>
-                                <div class="performer-info">
-                                    <div class="performer-name">Per-Anders Gråberg</div>
-                                    <div class="performer-stats">35 wins from 168 rides</div>
-                                </div>
-                                <div class="performer-winrate">20.8%</div>
-                            </li>
-                            <li class="performer-item">
-                                <span class="performer-rank">4</span>
-                                <div class="performer-info">
-                                    <div class="performer-name">Oliver Wilson</div>
-                                    <div class="performer-stats">31 wins from 142 rides</div>
-                                </div>
-                                <div class="performer-winrate">21.8%</div>
-                            </li>
-                            <li class="performer-item">
-                                <span class="performer-rank">5</span>
-                                <div class="performer-info">
-                                    <div class="performer-name">Jacob Johansen</div>
-                                    <div class="performer-stats">28 wins from 139 rides</div>
-                                </div>
-                                <div class="performer-winrate">20.1%</div>
+                                <div class="performer-winrate">--%</div>
                             </li>
                         </ul>
                     </div>
@@ -720,6 +607,20 @@
     </div>
 
     <script>
+        // Configuration - Your Published Google Sheet CSV
+        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?output=csv';
+        
+        // Global data storage
+        let racingData = [];
+        let processedData = {
+            totalRaces: 0,
+            uniqueHorses: new Set(),
+            uniqueJockeys: new Set(),
+            uniqueTrainers: new Set(),
+            uniqueCourses: new Set(),
+            totalRows: 0
+        };
+
         // View Management
         function switchView(viewName) {
             // Update navigation
@@ -735,12 +636,233 @@
             document.getElementById(`${viewName}-view`).classList.add('active');
         }
 
-        // Initialize
-        console.log('Nordic Racing Analytics Platform - Ready');
-        console.log('Sample data loaded for demonstration');
-        console.log('To connect your Google Sheets data:');
-        console.log('1. Make sure your sheet is public');
-        console.log('2. We will add the connection in the next update');
+        // Load data from published Google Sheet
+        async function loadRacingData() {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.classList.add('loading');
+            syncStatus.innerHTML = '<span>⏳</span><span>Loading your races...</span>';
+            
+            try {
+                console.log('Fetching data from Google Sheets...');
+                const response = await fetch(SHEET_CSV_URL);
+                const csvText = await response.text();
+                
+                // Parse CSV
+                racingData = parseCSV(csvText);
+                console.log(`Loaded ${racingData.length} races from your Google Sheet!`);
+                
+                // Process data
+                processData();
+                
+                // Update UI
+                updateDashboard();
+                
+                syncStatus.classList.remove('loading');
+                syncStatus.innerHTML = `<span>✅</span><span>${racingData.length} races loaded</span>`;
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                syncStatus.innerHTML = '<span>❌</span><span>Error loading - Check console</span>';
+            }
+        }
+
+        // Parse CSV data
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                // Create row object
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                
+                // Only add rows with horse names
+                if (row['Horse'] && row['Horse'] !== '') {
+                    data.push(row);
+                }
+            }
+            
+            return data;
+        }
+
+        // Process the data for statistics
+        function processData() {
+            processedData.uniqueHorses.clear();
+            processedData.uniqueJockeys.clear();
+            processedData.uniqueTrainers.clear();
+            processedData.uniqueCourses.clear();
+            
+            const raceSet = new Set();
+            let totalField = 0;
+            let fieldCount = 0;
+            
+            racingData.forEach(row => {
+                // Add to unique sets
+                if (row.Horse) processedData.uniqueHorses.add(row.Horse);
+                if (row.Jockey) processedData.uniqueJockeys.add(row.Jockey);
+                if (row.Trainer) processedData.uniqueTrainers.add(row.Trainer);
+                if (row.Course) processedData.uniqueCourses.add(row.Course);
+                
+                // Count unique races
+                const raceId = `${row.Course}_${row.Date}_${row['Race of the Day']}`;
+                raceSet.add(raceId);
+                
+                // Calculate average field size
+                if (row.Field) {
+                    totalField += parseInt(row.Field) || 0;
+                    fieldCount++;
+                }
+            });
+            
+            processedData.totalRaces = raceSet.size;
+            processedData.totalRows = racingData.length;
+            processedData.avgFieldSize = fieldCount > 0 ? (totalField / fieldCount).toFixed(1) : 0;
+        }
+
+        // Update dashboard with real data
+        function updateDashboard() {
+            // Update statistics
+            document.getElementById('totalRaces').textContent = processedData.totalRaces || '0';
+            document.getElementById('uniqueHorses').textContent = processedData.uniqueHorses.size || '0';
+            document.getElementById('totalJockeys').textContent = processedData.uniqueJockeys.size || '0';
+            document.getElementById('totalCourses').textContent = processedData.uniqueCourses.size || '0';
+            document.getElementById('avgFieldSize').textContent = processedData.avgFieldSize || '0';
+            document.getElementById('dataPoints').textContent = processedData.totalRows.toLocaleString();
+            
+            // Update recent races table
+            updateRacesTable();
+            
+            // Update top performers
+            updateTopPerformers();
+        }
+
+        // Update races table with real data
+        function updateRacesTable() {
+            const tbody = document.getElementById('racesTableBody');
+            
+            // Get recent winners (last 15)
+            const winners = racingData
+                .filter(row => row.Place === '1')
+                .slice(-15)
+                .reverse();
+            
+            if (winners.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No race data available</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            winners.forEach(race => {
+                html += `
+                    <tr>
+                        <td>${race.Date || '-'}</td>
+                        <td>${race.Course || '-'}</td>
+                        <td>${race['Race of the Day'] || '-'}</td>
+                        <td><strong>${race.Horse || '-'}</strong></td>
+                        <td>${race.Jockey || '-'}</td>
+                        <td>${race.Time || race['Time 2'] || '-'}</td>
+                        <td>${race.Odds || '-'}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        // Calculate and update top performers
+        function updateTopPerformers() {
+            const jockeyStats = {};
+            
+            // Calculate statistics for each jockey
+            racingData.forEach(row => {
+                const jockey = row.Jockey;
+                if (!jockey) return;
+                
+                if (!jockeyStats[jockey]) {
+                    jockeyStats[jockey] = {
+                        name: jockey,
+                        rides: 0,
+                        wins: 0,
+                        places: 0
+                    };
+                }
+                
+                jockeyStats[jockey].rides++;
+                if (row.Place === '1') jockeyStats[jockey].wins++;
+                if (row.Place === '1' || row.Place === '2' || row.Place === '3') {
+                    jockeyStats[jockey].places++;
+                }
+            });
+            
+            // Convert to array and sort by wins
+            const jockeyArray = Object.values(jockeyStats)
+                .filter(j => j.rides >= 10) // Minimum 10 rides
+                .sort((a, b) => b.wins - a.wins)
+                .slice(0, 5);
+            
+            // Update the display
+            const container = document.getElementById('topPerformers');
+            let html = '';
+            
+            jockeyArray.forEach((jockey, index) => {
+                const winRate = ((jockey.wins / jockey.rides) * 100).toFixed(1);
+                html += `
+                    <li class="performer-item">
+                        <span class="performer-rank">${index + 1}</span>
+                        <div class="performer-info">
+                            <div class="performer-name">${jockey.name}</div>
+                            <div class="performer-stats">${jockey.wins} wins from ${jockey.rides} rides</div>
+                        </div>
+                        <div class="performer-winrate">${winRate}%</div>
+                    </li>
+                `;
+            });
+            
+            container.innerHTML = html || '<li class="performer-item">Loading performer data...</li>';
+        }
+
+        // Refresh data function
+        function refreshData() {
+            console.log('Refreshing data from Google Sheets...');
+            loadRacingData();
+        }
+
+        // Auto-refresh every 5 minutes (optional)
+        function startAutoRefresh() {
+            setInterval(() => {
+                console.log('Auto-refreshing data...');
+                loadRacingData();
+            }, 5 * 60 * 1000); // 5 minutes
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Nordic Racing Analytics Platform - Initializing...');
+            loadRacingData();
+            // Optional: Enable auto-refresh
+            // startAutoRefresh();
+        });
     </script>
 </body>
 </html>
