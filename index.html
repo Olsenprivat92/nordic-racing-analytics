@@ -1,1 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nordic Racing Analytics Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        :root {
+            --primary: #1e40af;
+            --secondary: #dc2626;
+            --dark: #0f172a;
+            --gray: #475569;
+            --light: #f8fafc;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        /* Header */
+        .header {
+            background: var(--dark);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--success);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .sync-status.loading {
+            background: var(--warning);
+        }
+
+        /* Navigation */
+        .nav {
+            background: white;
+            padding: 0 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background: var(--light);
+        }
+
+        .nav-item.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.up {
+            color: var(--success);
+        }
+
+        .stat-change.down {
+            color: var(--secondary);
+        }
+
+        /* Main Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Recent Races Table */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .place-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .place-1 { background: gold; color: var(--dark); }
+        .place-2 { background: silver; color: var(--dark); }
+        .place-3 { background: #cd7f32; color: white; }
+
+        /* Top Performers */
+        .performer-list {
+            list-style: none;
+        }
+
+        .performer-item {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .performer-rank {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.875rem;
+        }
+
+        .performer-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .performer-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .performer-stats {
+            font-size: 0.875rem;
+            color: var(--gray);
+        }
+
+        .performer-winrate {
+            font-weight: bold;
+            color: var(--success);
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--gray);
+        }
+
+        .spinner {
+            border: 3px solid var(--light);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* View Containers */
+        .view-container {
+            display: none;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-content {
+                overflow-x: auto;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🏇</span>
+                <span>Nordic Racing Analytics</span>
+            </div>
+            <div class="sync-status" id="syncStatus">
+                <span>✅</span>
+                <span>Sample Data Loaded</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-content">
+            <div class="nav-item active" onclick="switchView('dashboard')">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="switchView('predictor')">
+                <span class="nav-icon">🔮</span>
+                <span>Race Predictor</span>
+            </div>
+            <div class="nav-item" onclick="switchView('courses')">
+                <span class="nav-icon">🏁</span>
+                <span>Course Analysis</span>
+            </div>
+            <div class="nav-item" onclick="switchView('horses')">
+                <span class="nav-icon">🐎</span>
+                <span>Horse Analysis</span>
+            </div>
+            <div class="nav-item" onclick="switchView('jockeys')">
+                <span class="nav-icon">🏆</span>
+                <span>Jockey Analysis</span>
+            </div>
+            <div class="nav-item" onclick="switchView('trainers')">
+                <span class="nav-icon">👥</span>
+                <span>Trainer Analysis</span>
+            </div>
+            <div class="nav-item" onclick="switchView('bloodlines')">
+                <span class="nav-icon">🧬</span>
+                <span>Bloodline Analysis</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Dashboard View -->
+        <div class="view-container active" id="dashboard-view">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <span>📅</span>
+                        <span>Total Races</span>
+                    </div>
+                    <div class="stat-value" id="totalRaces">467</div>
+                    <div class="stat-change up">
+                        <span>↑</span>
+                        <span>12 this week</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <span>🐎</span>
+                        <span>Unique Horses</span>
+                    </div>
+                    <div class="stat-value" id="uniqueHorses">1,234</div>
+                    <div class="stat-change">
+                        <span>Active in 2025</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <span>🏆</span>
+                        <span>Jockeys</span>
+                    </div>
+                    <div class="stat-value" id="totalJockeys">89</div>
+                    <div class="stat-change">
+                        <span>Top performers</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <span>🏁</span>
+                        <span>Courses</span>
+                    </div>
+                    <div class="stat-value" id="totalCourses">7</div>
+                    <div class="stat-change">
+                        <span>Nordic tracks</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <span>📊</span>
+                        <span>Avg Field Size</span>
+                    </div>
+                    <div class="stat-value" id="avgFieldSize">8.7</div>
+                    <div class="stat-change">
+                        <span>Horses per race</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <span>⏱️</span>
+                        <span>Data Points</span>
+                    </div>
+                    <div class="stat-value" id="dataPoints">4,200</div>
+                    <div class="stat-change up">
+                        <span>↑</span>
+                        <span>Growing daily</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Recent Races -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Recent Races</h2>
+                    </div>
+                    <div class="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Course</th>
+                                    <th>Race</th>
+                                    <th>Winner</th>
+                                    <th>Jockey</th>
+                                    <th>Time</th>
+                                    <th>Odds</th>
+                                </tr>
+                            </thead>
+                            <tbody id="racesTableBody">
+                                <tr>
+                                    <td>16-04-25</td>
+                                    <td>Jægersro</td>
+                                    <td>1</td>
+                                    <td><strong>Majestic</strong></td>
+                                    <td>Oliver Wilson</td>
+                                    <td>02:04.6</td>
+                                    <td>3.00</td>
+                                </tr>
+                                <tr>
+                                    <td>16-04-25</td>
+                                    <td>Bro Park</td>
+                                    <td>1</td>
+                                    <td><strong>Speed Demon</strong></td>
+                                    <td>Jacob Johansen</td>
+                                    <td>01:26.3</td>
+                                    <td>8.75</td>
+                                </tr>
+                                <tr>
+                                    <td>15-04-25</td>
+                                    <td>Aarhus</td>
+                                    <td>1</td>
+                                    <td><strong>Royal Fortune</strong></td>
+                                    <td>Anna Pilroth</td>
+                                    <td>01:41.7</td>
+                                    <td>4.25</td>
+                                </tr>
+                                <tr>
+                                    <td>15-04-25</td>
+                                    <td>Klampenborg</td>
+                                    <td>1</td>
+                                    <td><strong>Dreamcatcher</strong></td>
+                                    <td>Carlos Lopez</td>
+                                    <td>01:24.9</td>
+                                    <td>6.50</td>
+                                </tr>
+                                <tr>
+                                    <td>14-04-25</td>
+                                    <td>Øvrevoll</td>
+                                    <td>1</td>
+                                    <td><strong>Viking Storm</strong></td>
+                                    <td>Per-Anders Gråberg</td>
+                                    <td>01:52.4</td>
+                                    <td>2.50</td>
+                                </tr>
+                                <tr>
+                                    <td>14-04-25</td>
+                                    <td>Jægersro</td>
+                                    <td>1</td>
+                                    <td><strong>Quick Silver</strong></td>
+                                    <td>Oliver Wilson</td>
+                                    <td>01:12.8</td>
+                                    <td>12.00</td>
+                                </tr>
+                                <tr>
+                                    <td>13-04-25</td>
+                                    <td>Bro Park</td>
+                                    <td>1</td>
+                                    <td><strong>Northern Light</strong></td>
+                                    <td>Anna Pilroth</td>
+                                    <td>02:05.1</td>
+                                    <td>3.25</td>
+                                </tr>
+                                <tr>
+                                    <td>13-04-25</td>
+                                    <td>Aarhus</td>
+                                    <td>1</td>
+                                    <td><strong>Thunder Strike</strong></td>
+                                    <td>Carlos Lopez</td>
+                                    <td>01:42.3</td>
+                                    <td>5.50</td>
+                                </tr>
+                                <tr>
+                                    <td>12-04-25</td>
+                                    <td>Klampenborg</td>
+                                    <td>2</td>
+                                    <td><strong>Tearaway Two</strong></td>
+                                    <td>Angel Alekov</td>
+                                    <td>01:25.7</td>
+                                    <td>4.75</td>
+                                </tr>
+                                <tr>
+                                    <td>12-04-25</td>
+                                    <td>Klampenborg</td>
+                                    <td>1</td>
+                                    <td><strong>Midnight Oil</strong></td>
+                                    <td>Anna Pilroth</td>
+                                    <td>01:25.6</td>
+                                    <td>4.00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Top Performers -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Top Performers</h2>
+                    </div>
+                    <div class="card-body">
+                        <ul class="performer-list" id="topPerformers">
+                            <li class="performer-item">
+                                <span class="performer-rank">1</span>
+                                <div class="performer-info">
+                                    <div class="performer-name">Carlos Lopez</div>
+                                    <div class="performer-stats">42 wins from 187 rides</div>
+                                </div>
+                                <div class="performer-winrate">22.5%</div>
+                            </li>
+                            <li class="performer-item">
+                                <span class="performer-rank">2</span>
+                                <div class="performer-info">
+                                    <div class="performer-name">Anna Pilroth</div>
+                                    <div class="performer-stats">38 wins from 156 rides</div>
+                                </div>
+                                <div class="performer-winrate">24.4%</div>
+                            </li>
+                            <li class="performer-item">
+                                <span class="performer-rank">3</span>
+                                <div class="performer-info">
+                                    <div class="performer-name">Per-Anders Gråberg</div>
+                                    <div class="performer-stats">35 wins from 168 rides</div>
+                                </div>
+                                <div class="performer-winrate">20.8%</div>
+                            </li>
+                            <li class="performer-item">
+                                <span class="performer-rank">4</span>
+                                <div class="performer-info">
+                                    <div class="performer-name">Oliver Wilson</div>
+                                    <div class="performer-stats">31 wins from 142 rides</div>
+                                </div>
+                                <div class="performer-winrate">21.8%</div>
+                            </li>
+                            <li class="performer-item">
+                                <span class="performer-rank">5</span>
+                                <div class="performer-info">
+                                    <div class="performer-name">Jacob Johansen</div>
+                                    <div class="performer-stats">28 wins from 139 rides</div>
+                                </div>
+                                <div class="performer-winrate">20.1%</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Views (placeholders for now) -->
+        <div class="view-container" id="predictor-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🔮 Race Predictor</h2>
+                </div>
+                <div class="card-body">
+                    <p style="text-align: center; padding: 4rem; color: var(--gray);">
+                        Race prediction engine coming soon...<br><br>
+                        This will analyze form, track preferences, jockey/trainer combinations, and historical patterns to predict race outcomes.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-container" id="courses-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏁 Course Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <p style="text-align: center; padding: 4rem; color: var(--gray);">
+                        Course analysis coming soon...<br><br>
+                        Track-specific statistics, surface preferences, and course specialists.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-container" id="horses-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🐎 Horse Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <p style="text-align: center; padding: 4rem; color: var(--gray);">
+                        Individual horse profiles coming soon...<br><br>
+                        Career statistics, performance trends, and optimal conditions.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-container" id="jockeys-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏆 Jockey Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <p style="text-align: center; padding: 4rem; color: var(--gray);">
+                        Jockey performance analysis coming soon...<br><br>
+                        Win rates, course preferences, and horse partnerships.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-container" id="trainers-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">👥 Trainer Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <p style="text-align: center; padding: 4rem; color: var(--gray);">
+                        Trainer statistics coming soon...<br><br>
+                        Stable performance, development patterns, and success metrics.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="view-container" id="bloodlines-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🧬 Bloodline Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <p style="text-align: center; padding: 4rem; color: var(--gray);">
+                        Sire and dam analysis coming soon...<br><br>
+                        Breeding patterns, genetic performance, and lineage tracking.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // View Management
+        function switchView(viewName) {
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Update view containers
+            document.querySelectorAll('.view-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(`${viewName}-view`).classList.add('active');
+        }
+
+        // Initialize
+        console.log('Nordic Racing Analytics Platform - Ready');
+        console.log('Sample data loaded for demonstration');
+        console.log('To connect your Google Sheets data:');
+        console.log('1. Make sure your sheet is public');
+        console.log('2. We will add the connection in the next update');
+    </script>
+</body>
+</html>
