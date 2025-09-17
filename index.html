@@ -1,4 +1,548 @@
-<!DOCTYPE html>
+    <script>
+        // Configuration
+        const SHEET_RACES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=0&single=true&output=csv';
+        const SHEET_FAVORITES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=964028900&single=true&output=csv';
+        const SHEET_RANKINGS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=1181389078&single=true&output=csv';
+        
+        // Global data
+        let racingData = [];
+        let favoriteTrendsData = [];
+        let rankingStandardsData = [];
+        let processedData = {
+            totalRaces: 0,
+            uniqueHorses: new Set(),
+            uniqueJockeys: new Set(),
+            uniqueTrainers: new Set(),
+            uniqueCourses: new Set(),
+            totalRows: 0
+        };
+
+        // View switching
+        function switchView(viewName) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            
+            document.querySelectorAll('.view-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(`${viewName}-view`).classList.add('active');
+            
+            // Load course data when switching to courses view
+            if (viewName === 'courses') {
+                loadCourseData();
+            }
+        }
+
+        // Load main racing data
+        async function loadRacingData() {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.classList.add('loading');
+            syncStatus.innerHTML = '<span>⏳</span><span>Loading...</span>';
+            
+            try {
+                const response = await fetch(SHEET_RACES_URL);
+                const csvText = await response.text();
+                racingData = parseCSV(csvText);
+                
+                processData();
+                updateDashboard();
+                
+                syncStatus.classList.remove('loading');
+                syncStatus.innerHTML = `<span>✅</span><span>${racingData.length} races loaded</span>`;
+            } catch (error) {
+                console.error('Error:', error);
+                syncStatus.innerHTML = '<span>❌</span><span>Error loading</span>';
+            }
+        }
+
+        // Load course analysis data
+        async function loadCourseData() {
+            try {
+                // Load favorite trends
+                const favResponse = await fetch(SHEET_FAVORITES_URL);
+                const favText = await favResponse.text();
+                favoriteTrendsData = parseCSV(favText);
+                
+                // Load ranking standards
+                const rankResponse = await fetch(SHEET_RANKINGS_URL);
+                const rankText = await rankResponse.text();
+                rankingStandardsData = parseCSV(rankText);
+                
+                // Update course analysis
+                updateCourseAnalysis();
+            } catch (error) {
+                console.error('Error loading course data:', error);
+            }
+        }
+
+        // Update course analysis
+        function updateCourseAnalysis() {
+            const fieldSizeFilter = document.getElementById('fieldSizeFilter')?.value || 'all';
+            const distanceFilter = document.getElementById('distanceFilter')?.value || 'all';
+            
+            // Filter Klampenborg races
+            let klampenborgRaces = racingData.filter(r => r.Course && r.Course.includes('Klampenborg'));
+            
+            // Apply field size filter
+            if (fieldSizeFilter !== 'all') {
+                const [min, max] = fieldSizeFilter.split('-').map(n => parseInt(n) || 999);
+                klampenborgRaces = klampenborgRaces.filter(r => {
+                    const field = parseInt(r.Field) || 0;
+                    return field >= min && (max === 999 ? field >= 14 : field <= max);
+                });
+            }
+            
+            // Apply distance filter
+            if (distanceFilter !== 'all') {
+                if (distanceFilter === '1000-1300') {
+                    klampenborgRaces = klampenborgRaces.filter(r => {
+                        const dist = parseInt(r.Distance) || 0;
+                        return dist >= 1000 && dist <= 1300;
+                    });
+                } else if (distanceFilter === '1400-1600') {
+                    klampenborgRaces = klampenborgRaces.filter(r => {
+                        const dist = parseInt(r.Distance) || 0;
+                        return dist >= 1400 && dist <= 1600;
+                    });
+                } else if (distanceFilter === '1800+') {
+                    klampenborgRaces = klampenborgRaces.filter(r => {
+                        const dist = parseInt(r.Distance) || 0;
+                        return dist >= 1800;
+                    });
+                }
+            }
+            
+            updatePostPositionAnalysis(klampenborgRaces);
+            updateWinningTimes(klampenborgRaces);
+            updateFavoriteAnalysis();
+            updateCourseTopPerformers(klampenborgRaces);
+            updateFieldSizeTrends(klampenborgRaces);
+            updateWinningOdds(klampenborgRaces);
+        }
+
+        // Post Position Analysis
+        function updatePostPositionAnalysis(races) {
+            const container = document.getElementById('postPositionAnalysis');
+            const postStats = {};
+            
+            races.forEach(race => {
+                const post = parseInt(race.Startspor) || 0;
+                const place = parseInt(race.Place) || 0;
+                
+                if (post > 0) {
+                    if (!postStats[post]) {
+                        postStats[post] = { runs: 0, wins: 0 };
+                    }
+                    postStats[post].runs++;
+                    if (place === 1) postStats[post].wins++;
+                }
+            });
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win%</th></tr>';
+            
+            Object.keys(postStats).sort((a, b) => a - b).slice(0, 8).forEach(post => {
+                const stats = postStats[post];
+                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                const color = winPct > 15 ? '#22c55e' : winPct > 10 ? '#f59e0b' : '#94a3b8';
+                
+                html += `<tr>
+                    <td style="font-weight: 600;">${post}</td>
+                    <td>${stats.runs}</td>
+                    <td>${stats.wins}</td>
+                    <td style="color: ${color}; font-weight: 600;">${winPct}%</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Winning Times Analysis
+        function updateWinningTimes(races) {
+            const container = document.getElementById('winningTimes');
+            const timesByDistance = {};
+            
+            races.filter(r => r.Place === '1').forEach(race => {
+                const distance = parseInt(race.Distance) || 0;
+                const time = race.Time || race['Time 2'] || '';
+                
+                if (distance > 0 && time) {
+                    if (!timesByDistance[distance]) {
+                        timesByDistance[distance] = [];
+                    }
+                    // Convert MM:SS.S to seconds
+                    const parts = time.split(':');
+                    let seconds = 0;
+                    if (parts.length === 2) {
+                        seconds = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+                    } else {
+                        seconds = parseFloat(time);
+                    }
+                    
+                    if (!isNaN(seconds) && seconds > 0) {
+                        timesByDistance[distance].push(seconds);
+                    }
+                }
+            });
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Distance</th><th>Races</th><th>Avg Time</th></tr>';
+            
+            Object.keys(timesByDistance).sort((a, b) => a - b).forEach(distance => {
+                const times = timesByDistance[distance];
+                if (times.length > 0) {
+                    const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
+                    const mins = Math.floor(avgTime / 60);
+                    const secs = (avgTime % 60).toFixed(1);
+                    const timeStr = mins > 0 ? `${mins}:${secs.padStart(4, '0')}` : `${secs}s`;
+                    
+                    html += `<tr>
+                        <td style="font-weight: 600;">${distance}m</td>
+                        <td>${times.length}</td>
+                        <td>${timeStr}</td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Favorite Analysis
+        function updateFavoriteAnalysis() {
+            const container = document.getElementById('favoriteAnalysis');
+            
+            if (favoriteTrendsData.length === 0) {
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.9rem;">No favorite data available</p>';
+                return;
+            }
+            
+            let html = '<table style="width: 100%; font-size: 0.85rem;">';
+            html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th></tr>';
+            
+            favoriteTrendsData.slice(0, 6).forEach(row => {
+                if (row.Class || row.class) {
+                    const className = row.Class || row.class || '-';
+                    const top25 = row['Top 25%'] || row['top 25'] || '-';
+                    const mid1 = row['26-50%'] || row['26-50'] || '-';
+                    const mid2 = row['51-75%'] || row['51-75'] || '-';
+                    const bottom = row['76-100%'] || row['76-100'] || '-';
+                    
+                    html += `<tr>
+                        <td style="font-weight: 600; font-size: 0.8rem;">${className}</td>
+                        <td style="color: #22c55e; font-weight: 600;">${top25}</td>
+                        <td>${mid1}</td>
+                        <td>${mid2}</td>
+                        <td style="color: #dc2626;">${bottom}</td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Top Performers at Course
+        function updateCourseTopPerformers(races) {
+            const container = document.getElementById('courseTopPerformers');
+            const jockeyStats = {};
+            const trainerStats = {};
+            
+            races.forEach(race => {
+                // Jockey stats
+                if (race.Jockey) {
+                    if (!jockeyStats[race.Jockey]) {
+                        jockeyStats[race.Jockey] = { runs: 0, wins: 0 };
+                    }
+                    jockeyStats[race.Jockey].runs++;
+                    if (race.Place === '1') jockeyStats[race.Jockey].wins++;
+                }
+                
+                // Trainer stats
+                if (race.Trainer) {
+                    if (!trainerStats[race.Trainer]) {
+                        trainerStats[race.Trainer] = { runs: 0, wins: 0 };
+                    }
+                    trainerStats[race.Trainer].runs++;
+                    if (race.Place === '1') trainerStats[race.Trainer].wins++;
+                }
+            });
+            
+            const topJockeys = Object.entries(jockeyStats)
+                .filter(([_, stats]) => stats.runs >= 10)
+                .sort((a, b) => b[1].wins - a[1].wins)
+                .slice(0, 3);
+            
+            const topTrainers = Object.entries(trainerStats)
+                .filter(([_, stats]) => stats.runs >= 10)
+                .sort((a, b) => b[1].wins - a[1].wins)
+                .slice(0, 3);
+            
+            let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">';
+            
+            // Jockeys
+            html += '<div><h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Jockeys</h4>';
+            html += '<table style="width: 100%; font-size: 0.8rem;">';
+            topJockeys.forEach(([name, stats]) => {
+                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                html += `<tr>
+                    <td>${name.substring(0, 15)}</td>
+                    <td>${winPct}%</td>
+                </tr>`;
+            });
+            html += '</table></div>';
+            
+            // Trainers
+            html += '<div><h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Trainers</h4>';
+            html += '<table style="width: 100%; font-size: 0.8rem;">';
+            topTrainers.forEach(([name, stats]) => {
+                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                html += `<tr>
+                    <td>${name.substring(0, 15)}</td>
+                    <td>${winPct}%</td>
+                </tr>`;
+            });
+            html += '</table></div>';
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Field Size Trends
+        function updateFieldSizeTrends(races) {
+            const container = document.getElementById('fieldSizeTrends');
+            const monthlyFields = {};
+            
+            races.forEach(race => {
+                if (race.Date && race.Field) {
+                    const parts = race.Date.split('-');
+                    const month = parts.length >= 2 ? parts[1] : '00';
+                    
+                    if (!monthlyFields[month]) {
+                        monthlyFields[month] = [];
+                    }
+                    monthlyFields[month].push(parseInt(race.Field) || 0);
+                }
+            });
+            
+            const months = ['01', '02', '03', '04', '05', '06'];
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Month</th><th>Avg Field</th><th>Races</th></tr>';
+            
+            months.forEach((month, idx) => {
+                const fields = monthlyFields[month] || [];
+                if (fields.length > 0) {
+                    const avgField = (fields.reduce((a, b) => a + b, 0) / fields.length).toFixed(1);
+                    html += `<tr>
+                        <td>${monthNames[idx]}</td>
+                        <td style="font-weight: 600;">${avgField}</td>
+                        <td>${fields.length}</td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Winning Odds Analysis
+        function updateWinningOdds(races) {
+            const container = document.getElementById('winningOdds');
+            const oddsByClass = {};
+            
+            races.filter(r => r.Place === '1').forEach(race => {
+                const raceClass = race.Class || 'All';
+                const odds = parseFloat(race.Odds) || 0;
+                
+                if (odds > 0) {
+                    if (!oddsByClass[raceClass]) {
+                        oddsByClass[raceClass] = [];
+                    }
+                    oddsByClass[raceClass].push(odds);
+                }
+            });
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Class</th><th>Avg Odds</th><th>Races</th></tr>';
+            
+            Object.keys(oddsByClass).sort().slice(0, 5).forEach(raceClass => {
+                const odds = oddsByClass[raceClass];
+                const avgOdds = (odds.reduce((a, b) => a + b, 0) / odds.length).toFixed(2);
+                
+                html += `<tr>
+                    <td style="font-weight: 600;">${raceClass}</td>
+                    <td>${avgOdds}</td>
+                    <td>${odds.length}</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Parse CSV
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                
+                if (Object.values(row).some(v => v !== '')) {
+                    data.push(row);
+                }
+            }
+            
+            return data;
+        }
+
+        // Process data
+        function processData() {
+            processedData.uniqueHorses.clear();
+            processedData.uniqueJockeys.clear();
+            processedData.uniqueTrainers.clear();
+            processedData.uniqueCourses.clear();
+            
+            const raceSet = new Set();
+            
+            racingData.forEach(row => {
+                if (row.Horse) processedData.uniqueHorses.add(row.Horse);
+                if (row.Jockey) processedData.uniqueJockeys.add(row.Jockey);
+                if (row.Trainer) processedData.uniqueTrainers.add(row.Trainer);
+                if (row.Course) processedData.uniqueCourses.add(row.Course);
+                
+                const raceId = `${row.Course}_${row.Date}_${row['Race of the Day']}`;
+                raceSet.add(raceId);
+            });
+            
+            processedData.totalRaces = raceSet.size;
+            processedData.totalRows = racingData.length;
+            
+            let totalField = 0;
+            let count = 0;
+            racingData.forEach(row => {
+                if (row.Field) {
+                    totalField += parseInt(row.Field) || 0;
+                    count++;
+                }
+            });
+            processedData.avgFieldSize = count > 0 ? (totalField / count).toFixed(1) : 0;
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            document.getElementById('totalRaces').textContent = processedData.totalRaces;
+            document.getElementById('uniqueHorses').textContent = processedData.uniqueHorses.size;
+            document.getElementById('totalJockeys').textContent = processedData.uniqueJockeys.size;
+            document.getElementById('totalCourses').textContent = processedData.uniqueCourses.size;
+            document.getElementById('avgFieldSize').textContent = processedData.avgFieldSize;
+            document.getElementById('dataPoints').textContent = processedData.totalRows.toLocaleString();
+            
+            updateRacesTable();
+            updateTopPerformers();
+        }
+
+        // Update races table
+        function updateRacesTable() {
+            const tbody = document.getElementById('racesTableBody');
+            const winners = racingData.filter(r => r.Place === '1').slice(-10).reverse();
+            
+            if (winners.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">No data</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            winners.forEach(race => {
+                html += `<tr>
+                    <td>${race.Date || '-'}</td>
+                    <td>${race.Course || '-'}</td>
+                    <td>${race['Race of the Day'] || '-'}</td>
+                    <td><strong>${race.Horse || '-'}</strong></td>
+                    <td>${race.Jockey || '-'}</td>
+                    <td>${race.Time || race['Time 2'] || '-'}</td>
+                    <td>${race.Odds || '-'}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Update top performers
+        function updateTopPerformers() {
+            const jockeyStats = {};
+            
+            racingData.forEach(row => {
+                const jockey = row.Jockey;
+                if (!jockey) return;
+                
+                if (!jockeyStats[jockey]) {
+                    jockeyStats[jockey] = { name: jockey, rides: 0, wins: 0 };
+                }
+                
+                jockeyStats[jockey].rides++;
+                if (row.Place === '1') jockeyStats[jockey].wins++;
+            });
+            
+            const topJockeys = Object.values(jockeyStats)
+                .filter(j => j.rides >= 10)
+                .sort((a, b) => b.wins - a.wins)
+                .slice(0, 5);
+            
+            const container = document.getElementById('topPerformers');
+            let html = '';
+            
+            topJockeys.forEach((jockey, idx) => {
+                const winRate = ((jockey.wins / jockey.rides) * 100).toFixed(1);
+                html += `<li class="performer-item">
+                    <span class="performer-rank">${idx + 1}</span>
+                    <div class="performer-info">
+                        <div class="performer-name">${jockey.name}</div>
+                        <div class="performer-stats">${jockey.wins} wins from ${jockey.rides} rides</div>
+                    </div>
+                    <div class="performer-winrate">${winRate}%</div>
+                </li>`;
+            });
+            
+            container.innerHTML = html || '<li class="performer-item">No data</li>';
+        }
+
+        // Refresh
+        function refreshData() {
+            loadRacingData();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRacingData();
+        });
+    </script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -513,12 +1057,89 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">🏁 Course Analysis - Klampenborg</h2>
+                    <button onclick="loadCourseData()" style="padding: 8px 16px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        🔄 Refresh Analysis
+                    </button>
                 </div>
                 <div class="card-body">
-                    <p style="text-align: center; padding: 2rem; color: #475569;">
-                        Loading course analysis...<br>
-                        This will show post positions, times, favorites, and top performers.
-                    </p>
+                    <!-- Filters -->
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Field Size</label>
+                                <select id="fieldSizeFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                    <option value="all">All Sizes</option>
+                                    <option value="5-7">5-7 horses</option>
+                                    <option value="8-10">8-10 horses</option>
+                                    <option value="11-13">11-13 horses</option>
+                                    <option value="14+">14+ horses</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Distance</label>
+                                <select id="distanceFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                    <option value="all">All Distances</option>
+                                    <option value="1000-1400">Sprint (1000-1400m)</option>
+                                    <option value="1500-1800">Mile (1500-1800m)</option>
+                                    <option value="1800+">Stayer (1800m+)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <!-- Post Position Analysis -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">📊 Post Position Analysis</h3>
+                            <div id="postPositionAnalysis">
+                                <p style="color: #94a3b8;">Loading...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Winning Times -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">⏱️ Average Winning Times</h3>
+                            <div id="winningTimes">
+                                <p style="color: #94a3b8;">Loading...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Favorite Analysis -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">🎯 Favorite vs Longshot</h3>
+                            <div id="favoriteAnalysis">
+                                <p style="color: #94a3b8;">Loading favorite trends...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Top Performers -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">🏆 Top at Klampenborg</h3>
+                            <div id="courseTopPerformers">
+                                <p style="color: #94a3b8;">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Stats -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                        <!-- Field Size Trends -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">📈 Field Size Trends</h3>
+                            <div id="fieldSizeTrends">
+                                <p style="color: #94a3b8;">Loading...</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Winning Odds -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">💰 Average Winning Odds</h3>
+                            <div id="winningOdds">
+                                <p style="color: #94a3b8;">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
