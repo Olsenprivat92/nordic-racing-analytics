@@ -1,4 +1,461 @@
-<!DOCTYPE html>
+    <script>
+        // Configuration - Your Published Google Sheet CSVs
+        const SHEET_RACES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=0&single=true&output=csv';
+        const SHEET_FAVORITES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=964028900&single=true&output=csv';
+        const SHEET_RANKINGS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=1181389078&single=true&output=csv';
+        
+        // Global data storage
+        let racingData = [];
+        let favoriteTrendsData = [];
+        let rankingStandardsData = [];
+        let processedData = {
+            totalRaces: 0,
+            uniqueHorses: new Set(),
+            uniqueJockeys: new Set(),
+            uniqueTrainers: new Set(),
+            uniqueCourses: new Set(),
+            totalRows: 0
+        };
+
+        // View Management
+        function switchView(viewName) {
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Update view containers
+            document.querySelectorAll('.view-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.getElementById(`${viewName}-view`).classList.add('active');
+            
+            // Load course data if switching to courses view
+            if (viewName === 'courses') {
+                loadCourseData();
+            }
+        }
+
+        // Load data from published Google Sheet
+        async function loadRacingData() {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.classList.add('loading');
+            syncStatus.innerHTML = '<span>⏳</span><span>Loading your races...</span>';
+            
+            try {
+                console.log('Fetching data from Google Sheets...');
+                const response = await fetch(SHEET_RACES_URL);
+                const csvText = await response.text();
+                
+                // Parse CSV
+                racingData = parseCSV(csvText);
+                console.log(`Loaded ${racingData.length} races from your Google Sheet!`);
+                
+                // Process data
+                processData();
+                
+                // Update UI
+                updateDashboard();
+                
+                syncStatus.classList.remove('loading');
+                syncStatus.innerHTML = `<span>✅</span><span>${racingData.length} races loaded</span>`;
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                syncStatus.innerHTML = '<span>❌</span><span>Error loading - Check console</span>';
+            }
+        }
+
+        // Load course analysis data
+        async function loadCourseData() {
+            try {
+                console.log('Loading course analysis data...');
+                
+                // Load favorite trends
+                const favResponse = await fetch(SHEET_FAVORITES_URL);
+                const favText = await favResponse.text();
+                favoriteTrendsData = parseCSV(favText);
+                console.log('Loaded favorite trends data');
+                
+                // Load ranking standards
+                const rankResponse = await fetch(SHEET_RANKINGS_URL);
+                const rankText = await rankResponse.text();
+                rankingStandardsData = parseCSV(rankText);
+                console.log('Loaded ranking standards data');
+                
+                // Update course analysis
+                updateCourseAnalysis();
+                
+            } catch (error) {
+                console.error('Error loading course data:', error);
+            }
+        }
+
+        // Update course analysis displays
+        function updateCourseAnalysis() {
+            // Get filter values
+            const fieldSizeFilter = document.getElementById('fieldSizeFilter')?.value || 'all';
+            const distanceFilter = document.getElementById('distanceFilter')?.value || 'all';
+            const classFilter = document.getElementById('classFilter')?.value || 'all';
+            
+            // Filter Klampenborg races
+            let klampenborgRaces = racingData.filter(r => r.Course && r.Course.includes('Klampenborg'));
+            
+            // Apply filters
+            if (fieldSizeFilter !== 'all') {
+                const [min, max] = fieldSizeFilter.split('-').map(n => parseInt(n) || 999);
+                klampenborgRaces = klampenborgRaces.filter(r => {
+                    const field = parseInt(r.Field) || 0;
+                    return field >= min && (max === 999 ? field >= 14 : field <= max);
+                });
+            }
+            
+            // Update all analysis sections
+            updatePostPositionAnalysis(klampenborgRaces);
+            updateWinningTimes(klampenborgRaces);
+            updateFavoriteAnalysis();
+            updateTopPerformersKlampenborg(klampenborgRaces);
+            updateFieldSizeTrends(klampenborgRaces);
+            updateWinningOdds(klampenborgRaces);
+        }
+
+        // Post Position Analysis
+        function updatePostPositionAnalysis(races) {
+            const container = document.getElementById('postPositionAnalysis');
+            const postStats = {};
+            
+            races.forEach(race => {
+                const post = parseInt(race.Startspor) || parseInt(race['Start Position']) || 0;
+                const place = parseInt(race.Place) || 0;
+                
+                if (post > 0) {
+                    if (!postStats[post]) {
+                        postStats[post] = { runs: 0, wins: 0, places: 0 };
+                    }
+                    postStats[post].runs++;
+                    if (place === 1) postStats[post].wins++;
+                    if (place <= 3) postStats[post].places++;
+                }
+            });
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win%</th><th>Place%</th></tr>';
+            
+            Object.keys(postStats).sort((a, b) => a - b).slice(0, 10).forEach(post => {
+                const stats = postStats[post];
+                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                const placePct = ((stats.places / stats.runs) * 100).toFixed(1);
+                const color = winPct > 15 ? '#22c55e' : winPct > 10 ? '#f59e0b' : '#94a3b8';
+                
+                html += `<tr>
+                    <td style="font-weight: 600;">${post}</td>
+                    <td>${stats.runs}</td>
+                    <td>${stats.wins}</td>
+                    <td style="color: ${color}; font-weight: 600;">${winPct}%</td>
+                    <td>${placePct}%</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Winning Times Analysis
+        function updateWinningTimes(races) {
+            const container = document.getElementById('winningTimes');
+            const timesByDistance = {};
+            
+            races.filter(r => r.Place === '1').forEach(race => {
+                const distance = parseInt(race.Distance) || 0;
+                const time = race.Time || race['Time 2'] || '';
+                
+                if (distance > 0 && time) {
+                    if (!timesByDistance[distance]) {
+                        timesByDistance[distance] = [];
+                    }
+                    // Convert time to seconds
+                    const parts = time.split(':');
+                    const seconds = parts.length === 2 ? 
+                        parseInt(parts[0]) * 60 + parseFloat(parts[1]) : 
+                        parseFloat(time);
+                    
+                    if (!isNaN(seconds)) {
+                        timesByDistance[distance].push(seconds);
+                    }
+                }
+            });
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Distance</th><th>Races</th><th>Avg Time</th><th>Best Time</th></tr>';
+            
+            Object.keys(timesByDistance).sort((a, b) => a - b).forEach(distance => {
+                const times = timesByDistance[distance];
+                const avgTime = (times.reduce((a, b) => a + b, 0) / times.length);
+                const bestTime = Math.min(...times);
+                
+                const formatTime = (seconds) => {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = (seconds % 60).toFixed(1);
+                    return mins > 0 ? `${mins}:${secs.padStart(4, '0')}` : `${secs}s`;
+                };
+                
+                html += `<tr>
+                    <td style="font-weight: 600;">${distance}m</td>
+                    <td>${times.length}</td>
+                    <td>${formatTime(avgTime)}</td>
+                    <td style="color: #22c55e; font-weight: 600;">${formatTime(bestTime)}</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Favorite Analysis
+        function updateFavoriteAnalysis() {
+            const container = document.getElementById('favoriteAnalysis');
+            
+            if (favoriteTrendsData.length === 0) {
+                container.innerHTML = '<p style="color: #94a3b8;">Loading favorite trends...</p>';
+                return;
+            }
+            
+            let html = '<table style="width: 100%; font-size: 0.85rem;">';
+            html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Races</th></tr>';
+            
+            favoriteTrendsData.forEach(row => {
+                if (row.Class) {
+                    const top25 = row['Top 25%'] || row.Top_25 || '-';
+                    const mid1 = row['26-50%'] || row['26_50'] || '-';
+                    const mid2 = row['51-75%'] || row['51_75'] || '-';
+                    const bottom = row['76-100%'] || row['76_100'] || '-';
+                    
+                    html += `<tr>
+                        <td style="font-weight: 600;">${row.Class}</td>
+                        <td style="color: #22c55e; font-weight: 600;">${top25}</td>
+                        <td>${mid1}</td>
+                        <td>${mid2}</td>
+                        <td style="color: #dc2626;">${bottom}</td>
+                        <td>${row.Races || '-'}</td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Top Performers at Klampenborg
+        function updateTopPerformersKlampenborg(races) {
+            const container = document.getElementById('topPerformersKlampenborg');
+            const jockeyStats = {};
+            const trainerStats = {};
+            
+            races.forEach(race => {
+                // Jockey stats
+                const jockey = race.Jockey;
+                if (jockey) {
+                    if (!jockeyStats[jockey]) {
+                        jockeyStats[jockey] = { runs: 0, wins: 0, stakes: 0, returns: 0 };
+                    }
+                    jockeyStats[jockey].runs++;
+                    if (race.Place === '1') {
+                        jockeyStats[jockey].wins++;
+                        jockeyStats[jockey].returns += parseFloat(race.Odds) || 0;
+                    }
+                    jockeyStats[jockey].stakes += 1;
+                }
+                
+                // Trainer stats
+                const trainer = race.Trainer;
+                if (trainer) {
+                    if (!trainerStats[trainer]) {
+                        trainerStats[trainer] = { runs: 0, wins: 0 };
+                    }
+                    trainerStats[trainer].runs++;
+                    if (race.Place === '1') trainerStats[trainer].wins++;
+                }
+            });
+            
+            // Sort and get top performers
+            const topJockeys = Object.entries(jockeyStats)
+                .filter(([_, stats]) => stats.runs >= 10)
+                .sort((a, b) => b[1].wins - a[1].wins)
+                .slice(0, 5);
+            
+            const topTrainers = Object.entries(trainerStats)
+                .filter(([_, stats]) => stats.runs >= 10)
+                .sort((a, b) => b[1].wins - a[1].wins)
+                .slice(0, 5);
+            
+            let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">';
+            
+            // Jockeys
+            html += '<div><h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Top Jockeys</h4>';
+            html += '<table style="width: 100%; font-size: 0.85rem;">';
+            html += '<tr><th>Name</th><th>Wins</th><th>Win%</th></tr>';
+            
+            topJockeys.forEach(([name, stats]) => {
+                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                html += `<tr>
+                    <td style="font-size: 0.8rem;">${name}</td>
+                    <td>${stats.wins}/${stats.runs}</td>
+                    <td style="color: #22c55e; font-weight: 600;">${winPct}%</td>
+                </tr>`;
+            });
+            html += '</table></div>';
+            
+            // Trainers
+            html += '<div><h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Top Trainers</h4>';
+            html += '<table style="width: 100%; font-size: 0.85rem;">';
+            html += '<tr><th>Name</th><th>Wins</th><th>Win%</th></tr>';
+            
+            topTrainers.forEach(([name, stats]) => {
+                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                html += `<tr>
+                    <td style="font-size: 0.8rem;">${name}</td>
+                    <td>${stats.wins}/${stats.runs}</td>
+                    <td style="color: #22c55e; font-weight: 600;">${winPct}%</td>
+                </tr>`;
+            });
+            html += '</table></div>';
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Field Size Trends
+        function updateFieldSizeTrends(races) {
+            const container = document.getElementById('fieldSizeTrends');
+            const monthlyFields = {};
+            
+            races.forEach(race => {
+                const date = race.Date;
+                const field = parseInt(race.Field) || 0;
+                
+                if (date && field > 0) {
+                    // Extract month from date (assuming format DD-MM-YY)
+                    const parts = date.split('-');
+                    const month = parts.length >= 2 ? parts[1] : '00';
+                    
+                    if (!monthlyFields[month]) {
+                        monthlyFields[month] = [];
+                    }
+                    monthlyFields[month].push(field);
+                }
+            });
+            
+            const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Month</th><th>Avg Field</th><th>Races</th><th>Trend</th></tr>';
+            
+            months.forEach((month, idx) => {
+                const fields = monthlyFields[month] || [];
+                if (fields.length > 0) {
+                    const avgField = (fields.reduce((a, b) => a + b, 0) / fields.length).toFixed(1);
+                    const trend = avgField > 9 ? '↑' : avgField < 8 ? '↓' : '→';
+                    const color = avgField > 9 ? '#22c55e' : avgField < 8 ? '#dc2626' : '#94a3b8';
+                    
+                    html += `<tr>
+                        <td>${monthNames[idx]}</td>
+                        <td style="font-weight: 600;">${avgField}</td>
+                        <td>${fields.length}</td>
+                        <td style="color: ${color}; font-size: 1.2rem;">${trend}</td>
+                    </tr>`;
+                }
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Winning Odds Analysis
+        function updateWinningOdds(races) {
+            const container = document.getElementById('winningOdds');
+            const oddsByClass = {};
+            
+            races.filter(r => r.Place === '1').forEach(race => {
+                const raceClass = race.Class || 'Unknown';
+                const odds = parseFloat(race.Odds) || 0;
+                
+                if (odds > 0) {
+                    if (!oddsByClass[raceClass]) {
+                        oddsByClass[raceClass] = [];
+                    }
+                    oddsByClass[raceClass].push(odds);
+                }
+            });
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Class</th><th>Races</th><th>Avg Odds</th><th>Median</th><th>Favorites</th></tr>';
+            
+            Object.keys(oddsByClass).sort().forEach(raceClass => {
+                const odds = oddsByClass[raceClass];
+                const avgOdds = (odds.reduce((a, b) => a + b, 0) / odds.length).toFixed(2);
+                const sortedOdds = [...odds].sort((a, b) => a - b);
+                const median = sortedOdds[Math.floor(sortedOdds.length / 2)].toFixed(2);
+                const favorites = odds.filter(o => o <= 3).length;
+                const favPct = ((favorites / odds.length) * 100).toFixed(0);
+                
+                html += `<tr>
+                    <td style="font-weight: 600;">${raceClass}</td>
+                    <td>${odds.length}</td>
+                    <td>${avgOdds}</td>
+                    <td>${median}</td>
+                    <td style="color: #22c55e; font-weight: 600;">${favPct}%</td>
+                </tr>`;
+            });
+            
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        // Parse CSV data
+        function parseCSV(csvText) {
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                // Create row object
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                
+                // Only add rows with data
+                if (Object.values(row).some(v => v !== '')) {
+                    data.push(row);
+                }
+            }
+            
+            return data;
+        }
+
+        // Process the data for statistics
+        function processData() {
+            processedData.unique<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -535,16 +992,140 @@
             </div>
         </div>
 
+        <!-- Course Analysis View -->
         <div class="view-container" id="courses-view">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="card-title">🏁 Course Analysis</h2>
+                    <h2 class="card-title">🏁 Course Analysis - Klampenborg</h2>
+                    <button onclick="loadCourseData()" style="padding: 8px 16px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        🔄 Refresh Analysis
+                    </button>
                 </div>
                 <div class="card-body">
-                    <p style="text-align: center; padding: 4rem; color: var(--gray);">
-                        Course analysis coming soon...<br><br>
-                        Track-specific statistics, surface preferences, and course specialists.
-                    </p>
+                    <!-- Filters Section -->
+                    <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <!-- Date Range -->
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Date Range</label>
+                                <input type="date" id="startDate" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                <input type="date" id="endDate" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; margin-top: 4px;">
+                            </div>
+                            
+                            <!-- Field Size Filter -->
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Field Size</label>
+                                <select id="fieldSizeFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                    <option value="all">All Sizes</option>
+                                    <option value="5-7">5-7 horses</option>
+                                    <option value="8-10">8-10 horses</option>
+                                    <option value="11-13">11-13 horses</option>
+                                    <option value="14+">14+ horses</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Distance Filter -->
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Distance</label>
+                                <select id="distanceFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                    <option value="all">All Distances</option>
+                                    <option value="1000-1300">Sprint (1000-1300m)</option>
+                                    <option value="1400-1600">Mile (1400-1600m)</option>
+                                    <option value="1800+">Route (1800m+)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Class Filter -->
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Class</label>
+                                <select id="classFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                    <option value="all">All Classes</option>
+                                    <option value="1-2">Class 1-2</option>
+                                    <option value="3-4">Class 3-4</option>
+                                    <option value="5+">Class 5+</option>
+                                    <option value="maiden">Maiden</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analysis Grid -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <!-- Post Position Analysis -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #1e293b;">
+                                📊 Post Position Analysis
+                            </h3>
+                            <div id="postPositionAnalysis">
+                                <div style="text-align: center; color: #94a3b8; padding: 2rem;">
+                                    Loading post position data...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Winning Times by Distance -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #1e293b;">
+                                ⏱️ Average Winning Times
+                            </h3>
+                            <div id="winningTimes">
+                                <div style="text-align: center; color: #94a3b8; padding: 2rem;">
+                                    Loading time data...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Favorite vs Longshot Analysis -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #1e293b;">
+                                🎯 Field Reliability (Favorite vs Longshot)
+                            </h3>
+                            <div id="favoriteAnalysis">
+                                <div style="text-align: center; color: #94a3b8; padding: 2rem;">
+                                    Loading favorite trends...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Top Performers -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #1e293b;">
+                                🏆 Top Performers at Klampenborg
+                            </h3>
+                            <div id="topPerformersKlampenborg">
+                                <div style="text-align: center; color: #94a3b8; padding: 2rem;">
+                                    Loading performer data...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Additional Stats Row -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                        <!-- Field Size Trends -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #1e293b;">
+                                📈 Field Size Trends
+                            </h3>
+                            <div id="fieldSizeTrends">
+                                <div style="text-align: center; color: #94a3b8; padding: 2rem;">
+                                    Loading field size data...
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Average Winning Odds -->
+                        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: #1e293b;">
+                                💰 Average Winning Odds by Class
+                            </h3>
+                            <div id="winningOdds">
+                                <div style="text-align: center; color: #94a3b8; padding: 2rem;">
+                                    Loading odds data...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -605,106 +1186,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Configuration - Your Published Google Sheet CSV
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?output=csv';
-        
-        // Global data storage
-        let racingData = [];
-        let processedData = {
-            totalRaces: 0,
-            uniqueHorses: new Set(),
-            uniqueJockeys: new Set(),
-            uniqueTrainers: new Set(),
-            uniqueCourses: new Set(),
-            totalRows: 0
-        };
-
-        // View Management
-        function switchView(viewName) {
-            // Update navigation
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            event.target.closest('.nav-item').classList.add('active');
-            
-            // Update view containers
-            document.querySelectorAll('.view-container').forEach(container => {
-                container.classList.remove('active');
-            });
-            document.getElementById(`${viewName}-view`).classList.add('active');
-        }
-
-        // Load data from published Google Sheet
-        async function loadRacingData() {
-            const syncStatus = document.getElementById('syncStatus');
-            syncStatus.classList.add('loading');
-            syncStatus.innerHTML = '<span>⏳</span><span>Loading your races...</span>';
-            
-            try {
-                console.log('Fetching data from Google Sheets...');
-                const response = await fetch(SHEET_CSV_URL);
-                const csvText = await response.text();
-                
-                // Parse CSV
-                racingData = parseCSV(csvText);
-                console.log(`Loaded ${racingData.length} races from your Google Sheet!`);
-                
-                // Process data
-                processData();
-                
-                // Update UI
-                updateDashboard();
-                
-                syncStatus.classList.remove('loading');
-                syncStatus.innerHTML = `<span>✅</span><span>${racingData.length} races loaded</span>`;
-                
-            } catch (error) {
-                console.error('Error loading data:', error);
-                syncStatus.innerHTML = '<span>❌</span><span>Error loading - Check console</span>';
-            }
-        }
-
-        // Parse CSV data
-        function parseCSV(csvText) {
-            const lines = csvText.split('\n');
-            const headers = lines[0].split(',').map(h => h.trim());
-            const data = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                
-                const values = [];
-                let current = '';
-                let inQuotes = false;
-                
-                for (let char of lines[i]) {
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                values.push(current.trim());
-                
-                // Create row object
-                const row = {};
-                headers.forEach((header, index) => {
-                    row[header] = values[index] || '';
-                });
-                
-                // Only add rows with horse names
-                if (row['Horse'] && row['Horse'] !== '') {
-                    data.push(row);
-                }
-            }
-            
-            return data;
-        }
 
         // Process the data for statistics
         function processData() {
