@@ -81,9 +81,22 @@
         function updateCourseAnalysis() {
             const fieldSizeFilter = document.getElementById('fieldSizeFilter')?.value || 'all';
             const distanceFilter = document.getElementById('distanceFilter')?.value || 'all';
+            const monthFilter = document.getElementById('monthFilter')?.value || 'all';
             
             // Filter Klampenborg races
             let klampenborgRaces = racingData.filter(r => r.Course && r.Course.includes('Klampenborg'));
+            
+            // Apply month filter
+            if (monthFilter !== 'all') {
+                klampenborgRaces = klampenborgRaces.filter(r => {
+                    if (r.Date) {
+                        const parts = r.Date.split('-');
+                        const month = parts.length >= 2 ? parts[1] : '';
+                        return month === monthFilter;
+                    }
+                    return false;
+                });
+            }
             
             // Apply field size filter
             if (fieldSizeFilter !== 'all') {
@@ -94,26 +107,27 @@
                 });
             }
             
-            // Apply distance filter
+            // Apply distance filter - FIXED
             if (distanceFilter !== 'all') {
-                if (distanceFilter === '1000-1300') {
+                if (distanceFilter === '1000-1400') {
                     klampenborgRaces = klampenborgRaces.filter(r => {
                         const dist = parseInt(r.Distance) || 0;
-                        return dist >= 1000 && dist <= 1300;
+                        return dist >= 1000 && dist <= 1400;
                     });
-                } else if (distanceFilter === '1400-1600') {
+                } else if (distanceFilter === '1500-1800') {
                     klampenborgRaces = klampenborgRaces.filter(r => {
                         const dist = parseInt(r.Distance) || 0;
-                        return dist >= 1400 && dist <= 1600;
+                        return dist >= 1500 && dist <= 1800;
                     });
                 } else if (distanceFilter === '1800+') {
                     klampenborgRaces = klampenborgRaces.filter(r => {
                         const dist = parseInt(r.Distance) || 0;
-                        return dist >= 1800;
+                        return dist > 1800;
                     });
                 }
             }
             
+            // Update all sections with filtered data
             updatePostPositionAnalysis(klampenborgRaces);
             updateWinningTimes(klampenborgRaces);
             updateFavoriteAnalysis();
@@ -143,18 +157,21 @@
             let html = '<table style="width: 100%; font-size: 0.9rem;">';
             html += '<tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win%</th></tr>';
             
-            Object.keys(postStats).sort((a, b) => a - b).slice(0, 8).forEach(post => {
-                const stats = postStats[post];
-                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
-                const color = winPct > 15 ? '#22c55e' : winPct > 10 ? '#f59e0b' : '#94a3b8';
-                
-                html += `<tr>
-                    <td style="font-weight: 600;">${post}</td>
-                    <td>${stats.runs}</td>
-                    <td>${stats.wins}</td>
-                    <td style="color: ${color}; font-weight: 600;">${winPct}%</td>
-                </tr>`;
-            });
+            // Show up to 15 posts
+            for (let i = 1; i <= 15; i++) {
+                if (postStats[i]) {
+                    const stats = postStats[i];
+                    const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                    const color = winPct > 15 ? '#22c55e' : winPct > 10 ? '#f59e0b' : '#94a3b8';
+                    
+                    html += `<tr>
+                        <td style="font-weight: 600;">${i}</td>
+                        <td>${stats.runs}</td>
+                        <td>${stats.wins}</td>
+                        <td style="color: ${color}; font-weight: 600;">${winPct}%</td>
+                    </tr>`;
+                }
+            }
             
             html += '</table>';
             container.innerHTML = html;
@@ -215,22 +232,26 @@
         function updateFavoriteAnalysis() {
             const container = document.getElementById('favoriteAnalysis');
             
-            if (favoriteTrendsData.length === 0) {
-                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.9rem;">No favorite data available</p>';
+            if (!favoriteTrendsData || favoriteTrendsData.length === 0) {
+                // Try loading the data
+                loadCourseData();
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.9rem;">Loading favorite trends...</p>';
                 return;
             }
             
             let html = '<table style="width: 100%; font-size: 0.85rem;">';
             html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th></tr>';
             
-            favoriteTrendsData.slice(0, 6).forEach(row => {
-                if (row.Class || row.class) {
-                    const className = row.Class || row.class || '-';
-                    const top25 = row['Top 25%'] || row['top 25'] || '-';
-                    const mid1 = row['26-50%'] || row['26-50'] || '-';
-                    const mid2 = row['51-75%'] || row['51-75'] || '-';
-                    const bottom = row['76-100%'] || row['76-100'] || '-';
-                    
+            // Check all possible column name variations
+            favoriteTrendsData.forEach(row => {
+                // Get class name from various possible column names
+                const className = row.Class || row.class || row.CLASS || '';
+                const top25 = row['Top 25%'] || row['Top 25'] || row['top 25'] || row['Top_25'] || '-';
+                const mid1 = row['26-50%'] || row['26-50'] || row['26_50'] || '-';
+                const mid2 = row['51-75%'] || row['51-75'] || row['51_75'] || '-';
+                const bottom = row['76-100%'] || row['76-100'] || row['76_100'] || '-';
+                
+                if (className) {
                     html += `<tr>
                         <td style="font-weight: 600; font-size: 0.8rem;">${className}</td>
                         <td style="color: #22c55e; font-weight: 600;">${top25}</td>
@@ -252,13 +273,20 @@
             const trainerStats = {};
             
             races.forEach(race => {
-                // Jockey stats
+                // Jockey stats with odds
                 if (race.Jockey) {
                     if (!jockeyStats[race.Jockey]) {
-                        jockeyStats[race.Jockey] = { runs: 0, wins: 0 };
+                        jockeyStats[race.Jockey] = { runs: 0, wins: 0, totalOdds: 0, winOdds: [] };
                     }
                     jockeyStats[race.Jockey].runs++;
-                    if (race.Place === '1') jockeyStats[race.Jockey].wins++;
+                    if (race.Place === '1') {
+                        jockeyStats[race.Jockey].wins++;
+                        const odds = parseFloat(race.Odds) || 0;
+                        if (odds > 0) {
+                            jockeyStats[race.Jockey].winOdds.push(odds);
+                            jockeyStats[race.Jockey].totalOdds += odds;
+                        }
+                    }
                 }
                 
                 // Trainer stats
@@ -271,41 +299,53 @@
                 }
             });
             
-            const topJockeys = Object.entries(jockeyStats)
-                .filter(([_, stats]) => stats.runs >= 10)
-                .sort((a, b) => b[1].wins - a[1].wins)
-                .slice(0, 3);
+            // Sort jockeys - show ALL, not just top ones
+            const allJockeys = Object.entries(jockeyStats)
+                .filter(([_, stats]) => stats.runs >= 5) // Lower minimum for more results
+                .sort((a, b) => b[1].wins - a[1].wins);
             
-            const topTrainers = Object.entries(trainerStats)
-                .filter(([_, stats]) => stats.runs >= 10)
-                .sort((a, b) => b[1].wins - a[1].wins)
-                .slice(0, 3);
+            const allTrainers = Object.entries(trainerStats)
+                .filter(([_, stats]) => stats.runs >= 5)
+                .sort((a, b) => b[1].wins - a[1].wins);
             
             let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">';
             
-            // Jockeys
-            html += '<div><h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Jockeys</h4>';
-            html += '<table style="width: 100%; font-size: 0.8rem;">';
-            topJockeys.forEach(([name, stats]) => {
-                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
-                html += `<tr>
-                    <td>${name.substring(0, 15)}</td>
-                    <td>${winPct}%</td>
-                </tr>`;
-            });
-            html += '</table></div>';
+            // Jockeys with scrollable list
+            html += '<div>';
+            html += '<h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Jockeys (min 5 rides)</h4>';
+            html += '<div style="max-height: 200px; overflow-y: auto;">';
+            html += '<table style="width: 100%; font-size: 0.75rem;">';
+            html += '<tr><th>Name</th><th>Wins/Runs</th><th>Win%</th><th>Avg Odds</th></tr>';
             
-            // Trainers
-            html += '<div><h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Trainers</h4>';
-            html += '<table style="width: 100%; font-size: 0.8rem;">';
-            topTrainers.forEach(([name, stats]) => {
+            allJockeys.forEach(([name, stats]) => {
                 const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                const avgOdds = stats.winOdds.length > 0 ? 
+                    (stats.totalOdds / stats.winOdds.length).toFixed(2) : '-';
                 html += `<tr>
-                    <td>${name.substring(0, 15)}</td>
-                    <td>${winPct}%</td>
+                    <td style="font-size: 0.7rem;">${name.substring(0, 20)}</td>
+                    <td>${stats.wins}/${stats.runs}</td>
+                    <td style="color: ${winPct > 20 ? '#22c55e' : '#94a3b8'};">${winPct}%</td>
+                    <td>${avgOdds}</td>
                 </tr>`;
             });
-            html += '</table></div>';
+            html += '</table></div></div>';
+            
+            // Trainers with scrollable list
+            html += '<div>';
+            html += '<h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Trainers (min 5 runners)</h4>';
+            html += '<div style="max-height: 200px; overflow-y: auto;">';
+            html += '<table style="width: 100%; font-size: 0.75rem;">';
+            html += '<tr><th>Name</th><th>Wins/Runs</th><th>Win%</th></tr>';
+            
+            allTrainers.forEach(([name, stats]) => {
+                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+                html += `<tr>
+                    <td style="font-size: 0.7rem;">${name.substring(0, 20)}</td>
+                    <td>${stats.wins}/${stats.runs}</td>
+                    <td style="color: ${winPct > 20 ? '#22c55e' : '#94a3b8'};">${winPct}%</td>
+                </tr>`;
+            });
+            html += '</table></div></div>';
             
             html += '</div>';
             container.innerHTML = html;
@@ -350,38 +390,44 @@
             container.innerHTML = html;
         }
 
-        // Winning Odds Analysis
+        // Winning Odds Analysis - Show ALL categories
         function updateWinningOdds(races) {
             const container = document.getElementById('winningOdds');
             const oddsByClass = {};
             
             races.filter(r => r.Place === '1').forEach(race => {
-                const raceClass = race.Class || 'All';
+                const raceClass = race.Class || 'Unknown';
                 const odds = parseFloat(race.Odds) || 0;
                 
                 if (odds > 0) {
                     if (!oddsByClass[raceClass]) {
-                        oddsByClass[raceClass] = [];
+                        oddsByClass[raceClass] = { odds: [], count: 0 };
                     }
-                    oddsByClass[raceClass].push(odds);
+                    oddsByClass[raceClass].odds.push(odds);
+                    oddsByClass[raceClass].count++;
                 }
             });
             
-            let html = '<table style="width: 100%; font-size: 0.9rem;">';
-            html += '<tr><th>Class</th><th>Avg Odds</th><th>Races</th></tr>';
+            let html = '<div style="max-height: 200px; overflow-y: auto;">';
+            html += '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Class</th><th>Avg Odds</th><th>Winners</th><th>Fav%</th></tr>';
             
-            Object.keys(oddsByClass).sort().slice(0, 5).forEach(raceClass => {
-                const odds = oddsByClass[raceClass];
-                const avgOdds = (odds.reduce((a, b) => a + b, 0) / odds.length).toFixed(2);
+            // Show ALL classes, not just top 5
+            Object.keys(oddsByClass).sort().forEach(raceClass => {
+                const classData = oddsByClass[raceClass];
+                const avgOdds = (classData.odds.reduce((a, b) => a + b, 0) / classData.odds.length).toFixed(2);
+                const favCount = classData.odds.filter(o => o <= 3).length;
+                const favPct = ((favCount / classData.count) * 100).toFixed(0);
                 
                 html += `<tr>
-                    <td style="font-weight: 600;">${raceClass}</td>
+                    <td style="font-weight: 600; font-size: 0.8rem;">${raceClass}</td>
                     <td>${avgOdds}</td>
-                    <td>${odds.length}</td>
+                    <td>${classData.count}</td>
+                    <td style="color: ${favPct > 40 ? '#22c55e' : '#94a3b8'};">${favPct}%</td>
                 </tr>`;
             });
             
-            html += '</table>';
+            html += '</table></div>';
             container.innerHTML = html;
         }
 
@@ -1065,6 +1111,24 @@
                     <!-- Filters -->
                     <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Month</label>
+                                <select id="monthFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                    <option value="all">All Months</option>
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07">July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
                             <div>
                                 <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Field Size</label>
                                 <select id="fieldSizeFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
