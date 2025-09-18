@@ -683,7 +683,10 @@
             document.getElementById('winningTimes').innerHTML = html;
         }
 
-        // Top Jockeys
+        // Top Jockeys with sortable columns
+        let jockeySortField = 'wins';
+        let jockeySortAsc = false;
+        
         function updateTopJockeys(data) {
             const jockeyStats = {};
             
@@ -691,7 +694,7 @@
                 const jockey = race.Jockey;
                 if (jockey) {
                     if (!jockeyStats[jockey]) {
-                        jockeyStats[jockey] = {wins: 0, runs: 0, odds: []};
+                        jockeyStats[jockey] = {name: jockey, wins: 0, runs: 0, odds: []};
                     }
                     jockeyStats[jockey].runs++;
                     if (race.Place === '1') {
@@ -701,33 +704,69 @@
                 }
             });
             
-            const jockeyArray = Object.entries(jockeyStats)
-                .filter(([_, stats]) => stats.runs >= 5)
-                .map(([name, stats]) => ({
-                    name,
+            let jockeyArray = Object.values(jockeyStats)
+                .filter(stats => stats.runs >= 5)
+                .map(stats => ({
+                    name: stats.name,
                     wins: stats.wins,
                     runs: stats.runs,
-                    winPct: ((stats.wins / stats.runs) * 100).toFixed(1),
+                    winPct: (stats.wins / stats.runs) * 100,
                     avgOdds: stats.odds.length > 0 ? 
-                        (stats.odds.reduce((a, b) => a + b, 0) / stats.odds.length).toFixed(2) : '-'
-                }))
-                .sort((a, b) => b.wins - a.wins)
-                .slice(0, 10);
+                        stats.odds.reduce((a, b) => a + b, 0) / stats.odds.length : 0
+                }));
             
-            let html = '<table><tr><th>Name</th><th>W/R</th><th>Win%</th><th>Avg Odds</th></tr>';
+            // Sort based on current sort field
+            jockeyArray.sort((a, b) => {
+                let aVal, bVal;
+                switch(jockeySortField) {
+                    case 'name': aVal = a.name; bVal = b.name; break;
+                    case 'wr': aVal = a.wins; bVal = b.wins; break;
+                    case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
+                    case 'odds': aVal = a.avgOdds; bVal = b.avgOdds; break;
+                    default: aVal = a.wins; bVal = b.wins;
+                }
+                
+                if (typeof aVal === 'string') {
+                    return jockeySortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                return jockeySortAsc ? aVal - bVal : bVal - aVal;
+            });
+            
+            jockeyArray = jockeyArray.slice(0, 10);
+            
+            let html = '<table><tr>';
+            html += '<th onclick="sortJockeys(\'name\')" style="cursor:pointer">Name ' + (jockeySortField === 'name' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortJockeys(\'wr\')" style="cursor:pointer">W/R ' + (jockeySortField === 'wr' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortJockeys(\'winPct\')" style="cursor:pointer">Win% ' + (jockeySortField === 'winPct' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortJockeys(\'odds\')" style="cursor:pointer">Avg Odds ' + (jockeySortField === 'odds' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '</tr>';
+            
             jockeyArray.forEach(j => {
                 html += '<tr>';
                 html += '<td>' + j.name.substring(0, 20) + '</td>';
                 html += '<td>' + j.wins + '/' + j.runs + '</td>';
-                html += '<td style="color:' + (j.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + j.winPct + '%</td>';
-                html += '<td>' + j.avgOdds + '</td>';
+                html += '<td style="color:' + (j.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + j.winPct.toFixed(1) + '%</td>';
+                html += '<td>' + (j.avgOdds > 0 ? j.avgOdds.toFixed(2) : '-') + '</td>';
                 html += '</tr>';
             });
             html += '</table>';
             document.getElementById('topJockeys').innerHTML = html;
         }
+        
+        function sortJockeys(field) {
+            if (jockeySortField === field) {
+                jockeySortAsc = !jockeySortAsc;
+            } else {
+                jockeySortField = field;
+                jockeySortAsc = false;
+            }
+            updateCourseAnalysis();
+        }
 
-        // Top Trainers
+        // Top Trainers with sortable columns
+        let trainerSortField = 'wins';
+        let trainerSortAsc = false;
+        
         function updateTopTrainers(data) {
             const trainerStats = {};
             
@@ -735,34 +774,65 @@
                 const trainer = race.Trainer;
                 if (trainer) {
                     if (!trainerStats[trainer]) {
-                        trainerStats[trainer] = {wins: 0, runs: 0};
+                        trainerStats[trainer] = {name: trainer, wins: 0, runs: 0};
                     }
                     trainerStats[trainer].runs++;
                     if (race.Place === '1') trainerStats[trainer].wins++;
                 }
             });
             
-            const trainerArray = Object.entries(trainerStats)
-                .filter(([_, stats]) => stats.runs >= 5)
-                .map(([name, stats]) => ({
-                    name,
+            let trainerArray = Object.values(trainerStats)
+                .filter(stats => stats.runs >= 5)
+                .map(stats => ({
+                    name: stats.name,
                     wins: stats.wins,
                     runs: stats.runs,
-                    winPct: ((stats.wins / stats.runs) * 100).toFixed(1)
-                }))
-                .sort((a, b) => b.wins - a.wins)
-                .slice(0, 10);
+                    winPct: (stats.wins / stats.runs) * 100
+                }));
             
-            let html = '<table><tr><th>Name</th><th>W/R</th><th>Win%</th></tr>';
+            // Sort based on current sort field
+            trainerArray.sort((a, b) => {
+                let aVal, bVal;
+                switch(trainerSortField) {
+                    case 'name': aVal = a.name; bVal = b.name; break;
+                    case 'wr': aVal = a.wins; bVal = b.wins; break;
+                    case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
+                    default: aVal = a.wins; bVal = b.wins;
+                }
+                
+                if (typeof aVal === 'string') {
+                    return trainerSortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                return trainerSortAsc ? aVal - bVal : bVal - aVal;
+            });
+            
+            trainerArray = trainerArray.slice(0, 10);
+            
+            let html = '<table><tr>';
+            html += '<th onclick="sortTrainers(\'name\')" style="cursor:pointer">Name ' + (trainerSortField === 'name' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortTrainers(\'wr\')" style="cursor:pointer">W/R ' + (trainerSortField === 'wr' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortTrainers(\'winPct\')" style="cursor:pointer">Win% ' + (trainerSortField === 'winPct' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '</tr>';
+            
             trainerArray.forEach(t => {
                 html += '<tr>';
                 html += '<td>' + t.name.substring(0, 20) + '</td>';
                 html += '<td>' + t.wins + '/' + t.runs + '</td>';
-                html += '<td style="color:' + (t.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + t.winPct + '%</td>';
+                html += '<td style="color:' + (t.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + t.winPct.toFixed(1) + '%</td>';
                 html += '</tr>';
             });
             html += '</table>';
             document.getElementById('topTrainers').innerHTML = html;
+        }
+        
+        function sortTrainers(field) {
+            if (trainerSortField === field) {
+                trainerSortAsc = !trainerSortAsc;
+            } else {
+                trainerSortField = field;
+                trainerSortAsc = false;
+            }
+            updateCourseAnalysis();
         }
 
         // Field Size Trends (all 12 months)
@@ -832,22 +902,33 @@
             document.getElementById('winningOdds').innerHTML = html;
         }
 
-        // Update favorite analysis
+        // Update favorite analysis with better debugging
         function updateFavoriteAnalysis() {
-            if (favoriteTrendsData.length === 0) return;
+            console.log('Favorite trends data length:', favoriteTrendsData.length);
+            console.log('First row of favorite trends:', favoriteTrendsData[0]);
+            
+            if (favoriteTrendsData.length === 0) {
+                document.getElementById('favoriteAnalysis').innerHTML = 
+                    '<p>No favorite trends data loaded. Trying to load...</p>';
+                loadFavoriteTrends();
+                return;
+            }
             
             let html = '<table><tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Races</th></tr>';
             
             favoriteTrendsData.forEach(row => {
-                // Handle different possible column names
-                const cls = row.Class || row.class || '';
-                const top25 = row['Top 25%'] || row['top 25'] || row['Top25'] || '';
-                const mid1 = row['26-50%'] || row['26-50'] || row['2650'] || '';
-                const mid2 = row['51-75%'] || row['51-75'] || row['5175'] || '';
-                const bottom = row['76-100%'] || row['76-100'] || row['76100'] || '';
-                const races = row.Races || row.races || '';
+                // Log each row to see what we're getting
+                console.log('Processing row:', row);
                 
-                if (cls) {
+                // Handle different possible column names - check exact spelling from your sheet
+                const cls = row.Class || row.class || row.CLASS || row['Class'] || '';
+                const top25 = row['Top 25%'] || row['top 25'] || row['Top25'] || row['Top 25'] || row['top 25%'] || '';
+                const mid1 = row['26-50%'] || row['26-50'] || row['2650'] || row['26_50'] || '';
+                const mid2 = row['51-75%'] || row['51-75'] || row['5175'] || row['51_75'] || '';
+                const bottom = row['76-100%'] || row['76-100'] || row['76100'] || row['76_100'] || '';
+                const races = row.Races || row.races || row.RACES || row['Races'] || '';
+                
+                if (cls && cls !== '') {
                     html += '<tr>';
                     html += '<td>' + cls + '</td>';
                     html += '<td style="color:#22c55e; font-weight:600">' + top25 + '</td>';
@@ -860,6 +941,12 @@
             });
             
             html += '</table>';
+            
+            // If no rows were added, show debug info
+            if (html.indexOf('<tr>') === html.lastIndexOf('<tr>')) {
+                html += '<p>No data rows found. Check console for debug info.</p>';
+            }
+            
             document.getElementById('favoriteAnalysis').innerHTML = html;
         }
 
