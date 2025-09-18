@@ -1,4 +1,26 @@
-    <script>
+        // Field Size Trends - Show ALL months
+        function updateFieldSizeTrends(races) {
+            const container = document.getElementById('fieldSizeTrends');
+            const monthlyFields = {};
+            
+            races.forEach(race => {
+                if (race.Date && race.Field) {
+                    const parts = race.Date.split('-');
+                    const month = parts.length >= 2 ? parts[1] : '00';
+                    
+                    if (!monthlyFields[month]) {
+                        monthlyFields[month] = [];
+                    }
+                    monthlyFields[month].push(parseInt(race.Field) || 0);
+                }
+            });
+            
+            // Show all 12 months
+            const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            let html = '<table style="width: 100%; font-size: 0.9rem;">';
+            html += '<tr><th>Month</th><th>Avg Field</th><th>Races</th><th>Trend</th></tr>';    <script>
         // Configuration
         const SHEET_RACES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=0&single=true&output=csv';
         const SHEET_FAVORITES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=964028900&single=true&output=csv';
@@ -82,6 +104,7 @@
             const fieldSizeFilter = document.getElementById('fieldSizeFilter')?.value || 'all';
             const distanceFilter = document.getElementById('distanceFilter')?.value || 'all';
             const monthFilter = document.getElementById('monthFilter')?.value || 'all';
+            const classFilter = document.getElementById('classFilter')?.value || 'all';
             
             // Filter Klampenborg races
             let klampenborgRaces = racingData.filter(r => r.Course && r.Course.includes('Klampenborg'));
@@ -98,6 +121,20 @@
                 });
             }
             
+            // Apply class filter
+            if (classFilter !== 'all') {
+                klampenborgRaces = klampenborgRaces.filter(r => {
+                    const raceClass = r.Class || '';
+                    if (classFilter === 'maiden') {
+                        return raceClass.toLowerCase().includes('maiden');
+                    } else if (classFilter === '3-ars') {
+                        return raceClass.toLowerCase().includes('3 års') || raceClass.toLowerCase().includes('3 ars');
+                    } else {
+                        return raceClass === classFilter;
+                    }
+                });
+            }
+            
             // Apply field size filter
             if (fieldSizeFilter !== 'all') {
                 const [min, max] = fieldSizeFilter.split('-').map(n => parseInt(n) || 999);
@@ -107,7 +144,7 @@
                 });
             }
             
-            // Apply distance filter - FIXED
+            // Apply distance filter
             if (distanceFilter !== 'all') {
                 if (distanceFilter === '1000-1400') {
                     klampenborgRaces = klampenborgRaces.filter(r => {
@@ -228,36 +265,54 @@
             container.innerHTML = html;
         }
 
-        // Favorite Analysis
+        // Favorite Analysis - Debug and fix display
         function updateFavoriteAnalysis() {
             const container = document.getElementById('favoriteAnalysis');
             
+            // Check if we need to load the data first
             if (!favoriteTrendsData || favoriteTrendsData.length === 0) {
-                // Try loading the data
-                loadCourseData();
-                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.9rem;">Loading favorite trends...</p>';
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 0.9rem;">Loading favorite data... If this persists, check Favorite_Trends tab in Google Sheets.</p>';
+                // Try to load it
+                fetch(SHEET_FAVORITES_URL)
+                    .then(response => response.text())
+                    .then(csvText => {
+                        favoriteTrendsData = parseCSV(csvText);
+                        console.log('Favorite trends loaded:', favoriteTrendsData);
+                        updateFavoriteAnalysis(); // Recall this function
+                    })
+                    .catch(error => {
+                        console.error('Error loading favorite trends:', error);
+                        container.innerHTML = '<p style="color: #dc2626; font-size: 0.9rem;">Error loading favorite trends</p>';
+                    });
                 return;
             }
             
+            // Display the data
             let html = '<table style="width: 100%; font-size: 0.85rem;">';
-            html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th></tr>';
+            html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Races</th></tr>';
             
-            // Check all possible column name variations
+            // Debug: log the first row to see column names
+            if (favoriteTrendsData.length > 0) {
+                console.log('Favorite data columns:', Object.keys(favoriteTrendsData[0]));
+            }
+            
             favoriteTrendsData.forEach(row => {
-                // Get class name from various possible column names
-                const className = row.Class || row.class || row.CLASS || '';
-                const top25 = row['Top 25%'] || row['Top 25'] || row['top 25'] || row['Top_25'] || '-';
-                const mid1 = row['26-50%'] || row['26-50'] || row['26_50'] || '-';
-                const mid2 = row['51-75%'] || row['51-75'] || row['51_75'] || '-';
-                const bottom = row['76-100%'] || row['76-100'] || row['76_100'] || '-';
+                // Try different possible column names
+                const className = row['Class'] || row['class'] || row['CLASS'] || '';
+                const top25 = row['Top 25%'] || row['Top 25'] || row['top 25'] || row['Top_25'] || row['Top25'] || '';
+                const mid1 = row['26-50%'] || row['26-50'] || row['26_50'] || row['2650'] || '';
+                const mid2 = row['51-75%'] || row['51-75'] || row['51_75'] || row['5175'] || '';
+                const bottom = row['76-100%'] || row['76-100'] || row['76_100'] || row['76100'] || '';
+                const races = row['Races'] || row['races'] || row['Count'] || '';
                 
-                if (className) {
+                if (className && className !== '') {
                     html += `<tr>
                         <td style="font-weight: 600; font-size: 0.8rem;">${className}</td>
                         <td style="color: #22c55e; font-weight: 600;">${top25}</td>
                         <td>${mid1}</td>
                         <td>${mid2}</td>
                         <td style="color: #dc2626;">${bottom}</td>
+                        <td>${races}</td>
                     </tr>`;
                 }
             });
@@ -266,7 +321,12 @@
             container.innerHTML = html;
         }
 
-        // Top Performers at Course
+        // Top Performers at Course with sorting
+        let jockeySortField = 'wins'; // Default sort
+        let jockeySortAsc = false;
+        let trainerSortField = 'wins';
+        let trainerSortAsc = false;
+        
         function updateCourseTopPerformers(races) {
             const container = document.getElementById('courseTopPerformers');
             const jockeyStats = {};
@@ -276,7 +336,13 @@
                 // Jockey stats with odds
                 if (race.Jockey) {
                     if (!jockeyStats[race.Jockey]) {
-                        jockeyStats[race.Jockey] = { runs: 0, wins: 0, totalOdds: 0, winOdds: [] };
+                        jockeyStats[race.Jockey] = { 
+                            name: race.Jockey,
+                            runs: 0, 
+                            wins: 0, 
+                            totalOdds: 0, 
+                            winOdds: [] 
+                        };
                     }
                     jockeyStats[race.Jockey].runs++;
                     if (race.Place === '1') {
@@ -289,60 +355,130 @@
                     }
                 }
                 
-                // Trainer stats
+                // Trainer stats with odds
                 if (race.Trainer) {
                     if (!trainerStats[race.Trainer]) {
-                        trainerStats[race.Trainer] = { runs: 0, wins: 0 };
+                        trainerStats[race.Trainer] = { 
+                            name: race.Trainer,
+                            runs: 0, 
+                            wins: 0,
+                            totalOdds: 0,
+                            winOdds: []
+                        };
                     }
                     trainerStats[race.Trainer].runs++;
-                    if (race.Place === '1') trainerStats[race.Trainer].wins++;
+                    if (race.Place === '1') {
+                        trainerStats[race.Trainer].wins++;
+                        const odds = parseFloat(race.Odds) || 0;
+                        if (odds > 0) {
+                            trainerStats[race.Trainer].winOdds.push(odds);
+                            trainerStats[race.Trainer].totalOdds += odds;
+                        }
+                    }
                 }
             });
             
-            // Sort jockeys - show ALL, not just top ones
-            const allJockeys = Object.entries(jockeyStats)
-                .filter(([_, stats]) => stats.runs >= 5) // Lower minimum for more results
-                .sort((a, b) => b[1].wins - a[1].wins);
+            // Convert to arrays and add calculated fields
+            let jockeyArray = Object.values(jockeyStats)
+                .filter(j => j.runs >= 3) // Lower minimum for more results
+                .map(j => ({
+                    ...j,
+                    winPct: ((j.wins / j.runs) * 100),
+                    avgOdds: j.winOdds.length > 0 ? (j.totalOdds / j.winOdds.length) : 0
+                }));
             
-            const allTrainers = Object.entries(trainerStats)
-                .filter(([_, stats]) => stats.runs >= 5)
-                .sort((a, b) => b[1].wins - a[1].wins);
+            let trainerArray = Object.values(trainerStats)
+                .filter(t => t.runs >= 3)
+                .map(t => ({
+                    ...t,
+                    winPct: ((t.wins / t.runs) * 100),
+                    avgOdds: t.winOdds.length > 0 ? (t.totalOdds / t.winOdds.length) : 0
+                }));
+            
+            // Sort jockeys
+            jockeyArray.sort((a, b) => {
+                let aVal, bVal;
+                switch(jockeySortField) {
+                    case 'name': aVal = a.name; bVal = b.name; break;
+                    case 'runs': aVal = a.runs; bVal = b.runs; break;
+                    case 'wins': aVal = a.wins; bVal = b.wins; break;
+                    case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
+                    case 'avgOdds': aVal = a.avgOdds; bVal = b.avgOdds; break;
+                    default: aVal = a.wins; bVal = b.wins;
+                }
+                if (typeof aVal === 'string') {
+                    return jockeySortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                return jockeySortAsc ? aVal - bVal : bVal - aVal;
+            });
+            
+            // Sort trainers
+            trainerArray.sort((a, b) => {
+                let aVal, bVal;
+                switch(trainerSortField) {
+                    case 'name': aVal = a.name; bVal = b.name; break;
+                    case 'runs': aVal = a.runs; bVal = b.runs; break;
+                    case 'wins': aVal = a.wins; bVal = b.wins; break;
+                    case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
+                    case 'avgOdds': aVal = a.avgOdds; bVal = b.avgOdds; break;
+                    default: aVal = a.wins; bVal = b.wins;
+                }
+                if (typeof aVal === 'string') {
+                    return trainerSortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+                return trainerSortAsc ? aVal - bVal : bVal - aVal;
+            });
             
             let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">';
             
-            // Jockeys with scrollable list
+            // Jockeys with clickable headers
             html += '<div>';
-            html += '<h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Jockeys (min 5 rides)</h4>';
+            html += '<h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Jockeys (min 3 rides) ';
+            html += '<input type="number" id="jockeyMinRides" value="3" min="1" max="50" style="width: 50px; font-size: 0.8rem;" onchange="updateCourseAnalysis()">';
+            html += '</h4>';
             html += '<div style="max-height: 200px; overflow-y: auto;">';
             html += '<table style="width: 100%; font-size: 0.75rem;">';
-            html += '<tr><th>Name</th><th>Wins/Runs</th><th>Win%</th><th>Avg Odds</th></tr>';
+            html += '<tr>';
+            html += '<th onclick="sortJockeys(\'name\')" style="cursor: pointer;">Name ' + (jockeySortField === 'name' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortJockeys(\'runs\')" style="cursor: pointer;">Runs ' + (jockeySortField === 'runs' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortJockeys(\'wins\')" style="cursor: pointer;">Wins ' + (jockeySortField === 'wins' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortJockeys(\'winPct\')" style="cursor: pointer;">Win% ' + (jockeySortField === 'winPct' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortJockeys(\'avgOdds\')" style="cursor: pointer;">Avg Odds ' + (jockeySortField === 'avgOdds' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '</tr>';
             
-            allJockeys.forEach(([name, stats]) => {
-                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
-                const avgOdds = stats.winOdds.length > 0 ? 
-                    (stats.totalOdds / stats.winOdds.length).toFixed(2) : '-';
+            jockeyArray.forEach(j => {
                 html += `<tr>
-                    <td style="font-size: 0.7rem;">${name.substring(0, 20)}</td>
-                    <td>${stats.wins}/${stats.runs}</td>
-                    <td style="color: ${winPct > 20 ? '#22c55e' : '#94a3b8'};">${winPct}%</td>
-                    <td>${avgOdds}</td>
+                    <td style="font-size: 0.7rem;">${j.name.substring(0, 20)}</td>
+                    <td>${j.runs}</td>
+                    <td>${j.wins}</td>
+                    <td style="color: ${j.winPct > 20 ? '#22c55e' : '#94a3b8'};">${j.winPct.toFixed(1)}%</td>
+                    <td>${j.avgOdds > 0 ? j.avgOdds.toFixed(2) : '-'}</td>
                 </tr>`;
             });
             html += '</table></div></div>';
             
-            // Trainers with scrollable list
+            // Trainers with clickable headers
             html += '<div>';
-            html += '<h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Trainers (min 5 runners)</h4>';
+            html += '<h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">Trainers (min 3 runners) ';
+            html += '<input type="number" id="trainerMinRuns" value="3" min="1" max="50" style="width: 50px; font-size: 0.8rem;" onchange="updateCourseAnalysis()">';
+            html += '</h4>';
             html += '<div style="max-height: 200px; overflow-y: auto;">';
             html += '<table style="width: 100%; font-size: 0.75rem;">';
-            html += '<tr><th>Name</th><th>Wins/Runs</th><th>Win%</th></tr>';
+            html += '<tr>';
+            html += '<th onclick="sortTrainers(\'name\')" style="cursor: pointer;">Name ' + (trainerSortField === 'name' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortTrainers(\'runs\')" style="cursor: pointer;">Runs ' + (trainerSortField === 'runs' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortTrainers(\'wins\')" style="cursor: pointer;">Wins ' + (trainerSortField === 'wins' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortTrainers(\'winPct\')" style="cursor: pointer;">Win% ' + (trainerSortField === 'winPct' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '<th onclick="sortTrainers(\'avgOdds\')" style="cursor: pointer;">Avg Odds ' + (trainerSortField === 'avgOdds' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+            html += '</tr>';
             
-            allTrainers.forEach(([name, stats]) => {
-                const winPct = ((stats.wins / stats.runs) * 100).toFixed(1);
+            trainerArray.forEach(t => {
                 html += `<tr>
-                    <td style="font-size: 0.7rem;">${name.substring(0, 20)}</td>
-                    <td>${stats.wins}/${stats.runs}</td>
-                    <td style="color: ${winPct > 20 ? '#22c55e' : '#94a3b8'};">${winPct}%</td>
+                    <td style="font-size: 0.7rem;">${t.name.substring(0, 20)}</td>
+                    <td>${t.runs}</td>
+                    <td>${t.wins}</td>
+                    <td style="color: ${t.winPct > 20 ? '#22c55e' : '#94a3b8'};">${t.winPct.toFixed(1)}%</td>
+                    <td>${t.avgOdds > 0 ? t.avgOdds.toFixed(2) : '-'}</td>
                 </tr>`;
             });
             html += '</table></div></div>';
@@ -350,8 +486,29 @@
             html += '</div>';
             container.innerHTML = html;
         }
+        
+        // Sorting functions
+        function sortJockeys(field) {
+            if (jockeySortField === field) {
+                jockeySortAsc = !jockeySortAsc;
+            } else {
+                jockeySortField = field;
+                jockeySortAsc = false;
+            }
+            updateCourseAnalysis();
+        }
+        
+        function sortTrainers(field) {
+            if (trainerSortField === field) {
+                trainerSortAsc = !trainerSortAsc;
+            } else {
+                trainerSortField = field;
+                trainerSortAsc = false;
+            }
+            updateCourseAnalysis();
+        }
 
-        // Field Size Trends
+        // Field Size Trends - Show ALL months
         function updateFieldSizeTrends(races) {
             const container = document.getElementById('fieldSizeTrends');
             const monthlyFields = {};
@@ -368,20 +525,32 @@
                 }
             });
             
-            const months = ['01', '02', '03', '04', '05', '06'];
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            // Show all 12 months
+            const months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             
             let html = '<table style="width: 100%; font-size: 0.9rem;">';
-            html += '<tr><th>Month</th><th>Avg Field</th><th>Races</th></tr>';
+            html += '<tr><th>Month</th><th>Avg Field</th><th>Races</th><th>Trend</th></tr>';
             
             months.forEach((month, idx) => {
                 const fields = monthlyFields[month] || [];
                 if (fields.length > 0) {
                     const avgField = (fields.reduce((a, b) => a + b, 0) / fields.length).toFixed(1);
+                    const trend = avgField > 9 ? '↑' : avgField < 8 ? '↓' : '→';
+                    const color = avgField > 9 ? '#22c55e' : avgField < 8 ? '#dc2626' : '#94a3b8';
+                    
                     html += `<tr>
                         <td>${monthNames[idx]}</td>
                         <td style="font-weight: 600;">${avgField}</td>
                         <td>${fields.length}</td>
+                        <td style="color: ${color}; font-size: 1.2rem;">${trend}</td>
+                    </tr>`;
+                } else {
+                    html += `<tr>
+                        <td>${monthNames[idx]}</td>
+                        <td>-</td>
+                        <td>0</td>
+                        <td>-</td>
                     </tr>`;
                 }
             });
@@ -1110,7 +1279,7 @@
                 <div class="card-body">
                     <!-- Filters -->
                     <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
                             <div>
                                 <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Month</label>
                                 <select id="monthFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
@@ -1127,6 +1296,19 @@
                                     <option value="10">October</option>
                                     <option value="11">November</option>
                                     <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.875rem; color: #475569; margin-bottom: 4px;">Class</label>
+                                <select id="classFilter" onchange="updateCourseAnalysis()" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%;">
+                                    <option value="all">All Classes</option>
+                                    <option value="1">Class 1</option>
+                                    <option value="2">Class 2</option>
+                                    <option value="3">Class 3</option>
+                                    <option value="4">Class 4</option>
+                                    <option value="5">Class 5</option>
+                                    <option value="maiden">Maiden</option>
+                                    <option value="3-ars">3 Års</option>
                                 </select>
                             </div>
                             <div>
