@@ -807,16 +807,29 @@
                         }
                     }
                     
-                    // Parse the favorite trends data
+                    // Parse the favorite trends data - handling tab or comma separated
                     for (let i = startIndex; i < lines.length; i++) {
-                        const parts = lines[i].split('\t').length > 1 ? lines[i].split('\t') : lines[i].split(',');
+                        let parts = lines[i].split('\t');
+                        if (parts.length < 5) {
+                            // Try comma separation if tabs don't work
+                            parts = lines[i].split(',');
+                        }
+                        
                         if (parts.length >= 5) {
+                            // Clean the percentages - handle European format (37,00% becomes 37.00%)
+                            const cleanPercent = (str) => {
+                                if (!str) return '';
+                                return str.trim()
+                                    .replace(',', '.')  // Convert comma to decimal point
+                                    .replace('%', '') + '%';  // Ensure % symbol is at the end
+                            };
+                            
                             const row = {
                                 'Class': parts[0].trim(),
-                                'Top 25%': parts[1].trim().replace(',', '.'),
-                                '26-50%': parts[2].trim().replace(',', '.'),
-                                '51-75%': parts[3].trim().replace(',', '.'),
-                                '76-100%': parts[4].trim().replace(',', '.'),
+                                'Top 25%': cleanPercent(parts[1]),
+                                '26-50%': cleanPercent(parts[2]),
+                                '51-75%': cleanPercent(parts[3]),
+                                '76-100%': cleanPercent(parts[4]),
                                 'Races': parts[5] ? parts[5].trim() : ''
                             };
                             
@@ -1462,21 +1475,16 @@
                 
                 // Initialize all classes
                 allClasses.forEach(cls => {
-                    oddsByClass[cls] = { wins: [], totalRaces: 0 };
+                    oddsByClass[cls] = { wins: [] };
                 });
                 
-                // Count all races per class in filtered data
-                data.forEach(race => {
+                // Count only winners (1st place) in filtered data
+                data.filter(r => r.Place === '1').forEach(race => {
                     const cls = race.Class;
                     if (cls && oddsByClass[cls]) {
-                        oddsByClass[cls].totalRaces++;
-                        
-                        // If it's a winner, add the odds
-                        if (race.Place === '1') {
-                            const odds = parseFloat(race.Odds) || 0;
-                            if (odds > 0) {
-                                oddsByClass[cls].wins.push(odds);
-                            }
+                        const odds = parseFloat(race.Odds) || 0;
+                        if (odds > 0) {
+                            oddsByClass[cls].wins.push(odds);
                         }
                     }
                 });
@@ -1485,9 +1493,7 @@
                 html += '<thead><tr>';
                 html += '<th style="text-align: left; padding: 8px;">Class</th>';
                 html += '<th style="text-align: left; padding: 8px;">Races</th>';
-                html += '<th style="text-align: left; padding: 8px;">Wins</th>';
                 html += '<th style="text-align: left; padding: 8px;">Avg Odds</th>';
-                html += '<th style="text-align: left; padding: 8px;">Fav%</th>';
                 html += '</tr></thead><tbody>';
                 
                 // Sort classes naturally
@@ -1501,31 +1507,20 @@
                 });
                 
                 sortedClasses.forEach(cls => {
-                    const classData = oddsByClass[cls];
-                    if (classData.totalRaces > 0 || classData.wins.length > 0) {
-                        const wins = classData.wins;
-                        const avgOdds = wins.length > 0 ? 
-                            (wins.reduce((a, b) => a + b, 0) / wins.length).toFixed(2) : '-';
-                        const favs = wins.filter(o => o <= 3).length;
-                        const favPct = wins.length > 0 ? 
-                            ((favs / wins.length) * 100).toFixed(0) : '-';
+                    const wins = oddsByClass[cls].wins;
+                    if (wins.length > 0) {
+                        const avgOdds = (wins.reduce((a, b) => a + b, 0) / wins.length).toFixed(2);
                         
                         html += '<tr>';
                         html += '<td style="padding: 8px;">' + cls + '</td>';
-                        html += '<td style="padding: 8px;">' + classData.totalRaces + '</td>';
                         html += '<td style="padding: 8px;">' + wins.length + '</td>';
                         html += '<td style="padding: 8px;">' + avgOdds + '</td>';
-                        
-                        const favColor = favPct !== '-' && parseInt(favPct) > 40 ? '#22c55e' : '#94a3b8';
-                        html += '<td style="padding: 8px; color:' + favColor + '">' + favPct + '%</td>';
                         html += '</tr>';
                     }
                 });
                 
                 html += '</tbody></table>';
                 document.getElementById('winningOdds').innerHTML = html;
-                
-                console.log('Classes found:', sortedClasses.length);
             }
 
             async function loadFavoriteTrends() {
