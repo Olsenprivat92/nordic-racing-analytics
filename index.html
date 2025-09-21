@@ -499,6 +499,7 @@
             // Global variables
             let racingData = [];
             let favoriteTrendsData = [];
+            let selectedCourses = ['Klampenborg']; // Default to Klampenborg
             let selectedMonths = [];
             let selectedClasses = [];
             let selectedFields = [];
@@ -544,6 +545,23 @@
             function initializeFilters() {
                 const filterSection = document.getElementById('filterSection');
                 filterSection.innerHTML = `
+                    <!-- Course Multi-Select -->
+                    <div class="multi-select-container">
+                        <div class="multi-select-button" id="courseBtn">
+                            <span id="courseLabel">Klampenborg</span>
+                        </div>
+                        <div class="multi-select-dropdown" id="courseDropdown">
+                            <div class="multi-select-option">
+                                <input type="checkbox" id="course-klampenborg" value="Klampenborg" checked>
+                                <label for="course-klampenborg">Klampenborg</label>
+                            </div>
+                            <div class="multi-select-option">
+                                <input type="checkbox" id="course-goteborg" value="Göteborg">
+                                <label for="course-goteborg">Göteborg</label>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Month Multi-Select -->
                     <div class="multi-select-container">
                         <div class="multi-select-button" id="monthBtn">
@@ -646,6 +664,12 @@
             }
 
             function setupDropdownListeners() {
+                // Course dropdown
+                document.getElementById('courseBtn').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleDropdown('course');
+                });
+                
                 // Month dropdown
                 document.getElementById('monthBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -679,6 +703,11 @@
             }
 
             function setupFilterListeners() {
+                // Course filters
+                document.querySelectorAll('[id^="course-"]').forEach(cb => {
+                    cb.addEventListener('change', updateCourseSelection);
+                });
+                
                 // Month filters
                 document.getElementById('month-all').addEventListener('change', toggleAllMonths);
                 document.querySelectorAll('[id^="month-"]:not(#month-all)').forEach(cb => {
@@ -699,6 +728,46 @@
                 document.querySelectorAll('[id^="distance-"]:not(#distance-all)').forEach(cb => {
                     cb.addEventListener('change', updateDistanceSelection);
                 });
+            }
+            
+            function updateCourseSelection() {
+                const courseCheckboxes = document.querySelectorAll('[id^="course-"]');
+                
+                selectedCourses = [];
+                let selectedNames = [];
+                
+                courseCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedCourses.push(cb.value);
+                        selectedNames.push(cb.value);
+                    }
+                });
+                
+                if (selectedCourses.length === 0) {
+                    // If nothing selected, default to Klampenborg
+                    document.getElementById('course-klampenborg').checked = true;
+                    selectedCourses = ['Klampenborg'];
+                    document.getElementById('courseLabel').textContent = 'Klampenborg';
+                } else if (selectedCourses.length === 1) {
+                    document.getElementById('courseLabel').textContent = selectedCourses[0];
+                } else {
+                    document.getElementById('courseLabel').textContent = selectedCourses.length + ' courses';
+                }
+                
+                // Update the header when course changes
+                updateCourseAnalysisHeader();
+                updateCourseAnalysis();
+            }
+            
+            function updateCourseAnalysisHeader() {
+                const headerElement = document.querySelector('#courses-view .card-title');
+                if (headerElement) {
+                    if (selectedCourses.length === 1) {
+                        headerElement.textContent = `🏁 Course Analysis - ${selectedCourses[0]}`;
+                    } else {
+                        headerElement.textContent = `🏁 Course Analysis - Multiple Courses`;
+                    }
+                }
             }
 
             // Button event listeners
@@ -939,6 +1008,37 @@
                 });
             }
 
+            async function loadData() {
+                try {
+                    document.getElementById('syncStatus').textContent = 'Loading...';
+                    const response = await fetch(SHEET_URL);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const text = await response.text();
+                    racingData = parseCSV(text);
+                    
+                    if (racingData.length === 0) {
+                        throw new Error('No data found in spreadsheet');
+                    }
+                    
+                    updateDashboard();
+                    populateCourses();  // Populate course filter
+                    populateClasses();  // Populate class filter
+                    document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    document.getElementById('syncStatus').textContent = 'Error loading data';
+                    
+                    // Show error message in the races table
+                    document.getElementById('racesTable').innerHTML = 
+                        '<tr><td colspan="7" style="color: #dc2626;">Failed to load data. Please check:</td></tr>' +
+                        '<tr><td colspan="7" style="color: #6b7280;">• The Google Sheet is published to the web</td></tr>' +
+                        '<tr><td colspan="7" style="color: #6b7280;">• The URL is correct</td></tr>' +
+                        '<tr><td colspan="7" style="color: #6b7280;">• You have an internet connection</td></tr>';
+                }
+            }
+
             function toggleAllClasses() {
                 const allCheckbox = document.getElementById('class-all');
                 const classCheckboxes = document.querySelectorAll('[id^="class-"]:not(#class-all)');
@@ -1140,10 +1240,19 @@
             }
 
             function updateCourseAnalysis() {
-                let filtered = racingData.filter(r => r.Course && r.Course.includes('Klampenborg'));
+                // Filter by selected courses
+                let filtered = racingData.filter(r => {
+                    if (!r.Course) return false;
+                    // Check if any of the selected courses match
+                    return selectedCourses.some(course => 
+                        r.Course.toLowerCase().includes(course.toLowerCase())
+                    );
+                });
                 
-                console.log('Initial Klampenborg races:', filtered.length);
+                console.log('Selected courses:', selectedCourses);
+                console.log('Initial filtered races for courses:', filtered.length);
                 console.log('Selected filters:', {
+                    courses: selectedCourses,
                     months: selectedMonths,
                     classes: selectedClasses,
                     fields: selectedFields,
@@ -1323,8 +1432,42 @@
                     jockeyArray.slice(start, start + itemsPerPage) : 
                     jockeyArray.slice(0, 10);
                 
+                // Update header to show selected courses
+                const courseText = selectedCourses.length === 1 ? 
+                    `at ${selectedCourses[0]}` : 
+                    `at selected courses`;
+                    
+                document.querySelector('#topJockeys').parentElement.querySelector('h3').innerHTML = 
+                    `🏆 Top Jockeys ${courseText} <button class="show-all-btn" id="showAllJockeysBtn" onclick="toggleJockeyView()">${showAllJockeys ? 'Show Top 10' : 'Show All'}</button>`;
+                
                 let html = '<table><tr>';
                 html += '<th onclick="sortJockeys(\'name\')" style="cursor:pointer">Name ' + (jockeySortField === 'name' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortJockeys(\'wr\')" style="cursor:pointer">W/R ' + (jockeySortField === 'wr' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortJockeys(\'winPct\')" style="cursor:pointer">Win% ' + (jockeySortField === 'winPct' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortJockeys(\'odds\')" style="cursor:pointer">Avg Odds ' + (jockeySortField === 'odds' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '</tr>';
+                
+                displayArray.forEach(j => {
+                    html += '<tr>';
+                    html += '<td>' + j.name.substring(0, 20) + '</td>';
+                    html += '<td>' + j.wins + '/' + j.runs + '</td>';
+                    html += '<td style="color:' + (j.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + j.winPct.toFixed(1) + '%</td>';
+                    html += '<td>' + (j.avgOdds > 0 ? j.avgOdds.toFixed(2) : '-') + '</td>';
+                    html += '</tr>';
+                });
+                html += '</table>';
+                
+                document.getElementById('topJockeys').innerHTML = html;
+                
+                if (showAllJockeys) {
+                    document.getElementById('jockeyPagination').style.display = 'flex';
+                    document.getElementById('jockeyPageInfo').textContent = `Page ${jockeyPage} of ${totalPages}`;
+                    document.getElementById('jockeyPrevBtn').disabled = jockeyPage === 1;
+                    document.getElementById('jockeyNextBtn').disabled = jockeyPage === totalPages;
+                } else {
+                    document.getElementById('jockeyPagination').style.display = 'none';
+                }
+            }Name ' + (jockeySortField === 'name' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
                 html += '<th onclick="sortJockeys(\'wr\')" style="cursor:pointer">W/R ' + (jockeySortField === 'wr' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
                 html += '<th onclick="sortJockeys(\'winPct\')" style="cursor:pointer">Win% ' + (jockeySortField === 'winPct' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
                 html += '<th onclick="sortJockeys(\'odds\')" style="cursor:pointer">Avg Odds ' + (jockeySortField === 'odds' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
@@ -1405,6 +1548,14 @@
                 const displayArray = showAllTrainers ? 
                     trainerArray.slice(start, start + itemsPerPage) : 
                     trainerArray.slice(0, 10);
+                
+                // Update header to show selected courses
+                const courseText = selectedCourses.length === 1 ? 
+                    `at ${selectedCourses[0]}` : 
+                    `at selected courses`;
+                    
+                document.querySelector('#topTrainers').parentElement.querySelector('h3').innerHTML = 
+                    `👥 Top Trainers ${courseText} <button class="show-all-btn" id="showAllTrainersBtn" onclick="toggleTrainerView()">${showAllTrainers ? 'Show Top 10' : 'Show All'}</button>`;
                 
                 let html = '<table><tr>';
                 html += '<th onclick="sortTrainers(\'name\')" style="cursor:pointer">Name ' + (trainerSortField === 'name' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
