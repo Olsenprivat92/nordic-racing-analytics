@@ -797,47 +797,62 @@
                     }
                 } 
                 // For favorite trends data with special format
-                else if (lines[0].includes('Course') || (lines.length > 2 && lines[1].includes('top 25'))) {
-                    // Skip header rows and find the data
-                    let startIndex = 0;
+                else {
+                    console.log('Parsing favorite trends data...');
+                    console.log('First few lines:', lines.slice(0, 5));
+                    
+                    // Find where the actual data starts (after headers)
+                    let startIndex = -1;
                     for (let i = 0; i < lines.length; i++) {
-                        if (lines[i].includes('top 25') || lines[i].includes('26-50')) {
+                        // Look for the header row with percentages labels
+                        if (lines[i].includes('25') || lines[i].includes('50') || lines[i].includes('75')) {
                             startIndex = i + 1;
                             break;
                         }
                     }
                     
-                    // Parse the favorite trends data - handling tab or comma separated
+                    // If we couldn't find headers, try starting from line 2 or 3
+                    if (startIndex === -1) {
+                        startIndex = lines[0].includes('Course') ? 2 : 1;
+                    }
+                    
+                    console.log('Starting data parse from line:', startIndex);
+                    
+                    // Parse the actual data rows
                     for (let i = startIndex; i < lines.length; i++) {
-                        let parts = lines[i].split('\t');
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        // Try different delimiters: tab first, then comma
+                        let parts = line.split('\t');
                         if (parts.length < 5) {
-                            // Try comma separation if tabs don't work
-                            parts = lines[i].split(',');
+                            parts = line.split(',');
                         }
                         
+                        console.log('Line', i, 'parts:', parts);
+                        
                         if (parts.length >= 5) {
-                            // Clean the percentages - handle European format (37,00% becomes 37.00%)
-                            const cleanPercent = (str) => {
-                                if (!str) return '';
-                                return str.trim()
-                                    .replace(',', '.')  // Convert comma to decimal point
-                                    .replace('%', '') + '%';  // Ensure % symbol is at the end
-                            };
-                            
                             const row = {
                                 'Class': parts[0].trim(),
-                                'Top 25%': cleanPercent(parts[1]),
-                                '26-50%': cleanPercent(parts[2]),
-                                '51-75%': cleanPercent(parts[3]),
-                                '76-100%': cleanPercent(parts[4]),
+                                'Top 25%': parts[1].trim(),
+                                '26-50%': parts[2].trim(),
+                                '51-75%': parts[3].trim(),
+                                '76-100%': parts[4].trim(),
                                 'Races': parts[5] ? parts[5].trim() : ''
                             };
                             
-                            if (row.Class && row.Class !== '' && !row.Class.includes('Course')) {
+                            // Only add valid data rows (skip headers and empty rows)
+                            if (row.Class && 
+                                !row.Class.toLowerCase().includes('course') && 
+                                !row.Class.toLowerCase().includes('class') &&
+                                row.Class !== '') {
+                                console.log('Adding row:', row);
                                 data.push(row);
                             }
                         }
                     }
+                    
+                    console.log('Total rows parsed:', data.length);
                 }
                 
                 return data;
@@ -1532,7 +1547,7 @@
                     }
                     
                     const text = await response.text();
-                    console.log('Loaded favorite trends, parsing data...');
+                    console.log('Loaded favorite trends text, first 300 chars:', text.substring(0, 300));
                     
                     // Check if we got HTML instead of CSV
                     if (text.includes('<!DOCTYPE') || text.includes('<html')) {
@@ -1541,14 +1556,14 @@
                         return;
                     }
                     
-                    // Parse the CSV with the special format
+                    // Parse the CSV
                     favoriteTrendsData = parseCSV(text);
                     
                     if (favoriteTrendsData.length === 0) {
                         console.warn('No data parsed from favorite trends.');
                         useSampleFavoriteData();
                     } else {
-                        console.log('Successfully parsed', favoriteTrendsData.length, 'rows');
+                        console.log('Successfully parsed favorite trends:', favoriteTrendsData);
                         updateFavoriteAnalysis();
                     }
                 } catch (error) {
@@ -1558,7 +1573,7 @@
             }
             
             function useSampleFavoriteData() {
-                // Sample data matching your actual format
+                // Sample data matching US format with dots
                 favoriteTrendsData = [
                     { 'Class': '1', 'Top 25%': '37.00%', '26-50%': '34.00%', '51-75%': '17.00%', '76-100%': '11.00%', 'Races': '70' },
                     { 'Class': '2', 'Top 25%': '47.00%', '26-50%': '26.00%', '51-75%': '22.00%', '76-100%': '4.00%', 'Races': '179' },
@@ -1573,6 +1588,7 @@
                     { 'Class': 'Max Handicap', 'Top 25%': '38.00%', '26-50%': '33.00%', '51-75%': '22.00%', '76-100%': '6.00%', 'Races': '18' }
                 ];
                 
+                console.log('Using sample favorite data');
                 updateFavoriteAnalysis();
             }
 
