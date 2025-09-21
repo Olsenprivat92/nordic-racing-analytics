@@ -984,6 +984,52 @@
                 updateCourseAnalysis();
             }
 
+            function populateCourses() {
+                const courses = new Set();
+                racingData.forEach(row => {
+                    if (row.Course) {
+                        // Extract the main course name (before any parentheses or special characters)
+                        const courseName = row.Course.split('(')[0].trim();
+                        if (courseName) courses.add(courseName);
+                    }
+                });
+                
+                const dropdown = document.getElementById('courseDropdown');
+                dropdown.innerHTML = ''; // Clear existing
+                
+                // Add the courses we want to support
+                const supportedCourses = [
+                    'Klampenborg',
+                    'Göteborg',
+                    'Jägersro',
+                    'Århus',
+                    'Aalborg',
+                    'Odense',
+                    'Bornholm',
+                    'Fyens',
+                    'Skive'
+                ];
+                
+                // Add courses that exist in the data
+                supportedCourses.forEach(course => {
+                    if (Array.from(courses).some(c => c.toLowerCase().includes(course.toLowerCase()))) {
+                        const option = document.createElement('div');
+                        option.className = 'multi-select-option';
+                        const isChecked = course === 'Klampenborg' ? 'checked' : '';
+                        option.innerHTML = `
+                            <input type="checkbox" id="course-${course.toLowerCase()}" value="${course}" ${isChecked}>
+                            <label for="course-${course.toLowerCase()}">${course}</label>
+                        `;
+                        dropdown.appendChild(option);
+                    }
+                });
+                
+                // Add event listeners to new checkboxes
+                document.querySelectorAll('[id^="course-"]').forEach(cb => {
+                    cb.addEventListener('change', updateCourseSelection);
+                });
+            }
+            
             function populateClasses() {
                 const classes = new Set();
                 racingData.forEach(row => {
@@ -1780,4 +1826,3 @@
 </body>
 </html>
                 
-
