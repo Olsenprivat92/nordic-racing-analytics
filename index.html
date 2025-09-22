@@ -482,8 +482,11 @@
             }
 
             if (view === 'courses') {
-                updateCourseAnalysis();
-                loadFavoriteTrends();
+                // Delay the analysis until after the view is rendered
+                setTimeout(() => {
+                    updateCourseAnalysis();
+                    loadFavoriteTrends();
+                }, 100);
             }
         }
 
@@ -495,11 +498,55 @@
                 const text = await response.text();
                 racingData = parseCSV(text);
                 updateDashboard();
+                populateCourses();
                 populateClasses();
                 document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
+                
+                // If we're on the courses view, update it
+                if (document.getElementById('courses-view').classList.contains('active')) {
+                    updateCourseAnalysis();
+                }
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('syncStatus').textContent = 'Error';
+            }
+        }
+
+        // Populate courses dropdown
+        function populateCourses() {
+            const courses = new Set();
+            racingData.forEach(row => {
+                if (row.Course) {
+                    // Extract the main course name (before any parentheses)
+                    const courseName = row.Course.split('(')[0].trim();
+                    if (courseName) courses.add(courseName);
+                }
+            });
+            
+            const select = document.getElementById('courseFilter');
+            const currentValue = select.value;
+            select.innerHTML = '';
+            
+            // Add detected courses
+            const sortedCourses = Array.from(courses).sort();
+            sortedCourses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course;
+                option.textContent = course;
+                select.appendChild(option);
+            });
+            
+            // If no courses found, add default
+            if (sortedCourses.length === 0) {
+                const option = document.createElement('option');
+                option.value = 'Klampenborg';
+                option.textContent = 'Klampenborg';
+                select.appendChild(option);
+            }
+            
+            // Restore previous selection if it exists
+            if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                select.value = currentValue;
             }
         }
 
@@ -596,6 +643,17 @@
 
         // Update course analysis
         function updateCourseAnalysis() {
+            // Check if data is loaded first
+            if (racingData.length === 0) {
+                document.getElementById('postPositionAnalysis').innerHTML = '<p>No data loaded yet. Please wait...</p>';
+                document.getElementById('winningTimes').innerHTML = '<p>No data loaded yet. Please wait...</p>';
+                document.getElementById('topJockeys').innerHTML = '<p>No data loaded yet. Please wait...</p>';
+                document.getElementById('topTrainers').innerHTML = '<p>No data loaded yet. Please wait...</p>';
+                document.getElementById('fieldTrends').innerHTML = '<p>No data loaded yet. Please wait...</p>';
+                document.getElementById('winningOdds').innerHTML = '<p>No data loaded yet. Please wait...</p>';
+                return;
+            }
+
             const courseFilter = document.getElementById('courseFilter').value;
             const monthFilter = document.getElementById('monthFilter').value;
             const classFilter = document.getElementById('classFilter').value;
@@ -607,6 +665,9 @@
 
             // Filter data
             let filtered = racingData.filter(r => r.Course && r.Course.includes(courseFilter));
+
+            console.log('Filtering for course:', courseFilter);
+            console.log('Found races:', filtered.length);
 
             if (monthFilter !== 'all') {
                 filtered = filtered.filter(r => {
@@ -636,6 +697,8 @@
                     return true;
                 });
             }
+
+            console.log('After all filters:', filtered.length);
 
             // Update all analysis sections
             updatePostPositions(filtered);
