@@ -1,4 +1,690 @@
-<!DOCTYPE html>
+                        const courseName = row.Course.split('(')[0].trim();
+                        if (courseName) courses.add(courseName);
+                    }
+                });
+                
+                const dropdown = document.getElementById('courseDropdown');
+                dropdown.innerHTML = '';
+                
+                const supportedCourses = ['Klampenborg', 'Göteborg', 'Jägersro', 'Århus', 'Aalborg', 'Odense'];
+                
+                supportedCourses.forEach(course => {
+                    if (Array.from(courses).some(c => c.toLowerCase().includes(course.toLowerCase()))) {
+                        const option = document.createElement('div');
+                        option.className = 'multi-select-option';
+                        const isChecked = course === 'Klampenborg' ? 'checked' : '';
+                        option.innerHTML = `
+                            <input type="checkbox" id="course-${course.toLowerCase()}" value="${course}" ${isChecked}>
+                            <label for="course-${course.toLowerCase()}">${course}</label>
+                        `;
+                        dropdown.appendChild(option);
+                    }
+                });
+                
+                document.querySelectorAll('[id^="course-"]').forEach(cb => {
+                    cb.addEventListener('change', updateCourseSelection);
+                });
+            }
+
+            function populateClasses() {
+                const classes = new Set();
+                racingData.forEach(row => {
+                    if (row.Class) classes.add(row.Class);
+                });
+                
+                const dropdown = document.getElementById('classDropdown');
+                const existingOptions = dropdown.querySelectorAll('.multi-select-option:not(:first-child)');
+                existingOptions.forEach(opt => opt.remove());
+                
+                Array.from(classes).sort().forEach(cls => {
+                    const option = document.createElement('div');
+                    option.className = 'multi-select-option';
+                    option.innerHTML = `
+                        <input type="checkbox" id="class-${cls}" value="${cls}">
+                        <label for="class-${cls}">${cls}</label>
+                    `;
+                    dropdown.appendChild(option);
+                    option.querySelector('input').addEventListener('change', updateClassSelection);
+                });
+            }
+
+            function updateCourseSelection() {
+                const courseCheckboxes = document.querySelectorAll('[id^="course-"]');
+                selectedCourses = [];
+                
+                courseCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedCourses.push(cb.value);
+                    }
+                });
+                
+                if (selectedCourses.length === 0) {
+                    document.getElementById('course-klampenborg').checked = true;
+                    selectedCourses = ['Klampenborg'];
+                    document.getElementById('courseLabel').textContent = 'Klampenborg';
+                } else if (selectedCourses.length === 1) {
+                    document.getElementById('courseLabel').textContent = selectedCourses[0];
+                } else {
+                    document.getElementById('courseLabel').textContent = selectedCourses.length + ' courses';
+                }
+                
+                updateCourseAnalysisHeader();
+                updateCourseAnalysis();
+            }
+            
+            function updateCourseAnalysisHeader() {
+                const headerElement = document.querySelector('#courses-view .card-title');
+                if (headerElement) {
+                    if (selectedCourses.length === 1) {
+                        headerElement.textContent = `🏁 Course Analysis - ${selectedCourses[0]}`;
+                    } else {
+                        headerElement.textContent = `🏁 Course Analysis - Multiple Courses`;
+                    }
+                }
+            }
+
+            function toggleAllMonths() {
+                const allCheckbox = document.getElementById('month-all');
+                const monthCheckboxes = document.querySelectorAll('[id^="month-"]:not(#month-all)');
+                
+                monthCheckboxes.forEach(cb => {
+                    cb.checked = false;
+                });
+                
+                if (!allCheckbox.checked) {
+                    allCheckbox.checked = true;
+                }
+                
+                updateMonthSelection();
+            }
+
+            function updateMonthSelection() {
+                const allCheckbox = document.getElementById('month-all');
+                const monthCheckboxes = document.querySelectorAll('[id^="month-"]:not(#month-all)');
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                selectedMonths = [];
+                let selectedNames = [];
+                
+                monthCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedMonths.push(cb.value);
+                        const monthIndex = parseInt(cb.value) - 1;
+                        selectedNames.push(monthNames[monthIndex]);
+                        allCheckbox.checked = false;
+                    }
+                });
+                
+                if (selectedMonths.length === 0) {
+                    allCheckbox.checked = true;
+                    document.getElementById('monthLabel').textContent = 'All Months';
+                } else if (selectedMonths.length <= 3) {
+                    document.getElementById('monthLabel').textContent = selectedNames.join(', ');
+                } else {
+                    document.getElementById('monthLabel').textContent = selectedMonths.length + ' months selected';
+                }
+                
+                updateCourseAnalysis();
+            }
+
+            function toggleAllClasses() {
+                const allCheckbox = document.getElementById('class-all');
+                const classCheckboxes = document.querySelectorAll('[id^="class-"]:not(#class-all)');
+                
+                classCheckboxes.forEach(cb => {
+                    cb.checked = false;
+                });
+                
+                if (!allCheckbox.checked) {
+                    allCheckbox.checked = true;
+                }
+                
+                updateClassSelection();
+            }
+
+            function updateClassSelection() {
+                const allCheckbox = document.getElementById('class-all');
+                const classCheckboxes = document.querySelectorAll('[id^="class-"]:not(#class-all)');
+                
+                selectedClasses = [];
+                
+                classCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedClasses.push(cb.value);
+                        allCheckbox.checked = false;
+                    }
+                });
+                
+                if (selectedClasses.length === 0) {
+                    allCheckbox.checked = true;
+                    document.getElementById('classLabel').textContent = 'All Classes';
+                } else if (selectedClasses.length <= 3) {
+                    document.getElementById('classLabel').textContent = selectedClasses.join(', ');
+                } else {
+                    document.getElementById('classLabel').textContent = selectedClasses.length + ' classes selected';
+                }
+                
+                updateCourseAnalysis();
+            }
+
+            function toggleAllFields() {
+                const allCheckbox = document.getElementById('field-all');
+                const fieldCheckboxes = document.querySelectorAll('[id^="field-"]:not(#field-all)');
+                
+                fieldCheckboxes.forEach(cb => {
+                    cb.checked = false;
+                });
+                
+                if (!allCheckbox.checked) {
+                    allCheckbox.checked = true;
+                }
+                
+                updateFieldSelection();
+            }
+
+            function updateFieldSelection() {
+                const allCheckbox = document.getElementById('field-all');
+                const fieldCheckboxes = document.querySelectorAll('[id^="field-"]:not(#field-all)');
+                
+                selectedFields = [];
+                
+                fieldCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedFields.push(cb.value);
+                        allCheckbox.checked = false;
+                    }
+                });
+                
+                if (selectedFields.length === 0) {
+                    allCheckbox.checked = true;
+                    document.getElementById('fieldLabel').textContent = 'All Field Sizes';
+                } else if (selectedFields.length <= 2) {
+                    document.getElementById('fieldLabel').textContent = selectedFields.join(', ');
+                } else {
+                    document.getElementById('fieldLabel').textContent = selectedFields.length + ' field sizes';
+                }
+                
+                updateCourseAnalysis();
+            }
+
+            function toggleAllDistances() {
+                const allCheckbox = document.getElementById('distance-all');
+                const distanceCheckboxes = document.querySelectorAll('[id^="distance-"]:not(#distance-all)');
+                
+                distanceCheckboxes.forEach(cb => {
+                    cb.checked = false;
+                });
+                
+                if (!allCheckbox.checked) {
+                    allCheckbox.checked = true;
+                }
+                
+                updateDistanceSelection();
+            }
+
+            function updateDistanceSelection() {
+                const allCheckbox = document.getElementById('distance-all');
+                const distanceCheckboxes = document.querySelectorAll('[id^="distance-"]:not(#distance-all)');
+                
+                selectedDistances = [];
+                
+                distanceCheckboxes.forEach(cb => {
+                    if (cb.checked) {
+                        selectedDistances.push(cb.value);
+                        allCheckbox.checked = false;
+                    }
+                });
+                
+                if (selectedDistances.length === 0) {
+                    allCheckbox.checked = true;
+                    document.getElementById('distanceLabel').textContent = 'All Distances';
+                } else if (selectedDistances.length <= 2) {
+                    const labels = {
+                        'sprint': 'Sprint',
+                        'mile': 'Mile',
+                        'stayer': 'Stayer'
+                    };
+                    document.getElementById('distanceLabel').textContent = selectedDistances.map(d => labels[d]).join(', ');
+                } else {
+                    document.getElementById('distanceLabel').textContent = selectedDistances.length + ' distances';
+                }
+                
+                updateCourseAnalysis();
+            }
+
+            function toggleJockeyView() {
+                showAllJockeys = !showAllJockeys;
+                jockeyPage = 1;
+                const btn = document.getElementById('showAllJockeysBtn');
+                if (btn) {
+                    btn.textContent = showAllJockeys ? 'Show Top 10' : 'Show All';
+                }
+                updateCourseAnalysis();
+            }
+
+            function toggleTrainerView() {
+                showAllTrainers = !showAllTrainers;
+                trainerPage = 1;
+                const btn = document.getElementById('showAllTrainersBtn');
+                if (btn) {
+                    btn.textContent = showAllTrainers ? 'Show Top 10' : 'Show All';
+                }
+                updateCourseAnalysis();
+            }
+
+            function changeJockeyPage(direction) {
+                jockeyPage += direction;
+                updateCourseAnalysis();
+            }
+
+            function changeTrainerPage(direction) {
+                trainerPage += direction;
+                updateCourseAnalysis();
+            }
+
+            function updateDashboard() {
+                const horses = new Set();
+                const jockeys = new Set();
+                const courses = new Set();
+                const races = new Set();
+                
+                racingData.forEach(row => {
+                    if (row.Horse) horses.add(row.Horse);
+                    if (row.Jockey) jockeys.add(row.Jockey);
+                    if (row.Course) courses.add(row.Course);
+                    const raceId = row.Course + row.Date + row['Race of the Day'];
+                    if (raceId) races.add(raceId);
+                });
+                
+                document.getElementById('totalRaces').textContent = races.size;
+                document.getElementById('uniqueHorses').textContent = horses.size;
+                document.getElementById('totalJockeys').textContent = jockeys.size;
+                document.getElementById('totalCourses').textContent = courses.size;
+                
+                const tbody = document.getElementById('racesTable');
+                const winners = racingData.filter(r => r.Place === '1').slice(-10).reverse();
+                
+                let html = '';
+                winners.forEach(race => {
+                    html += '<tr>';
+                    html += '<td>' + (race.Date || '-') + '</td>';
+                    html += '<td>' + (race.Course || '-') + '</td>';
+                    html += '<td>' + (race['Race of the Day'] || '-') + '</td>';
+                    html += '<td><strong>' + (race.Horse || '-') + '</strong></td>';
+                    html += '<td>' + (race.Jockey || '-') + '</td>';
+                    html += '<td>' + (race.Time || race['Time 2'] || '-') + '</td>';
+                    html += '<td>' + (race.Odds || '-') + '</td>';
+                    html += '</tr>';
+                });
+                tbody.innerHTML = html || '<tr><td colspan="7">No data</td></tr>';
+            }
+
+            function updateCourseAnalysis() {
+                let filtered = racingData.filter(r => {
+                    if (!r.Course) return false;
+                    return selectedCourses.some(course => 
+                        r.Course.toLowerCase().includes(course.toLowerCase())
+                    );
+                });
+
+                if (selectedMonths.length > 0) {
+                    filtered = filtered.filter(r => {
+                        const parts = (r.Date || '').split('-');
+                        return selectedMonths.includes(parts[1]);
+                    });
+                }
+
+                if (selectedClasses.length > 0) {
+                    filtered = filtered.filter(r => {
+                        return selectedClasses.includes(r.Class);
+                    });
+                }
+
+                if (selectedFields.length > 0) {
+                    filtered = filtered.filter(r => {
+                        const field = parseInt(r.Field) || 0;
+                        return selectedFields.some(range => {
+                            if (range === '5-7') return field >= 5 && field <= 7;
+                            if (range === '8-10') return field >= 8 && field <= 10;
+                            if (range === '11-13') return field >= 11 && field <= 13;
+                            if (range === '14+') return field >= 14;
+                            return false;
+                        });
+                    });
+                }
+
+                if (selectedDistances.length > 0) {
+                    filtered = filtered.filter(r => {
+                        const dist = parseInt(r.Distance) || 0;
+                        return selectedDistances.some(type => {
+                            if (type === 'sprint') return dist >= 1000 && dist <= 1400;
+                            if (type === 'mile') return dist >= 1500 && dist <= 1800;
+                            if (type === 'stayer') return dist > 1800;
+                            return false;
+                        });
+                    });
+                }
+                
+                updatePostPositions(filtered);
+                updateWinningTimes(filtered);
+                updateTopJockeys(filtered);
+                updateTopTrainers(filtered);
+                updateFieldTrends(filtered);
+                updateWinningOdds(filtered);
+            }
+
+            function updatePostPositions(data) {
+                const postStats = {};
+                
+                data.forEach(race => {
+                    const post = parseInt(race.Startspor) || 0;
+                    if (post > 0 && post <= 15) {
+                        if (!postStats[post]) postStats[post] = {wins: 0, runs: 0};
+                        postStats[post].runs++;
+                        if (race.Place === '1') postStats[post].wins++;
+                    }
+                });
+                
+                let html = '<table><tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win%</th></tr>';
+                for (let i = 1; i <= 15; i++) {
+                    if (postStats[i] && postStats[i].runs > 0) {
+                        const winPct = ((postStats[i].wins / postStats[i].runs) * 100).toFixed(1);
+                        const color = winPct > 15 ? '#22c55e' : winPct > 10 ? '#f59e0b' : '#94a3b8';
+                        html += '<tr>';
+                        html += '<td>' + i + '</td>';
+                        html += '<td>' + postStats[i].runs + '</td>';
+                        html += '<td>' + postStats[i].wins + '</td>';
+                        html += '<td style="color:' + color + '; font-weight:600">' + winPct + '%</td>';
+                        html += '</tr>';
+                    }
+                }
+                html += '</table>';
+                document.getElementById('postPositionAnalysis').innerHTML = html;
+            }
+
+            function updateWinningTimes(data) {
+                const timesByDistance = {};
+                
+                data.filter(r => r.Place === '1').forEach(race => {
+                    const dist = parseInt(race.Distance) || 0;
+                    const time = race.Time || race['Time 2'] || '';
+                    
+                    if (dist > 0 && time) {
+                        if (!timesByDistance[dist]) timesByDistance[dist] = [];
+                        
+                        let seconds = 0;
+                        if (time.includes(':')) {
+                            const parts = time.split(':');
+                            seconds = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+                        } else {
+                            seconds = parseFloat(time);
+                        }
+                        
+                        if (!isNaN(seconds) && seconds > 0) {
+                            timesByDistance[dist].push(seconds);
+                        }
+                    }
+                });
+                
+                let html = '<table><tr><th>Distance</th><th>Races</th><th>Avg Time</th></tr>';
+                Object.keys(timesByDistance).sort((a, b) => a - b).forEach(dist => {
+                    const times = timesByDistance[dist];
+                    const avg = times.reduce((a, b) => a + b, 0) / times.length;
+                    const mins = Math.floor(avg / 60);
+                    const secs = (avg % 60).toFixed(1);
+                    const timeStr = mins > 0 ? mins + ':' + secs.padStart(4, '0') : secs + 's';
+                    
+                    html += '<tr>';
+                    html += '<td>' + dist + 'm</td>';
+                    html += '<td>' + times.length + '</td>';
+                    html += '<td>' + timeStr + '</td>';
+                    html += '</tr>';
+                });
+                html += '</table>';
+                document.getElementById('winningTimes').innerHTML = html;
+            }
+
+            function updateTopJockeys(data) {
+                const jockeyStats = {};
+                
+                data.forEach(race => {
+                    const jockey = race.Jockey;
+                    if (jockey) {
+                        if (!jockeyStats[jockey]) {
+                            jockeyStats[jockey] = {name: jockey, wins: 0, runs: 0, odds: []};
+                        }
+                        jockeyStats[jockey].runs++;
+                        if (race.Place === '1') {
+                            jockeyStats[jockey].wins++;
+                            if (race.Odds) jockeyStats[jockey].odds.push(parseFloat(race.Odds));
+                        }
+                    }
+                });
+                
+                let jockeyArray = Object.values(jockeyStats)
+                    .filter(stats => showAllJockeys || stats.runs >= 5)
+                    .map(stats => ({
+                        name: stats.name,
+                        wins: stats.wins,
+                        runs: stats.runs,
+                        winPct: (stats.wins / stats.runs) * 100,
+                        avgOdds: stats.odds.length > 0 ? 
+                            stats.odds.reduce((a, b) => a + b, 0) / stats.odds.length : 0
+                    }));
+                
+                jockeyArray.sort((a, b) => {
+                    let aVal, bVal;
+                    switch(jockeySortField) {
+                        case 'name': aVal = a.name; bVal = b.name; break;
+                        case 'wr': aVal = a.wins; bVal = b.wins; break;
+                        case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
+                        case 'odds': aVal = a.avgOdds; bVal = b.avgOdds; break;
+                        default: aVal = a.wins; bVal = b.wins;
+                    }
+                    
+                    if (typeof aVal === 'string') {
+                        return jockeySortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                    }
+                    return jockeySortAsc ? aVal - bVal : bVal - aVal;
+                });
+                
+                const totalPages = Math.ceil(jockeyArray.length / itemsPerPage);
+                const start = (jockeyPage - 1) * itemsPerPage;
+                const displayArray = showAllJockeys ? 
+                    jockeyArray.slice(start, start + itemsPerPage) : 
+                    jockeyArray.slice(0, 10);
+                
+                let html = '<table><tr>';
+                html += '<th onclick="sortJockeys(\'name\')" style="cursor:pointer">Name ' + (jockeySortField === 'name' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortJockeys(\'wr\')" style="cursor:pointer">W/R ' + (jockeySortField === 'wr' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortJockeys(\'winPct\')" style="cursor:pointer">Win% ' + (jockeySortField === 'winPct' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortJockeys(\'odds\')" style="cursor:pointer">Avg Odds ' + (jockeySortField === 'odds' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '</tr>';
+                
+                displayArray.forEach(j => {
+                    html += '<tr>';
+                    html += '<td>' + j.name.substring(0, 20) + '</td>';
+                    html += '<td>' + j.wins + '/' + j.runs + '</td>';
+                    html += '<td style="color:' + (j.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + j.winPct.toFixed(1) + '%</td>';
+                    html += '<td>' + (j.avgOdds > 0 ? j.avgOdds.toFixed(2) : '-') + '</td>';
+                    html += '</tr>';
+                });
+                html += '</table>';
+                
+                document.getElementById('topJockeys').innerHTML = html;
+                
+                if (showAllJockeys) {
+                    document.getElementById('jockeyPagination').style.display = 'flex';
+                    document.getElementById('jockeyPageInfo').textContent = `Page ${jockeyPage} of ${totalPages}`;
+                    document.getElementById('jockeyPrevBtn').disabled = jockeyPage === 1;
+                    document.getElementById('jockeyNextBtn').disabled = jockeyPage === totalPages;
+                } else {
+                    document.getElementById('jockeyPagination').style.display = 'none';
+                }
+            }
+            
+            window.sortJockeys = function(field) {
+                if (jockeySortField === field) {
+                    jockeySortAsc = !jockeySortAsc;
+                } else {
+                    jockeySortField = field;
+                    jockeySortAsc = false;
+                }
+                updateCourseAnalysis();
+            }
+
+            function updateTopTrainers(data) {
+                const trainerStats = {};
+                
+                data.forEach(race => {
+                    const trainer = race.Trainer;
+                    if (trainer) {
+                        if (!trainerStats[trainer]) {
+                            trainerStats[trainer] = {name: trainer, wins: 0, runs: 0};
+                        }
+                        trainerStats[trainer].runs++;
+                        if (race.Place === '1') trainerStats[trainer].wins++;
+                    }
+                });
+                
+                let trainerArray = Object.values(trainerStats)
+                    .filter(stats => showAllTrainers || stats.runs >= 5)
+                    .map(stats => ({
+                        name: stats.name,
+                        wins: stats.wins,
+                        runs: stats.runs,
+                        winPct: (stats.wins / stats.runs) * 100
+                    }));
+                
+                trainerArray.sort((a, b) => {
+                    let aVal, bVal;
+                    switch(trainerSortField) {
+                        case 'name': aVal = a.name; bVal = b.name; break;
+                        case 'wr': aVal = a.wins; bVal = b.wins; break;
+                        case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
+                        default: aVal = a.wins; bVal = b.wins;
+                    }
+                    
+                    if (typeof aVal === 'string') {
+                        return trainerSortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                    }
+                    return trainerSortAsc ? aVal - bVal : bVal - aVal;
+                });
+                
+                const totalPages = Math.ceil(trainerArray.length / itemsPerPage);
+                const start = (trainerPage - 1) * itemsPerPage;
+                const displayArray = showAllTrainers ? 
+                    trainerArray.slice(start, start + itemsPerPage) : 
+                    trainerArray.slice(0, 10);
+                
+                let html = '<table><tr>';
+                html += '<th onclick="sortTrainers(\'name\')" style="cursor:pointer">Name ' + (trainerSortField === 'name' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortTrainers(\'wr\')" style="cursor:pointer">W/R ' + (trainerSortField === 'wr' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '<th onclick="sortTrainers(\'winPct\')" style="cursor:pointer">Win% ' + (trainerSortField === 'winPct' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
+                html += '</tr>';
+                
+                displayArray.forEach(t => {
+                    html += '<tr>';
+                    html += '<td>' + t.name.substring(0, 20) + '</td>';
+                    html += '<td>' + t.wins + '/' + t.runs + '</td>';
+                    html += '<td style="color:' + (t.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + t.winPct.toFixed(1) + '%</td>';
+                    html += '</tr>';
+                });
+                html += '</table>';
+                
+                document.getElementById('topTrainers').innerHTML = html;
+                
+                if (showAllTrainers) {
+                    document.getElementById('trainerPagination').style.display = 'flex';
+                    document.getElementById('trainerPageInfo').textContent = `Page ${trainerPage} of ${totalPages}`;
+                    document.getElementById('trainerPrevBtn').disabled = trainerPage === 1;
+                    document.getElementById('trainerNextBtn').disabled = trainerPage === totalPages;
+                } else {
+                    document.getElementById('trainerPagination').style.display = 'none';
+                }
+            }
+            
+            window.sortTrainers = function(field) {
+                if (trainerSortField === field) {
+                    trainerSortAsc = !trainerSortAsc;
+                } else {
+                    trainerSortField = field;
+                    trainerSortAsc = false;
+                }
+                updateCourseAnalysis();
+            }
+
+            function updateFieldTrends(data) {
+                const monthlyFields = {};
+                
+                data.forEach(race => {
+                    if (race.Date && race.Field) {
+                        const month = race.Date.split('-')[1];
+                        if (month) {
+                            if (!monthlyFields[month]) monthlyFields[month] = [];
+                            monthlyFields[month].push(parseInt(race.Field) || 0);
+                        }
+                    }
+                });
+                
+                const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+                const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                
+                let html = '<table><tr><th>Month</th><th>Avg Field</th><th>Races</th></tr>';
+                months.forEach((m, i) => {
+                    const fields = monthlyFields[m] || [];
+                    if (fields.length > 0) {
+                        const avg = (fields.reduce((a, b) => a + b, 0) / fields.length).toFixed(1);
+                        html += '<tr>';
+                        html += '<td>' + names[i] + '</td>';
+                        html += '<td>' + avg + '</td>';
+                        html += '<td>' + fields.length + '</td>';
+                        html += '</tr>';
+                    } else {
+                        html += '<tr><td>' + names[i] + '</td><td>-</td><td>0</td></tr>';
+                    }
+                });
+                html += '</table>';
+                document.getElementById('fieldTrends').innerHTML = html;
+            }
+
+            function updateWinningOdds(data) {
+                const oddsByClass = {};
+                
+                const allClasses = new Set();
+                racingData.forEach(race => {
+                    if (race.Class && race.Class !== '') {
+                        allClasses.add(race.Class);
+                    }
+                });
+                
+                allClasses.forEach(cls => {
+                    oddsByClass[cls] = { wins: [] };
+                });
+                
+                data.filter(r => r.Place === '1').forEach(race => {
+                    const cls = race.Class;
+                    if (cls && oddsByClass[cls]) {
+                        const odds = parseFloat(race.Odds) || 0;
+                        if (odds > 0) {
+                            oddsByClass[cls].wins.push(odds);
+                        }
+                    }
+                });
+                
+                let html = '<table style="width: 100%;">';
+                html += '<thead><tr>';
+                html += '<th style="text-align: left; padding: 8px;">Class</th>';
+                html += '<th style="text-align: left; padding: 8px;">Races</th>';
+                html += '<th style="text-align: left; padding: 8px;">Avg Odds</th>';
+                html += '</tr></thead><tbody>';
+                
+                const sortedClasses = Array.from(allClasses).sort((a, b) => {
+                    const aNum = parseInt(a);
+                    const bNum = parseInt(b);
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return aNum - bNum;
+                    }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -178,15 +864,6 @@
             background: #1e3a8a;
         }
 
-        select {
-            padding: 8px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            background: white;
-            margin-right: 10px;
-        }
-
-        /* Multi-select dropdown styles */
         .multi-select-container {
             position: relative;
             display: inline-block;
@@ -472,7 +1149,7 @@
                         </div>
                         <div class="card-body">
                             <div id="favoriteAnalysis">
-                                <p>To see favorite trends, add data to your Favorite_Trends tab in Google Sheets</p>
+                                <p>Loading favorite trends...</p>
                             </div>
                         </div>
                     </div>
@@ -499,7 +1176,7 @@
             // Global variables
             let racingData = [];
             let favoriteTrendsData = [];
-            let selectedCourses = ['Klampenborg']; // Default to Klampenborg
+            let selectedCourses = ['Klampenborg'];
             let selectedMonths = [];
             let selectedClasses = [];
             let selectedFields = [];
@@ -513,17 +1190,15 @@
             const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=0&single=true&output=csv';
             const FAVORITES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=964028900&single=true&output=csv';
 
-            // Sort fields for tables
+            // Sort fields
             let jockeySortField = 'wins';
             let jockeySortAsc = false;
             let trainerSortField = 'wins';
             let trainerSortAsc = false;
 
-            // Initialize navigation
+            // Initialize
             initializeNavigation();
             initializeFilters();
-            
-            // Load data on start
             loadData();
 
             function initializeNavigation() {
@@ -534,7 +1209,6 @@
                     <div class="nav-item" data-view="predictor">🔮 Race Predictor</div>
                 `;
                 
-                // Add event listeners
                 navContent.querySelectorAll('.nav-item').forEach(item => {
                     item.addEventListener('click', function() {
                         switchView(this.dataset.view);
@@ -554,10 +1228,6 @@
                             <div class="multi-select-option">
                                 <input type="checkbox" id="course-klampenborg" value="Klampenborg" checked>
                                 <label for="course-klampenborg">Klampenborg</label>
-                            </div>
-                            <div class="multi-select-option">
-                                <input type="checkbox" id="course-goteborg" value="Göteborg">
-                                <label for="course-goteborg">Göteborg</label>
                             </div>
                         </div>
                     </div>
@@ -644,7 +1314,6 @@
                     </div>
                 `;
 
-                // Add event listeners for dropdowns
                 setupDropdownListeners();
                 setupFilterListeners();
             }
@@ -664,37 +1333,31 @@
             }
 
             function setupDropdownListeners() {
-                // Course dropdown
                 document.getElementById('courseBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     toggleDropdown('course');
                 });
                 
-                // Month dropdown
                 document.getElementById('monthBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     toggleDropdown('month');
                 });
 
-                // Class dropdown
                 document.getElementById('classBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     toggleDropdown('class');
                 });
 
-                // Field dropdown
                 document.getElementById('fieldBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     toggleDropdown('field');
                 });
 
-                // Distance dropdown
                 document.getElementById('distanceBtn').addEventListener('click', function(e) {
                     e.stopPropagation();
                     toggleDropdown('distance');
                 });
 
-                // Close dropdowns when clicking outside
                 document.addEventListener('click', function() {
                     document.querySelectorAll('.multi-select-dropdown').forEach(dd => {
                         dd.classList.remove('open');
@@ -714,7 +1377,7 @@
                     cb.addEventListener('change', updateMonthSelection);
                 });
 
-                // Class filters (will be set up after data loads)
+                // Class filters
                 document.getElementById('class-all').addEventListener('change', toggleAllClasses);
 
                 // Field filters
@@ -729,46 +1392,6 @@
                     cb.addEventListener('change', updateDistanceSelection);
                 });
             }
-            
-            function updateCourseSelection() {
-                const courseCheckboxes = document.querySelectorAll('[id^="course-"]');
-                
-                selectedCourses = [];
-                let selectedNames = [];
-                
-                courseCheckboxes.forEach(cb => {
-                    if (cb.checked) {
-                        selectedCourses.push(cb.value);
-                        selectedNames.push(cb.value);
-                    }
-                });
-                
-                if (selectedCourses.length === 0) {
-                    // If nothing selected, default to Klampenborg
-                    document.getElementById('course-klampenborg').checked = true;
-                    selectedCourses = ['Klampenborg'];
-                    document.getElementById('courseLabel').textContent = 'Klampenborg';
-                } else if (selectedCourses.length === 1) {
-                    document.getElementById('courseLabel').textContent = selectedCourses[0];
-                } else {
-                    document.getElementById('courseLabel').textContent = selectedCourses.length + ' courses';
-                }
-                
-                // Update the header when course changes
-                updateCourseAnalysisHeader();
-                updateCourseAnalysis();
-            }
-            
-            function updateCourseAnalysisHeader() {
-                const headerElement = document.querySelector('#courses-view .card-title');
-                if (headerElement) {
-                    if (selectedCourses.length === 1) {
-                        headerElement.textContent = `🏁 Course Analysis - ${selectedCourses[0]}`;
-                    } else {
-                        headerElement.textContent = `🏁 Course Analysis - Multiple Courses`;
-                    }
-                }
-            }
 
             // Button event listeners
             document.getElementById('refreshBtn').addEventListener('click', loadData);
@@ -780,7 +1403,7 @@
             document.getElementById('trainerPrevBtn').addEventListener('click', () => changeTrainerPage(-1));
             document.getElementById('trainerNextBtn').addEventListener('click', () => changeTrainerPage(1));
 
-            // Main functions
+            // Main functions  
             function switchView(view) {
                 document.querySelectorAll('.view-container').forEach(el => {
                     el.classList.remove('active');
@@ -804,29 +1427,15 @@
                 try {
                     document.getElementById('syncStatus').textContent = 'Loading...';
                     const response = await fetch(SHEET_URL);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
                     const text = await response.text();
                     racingData = parseCSV(text);
-                    
-                    if (racingData.length === 0) {
-                        throw new Error('No data found in spreadsheet');
-                    }
-                    
                     updateDashboard();
+                    populateCourses();
                     populateClasses();
                     document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
                 } catch (error) {
-                    console.error('Error loading data:', error);
-                    document.getElementById('syncStatus').textContent = 'Error loading data';
-                    
-                    // Show error message in the races table
-                    document.getElementById('racesTable').innerHTML = 
-                        '<tr><td colspan="7" style="color: #dc2626;">Failed to load data. Please check:</td></tr>' +
-                        '<tr><td colspan="7" style="color: #6b7280;">• The Google Sheet is published to the web</td></tr>' +
-                        '<tr><td colspan="7" style="color: #6b7280;">• The URL is correct</td></tr>' +
-                        '<tr><td colspan="7" style="color: #6b7280;">• You have an internet connection</td></tr>';
+                    console.error('Error:', error);
+                    document.getElementById('syncStatus').textContent = 'Error';
                 }
             }
 
@@ -836,7 +1445,6 @@
                 
                 const data = [];
                 
-                // For regular data (main racing data)
                 if (lines[0].includes('Horse') || lines[0].includes('Date')) {
                     const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
                     
@@ -864,41 +1472,28 @@
                         
                         if (row.Horse || row.Class) data.push(row);
                     }
-                } 
-                // For favorite trends data with special format
-                else {
-                    console.log('Parsing favorite trends data...');
-                    console.log('First few lines:', lines.slice(0, 5));
-                    
-                    // Find where the actual data starts (after headers)
+                } else {
+                    // Favorite trends parsing
                     let startIndex = -1;
                     for (let i = 0; i < lines.length; i++) {
-                        // Look for the header row with percentages labels
                         if (lines[i].includes('25') || lines[i].includes('50') || lines[i].includes('75')) {
                             startIndex = i + 1;
                             break;
                         }
                     }
                     
-                    // If we couldn't find headers, try starting from line 2 or 3
                     if (startIndex === -1) {
                         startIndex = lines[0].includes('Course') ? 2 : 1;
                     }
                     
-                    console.log('Starting data parse from line:', startIndex);
-                    
-                    // Parse the actual data rows
                     for (let i = startIndex; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (!line) continue;
                         
-                        // Try different delimiters: tab first, then comma
                         let parts = line.split('\t');
                         if (parts.length < 5) {
                             parts = line.split(',');
                         }
-                        
-                        console.log('Line', i, 'parts:', parts);
                         
                         if (parts.length >= 5) {
                             const row = {
@@ -910,18 +1505,11 @@
                                 'Races': parts[5] ? parts[5].trim() : ''
                             };
                             
-                            // Only add valid data rows (skip headers and empty rows)
-                            if (row.Class && 
-                                !row.Class.toLowerCase().includes('course') && 
-                                !row.Class.toLowerCase().includes('class') &&
-                                row.Class !== '') {
-                                console.log('Adding row:', row);
+                            if (row.Class && !row.Class.toLowerCase().includes('course')) {
                                 data.push(row);
                             }
                         }
                     }
-                    
-                    console.log('Total rows parsed:', data.length);
                 }
                 
                 return data;
@@ -940,889 +1528,7 @@
                 dropdown.classList.toggle('open');
             }
 
-            function toggleAllMonths() {
-                const allCheckbox = document.getElementById('month-all');
-                const monthCheckboxes = document.querySelectorAll('[id^="month-"]:not(#month-all)');
-                
-                monthCheckboxes.forEach(cb => {
-                    cb.checked = false;
-                });
-                
-                if (!allCheckbox.checked) {
-                    allCheckbox.checked = true;
-                }
-                
-                updateMonthSelection();
-            }
-
-            function updateMonthSelection() {
-                const allCheckbox = document.getElementById('month-all');
-                const monthCheckboxes = document.querySelectorAll('[id^="month-"]:not(#month-all)');
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                
-                selectedMonths = [];
-                let selectedNames = [];
-                
-                monthCheckboxes.forEach(cb => {
-                    if (cb.checked) {
-                        selectedMonths.push(cb.value);
-                        const monthIndex = parseInt(cb.value) - 1;
-                        selectedNames.push(monthNames[monthIndex]);
-                        allCheckbox.checked = false;
-                    }
-                });
-                
-                if (selectedMonths.length === 0) {
-                    allCheckbox.checked = true;
-                    document.getElementById('monthLabel').textContent = 'All Months';
-                } else if (selectedMonths.length <= 3) {
-                    document.getElementById('monthLabel').textContent = selectedNames.join(', ');
-                } else {
-                    document.getElementById('monthLabel').textContent = selectedMonths.length + ' months selected';
-                }
-                
-                updateCourseAnalysis();
-            }
-
             function populateCourses() {
                 const courses = new Set();
                 racingData.forEach(row => {
                     if (row.Course) {
-                        // Extract the main course name (before any parentheses or special characters)
-                        const courseName = row.Course.split('(')[0].trim();
-                        if (courseName) courses.add(courseName);
-                    }
-                });
-                
-                const dropdown = document.getElementById('courseDropdown');
-                dropdown.innerHTML = ''; // Clear existing
-                
-                // Add the courses we want to support
-                const supportedCourses = [
-                    'Klampenborg',
-                    'Göteborg',
-                    'Jägersro',
-                    'Århus',
-                    'Aalborg',
-                    'Odense',
-                    'Bornholm',
-                    'Fyens',
-                    'Skive'
-                ];
-                
-                // Add courses that exist in the data
-                supportedCourses.forEach(course => {
-                    if (Array.from(courses).some(c => c.toLowerCase().includes(course.toLowerCase()))) {
-                        const option = document.createElement('div');
-                        option.className = 'multi-select-option';
-                        const isChecked = course === 'Klampenborg' ? 'checked' : '';
-                        option.innerHTML = `
-                            <input type="checkbox" id="course-${course.toLowerCase()}" value="${course}" ${isChecked}>
-                            <label for="course-${course.toLowerCase()}">${course}</label>
-                        `;
-                        dropdown.appendChild(option);
-                    }
-                });
-                
-                // Add event listeners to new checkboxes
-                document.querySelectorAll('[id^="course-"]').forEach(cb => {
-                    cb.addEventListener('change', updateCourseSelection);
-                });
-            }
-            
-            function populateClasses() {
-                const classes = new Set();
-                racingData.forEach(row => {
-                    if (row.Class) classes.add(row.Class);
-                });
-                
-                const dropdown = document.getElementById('classDropdown');
-                const existingOptions = dropdown.querySelectorAll('.multi-select-option:not(:first-child)');
-                existingOptions.forEach(opt => opt.remove());
-                
-                Array.from(classes).sort().forEach(cls => {
-                    const option = document.createElement('div');
-                    option.className = 'multi-select-option';
-                    option.innerHTML = `
-                        <input type="checkbox" id="class-${cls}" value="${cls}">
-                        <label for="class-${cls}">${cls}</label>
-                    `;
-                    dropdown.appendChild(option);
-                    
-                    // Add event listener
-                    option.querySelector('input').addEventListener('change', updateClassSelection);
-                });
-            }
-
-            async function loadData() {
-                try {
-                    document.getElementById('syncStatus').textContent = 'Loading...';
-                    const response = await fetch(SHEET_URL);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const text = await response.text();
-                    racingData = parseCSV(text);
-                    
-                    if (racingData.length === 0) {
-                        throw new Error('No data found in spreadsheet');
-                    }
-                    
-                    updateDashboard();
-                    populateCourses();  // Populate course filter
-                    populateClasses();  // Populate class filter
-                    document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
-                } catch (error) {
-                    console.error('Error loading data:', error);
-                    document.getElementById('syncStatus').textContent = 'Error loading data';
-                    
-                    // Show error message in the races table
-                    document.getElementById('racesTable').innerHTML = 
-                        '<tr><td colspan="7" style="color: #dc2626;">Failed to load data. Please check:</td></tr>' +
-                        '<tr><td colspan="7" style="color: #6b7280;">• The Google Sheet is published to the web</td></tr>' +
-                        '<tr><td colspan="7" style="color: #6b7280;">• The URL is correct</td></tr>' +
-                        '<tr><td colspan="7" style="color: #6b7280;">• You have an internet connection</td></tr>';
-                }
-            }
-
-            function toggleAllClasses() {
-                const allCheckbox = document.getElementById('class-all');
-                const classCheckboxes = document.querySelectorAll('[id^="class-"]:not(#class-all)');
-                
-                classCheckboxes.forEach(cb => {
-                    cb.checked = false;
-                });
-                
-                if (!allCheckbox.checked) {
-                    allCheckbox.checked = true;
-                }
-                
-                updateClassSelection();
-            }
-
-            function updateClassSelection() {
-                const allCheckbox = document.getElementById('class-all');
-                const classCheckboxes = document.querySelectorAll('[id^="class-"]:not(#class-all)');
-                
-                selectedClasses = [];
-                
-                classCheckboxes.forEach(cb => {
-                    if (cb.checked) {
-                        selectedClasses.push(cb.value);
-                        allCheckbox.checked = false;
-                    }
-                });
-                
-                if (selectedClasses.length === 0) {
-                    allCheckbox.checked = true;
-                    document.getElementById('classLabel').textContent = 'All Classes';
-                } else if (selectedClasses.length <= 3) {
-                    document.getElementById('classLabel').textContent = selectedClasses.join(', ');
-                } else {
-                    document.getElementById('classLabel').textContent = selectedClasses.length + ' classes selected';
-                }
-                
-                updateCourseAnalysis();
-            }
-
-            function toggleAllFields() {
-                const allCheckbox = document.getElementById('field-all');
-                const fieldCheckboxes = document.querySelectorAll('[id^="field-"]:not(#field-all)');
-                
-                fieldCheckboxes.forEach(cb => {
-                    cb.checked = false;
-                });
-                
-                if (!allCheckbox.checked) {
-                    allCheckbox.checked = true;
-                }
-                
-                updateFieldSelection();
-            }
-
-            function updateFieldSelection() {
-                const allCheckbox = document.getElementById('field-all');
-                const fieldCheckboxes = document.querySelectorAll('[id^="field-"]:not(#field-all)');
-                
-                selectedFields = [];
-                
-                fieldCheckboxes.forEach(cb => {
-                    if (cb.checked) {
-                        selectedFields.push(cb.value);
-                        allCheckbox.checked = false;
-                    }
-                });
-                
-                if (selectedFields.length === 0) {
-                    allCheckbox.checked = true;
-                    document.getElementById('fieldLabel').textContent = 'All Field Sizes';
-                } else if (selectedFields.length <= 2) {
-                    document.getElementById('fieldLabel').textContent = selectedFields.join(', ');
-                } else {
-                    document.getElementById('fieldLabel').textContent = selectedFields.length + ' field sizes';
-                }
-                
-                updateCourseAnalysis();
-            }
-
-            function toggleAllDistances() {
-                const allCheckbox = document.getElementById('distance-all');
-                const distanceCheckboxes = document.querySelectorAll('[id^="distance-"]:not(#distance-all)');
-                
-                distanceCheckboxes.forEach(cb => {
-                    cb.checked = false;
-                });
-                
-                if (!allCheckbox.checked) {
-                    allCheckbox.checked = true;
-                }
-                
-                updateDistanceSelection();
-            }
-
-            function updateDistanceSelection() {
-                const allCheckbox = document.getElementById('distance-all');
-                const distanceCheckboxes = document.querySelectorAll('[id^="distance-"]:not(#distance-all)');
-                
-                selectedDistances = [];
-                
-                distanceCheckboxes.forEach(cb => {
-                    if (cb.checked) {
-                        selectedDistances.push(cb.value);
-                        allCheckbox.checked = false;
-                    }
-                });
-                
-                if (selectedDistances.length === 0) {
-                    allCheckbox.checked = true;
-                    document.getElementById('distanceLabel').textContent = 'All Distances';
-                } else if (selectedDistances.length <= 2) {
-                    const labels = {
-                        'sprint': 'Sprint',
-                        'mile': 'Mile',
-                        'stayer': 'Stayer'
-                    };
-                    document.getElementById('distanceLabel').textContent = selectedDistances.map(d => labels[d]).join(', ');
-                } else {
-                    document.getElementById('distanceLabel').textContent = selectedDistances.length + ' distances';
-                }
-                
-                updateCourseAnalysis();
-            }
-
-            function toggleJockeyView() {
-                showAllJockeys = !showAllJockeys;
-                jockeyPage = 1;
-                console.log('Show all jockeys:', showAllJockeys);
-                
-                // Update button text
-                const btn = document.getElementById('showAllJockeysBtn');
-                if (btn) {
-                    btn.textContent = showAllJockeys ? 'Show Top 10' : 'Show All';
-                }
-                
-                updateCourseAnalysis();
-            }
-
-            function toggleTrainerView() {
-                showAllTrainers = !showAllTrainers;
-                trainerPage = 1;
-                console.log('Show all trainers:', showAllTrainers);
-                
-                // Update button text
-                const btn = document.getElementById('showAllTrainersBtn');
-                if (btn) {
-                    btn.textContent = showAllTrainers ? 'Show Top 10' : 'Show All';
-                }
-                
-                updateCourseAnalysis();
-            }
-
-            function changeJockeyPage(direction) {
-                jockeyPage += direction;
-                updateCourseAnalysis();
-            }
-
-            function changeTrainerPage(direction) {
-                trainerPage += direction;
-                updateCourseAnalysis();
-            }
-
-            function updateDashboard() {
-                const horses = new Set();
-                const jockeys = new Set();
-                const courses = new Set();
-                const races = new Set();
-                
-                racingData.forEach(row => {
-                    if (row.Horse) horses.add(row.Horse);
-                    if (row.Jockey) jockeys.add(row.Jockey);
-                    if (row.Course) courses.add(row.Course);
-                    const raceId = row.Course + row.Date + row['Race of the Day'];
-                    if (raceId) races.add(raceId);
-                });
-                
-                document.getElementById('totalRaces').textContent = races.size;
-                document.getElementById('uniqueHorses').textContent = horses.size;
-                document.getElementById('totalJockeys').textContent = jockeys.size;
-                document.getElementById('totalCourses').textContent = courses.size;
-                
-                const tbody = document.getElementById('racesTable');
-                const winners = racingData.filter(r => r.Place === '1').slice(-10).reverse();
-                
-                let html = '';
-                winners.forEach(race => {
-                    html += '<tr>';
-                    html += '<td>' + (race.Date || '-') + '</td>';
-                    html += '<td>' + (race.Course || '-') + '</td>';
-                    html += '<td>' + (race['Race of the Day'] || '-') + '</td>';
-                    html += '<td><strong>' + (race.Horse || '-') + '</strong></td>';
-                    html += '<td>' + (race.Jockey || '-') + '</td>';
-                    html += '<td>' + (race.Time || race['Time 2'] || '-') + '</td>';
-                    html += '<td>' + (race.Odds || '-') + '</td>';
-                    html += '</tr>';
-                });
-                tbody.innerHTML = html || '<tr><td colspan="7">No data</td></tr>';
-            }
-
-            function updateCourseAnalysis() {
-                // Filter by selected courses
-                let filtered = racingData.filter(r => {
-                    if (!r.Course) return false;
-                    // Check if any of the selected courses match
-                    return selectedCourses.some(course => 
-                        r.Course.toLowerCase().includes(course.toLowerCase())
-                    );
-                });
-                
-                console.log('Selected courses:', selectedCourses);
-                console.log('Initial filtered races for courses:', filtered.length);
-                console.log('Selected filters:', {
-                    courses: selectedCourses,
-                    months: selectedMonths,
-                    classes: selectedClasses,
-                    fields: selectedFields,
-                    distances: selectedDistances
-                });
-
-                if (selectedMonths.length > 0) {
-                    filtered = filtered.filter(r => {
-                        const parts = (r.Date || '').split('-');
-                        return selectedMonths.includes(parts[1]);
-                    });
-                    console.log('After month filter:', filtered.length);
-                }
-
-                if (selectedClasses.length > 0) {
-                    filtered = filtered.filter(r => {
-                        return selectedClasses.includes(r.Class);
-                    });
-                    console.log('After class filter:', filtered.length);
-                }
-
-                if (selectedFields.length > 0) {
-                    filtered = filtered.filter(r => {
-                        const field = parseInt(r.Field) || 0;
-                        return selectedFields.some(range => {
-                            if (range === '5-7') return field >= 5 && field <= 7;
-                            if (range === '8-10') return field >= 8 && field <= 10;
-                            if (range === '11-13') return field >= 11 && field <= 13;
-                            if (range === '14+') return field >= 14;
-                            return false;
-                        });
-                    });
-                    console.log('After field filter:', filtered.length);
-                }
-
-                if (selectedDistances.length > 0) {
-                    filtered = filtered.filter(r => {
-                        const dist = parseInt(r.Distance) || 0;
-                        return selectedDistances.some(type => {
-                            if (type === 'sprint') return dist >= 1000 && dist <= 1400;
-                            if (type === 'mile') return dist >= 1500 && dist <= 1800;
-                            if (type === 'stayer') return dist > 1800;
-                            return false;
-                        });
-                    });
-                    console.log('After distance filter:', filtered.length);
-                }
-
-                console.log('Final filtered races:', filtered.length);
-                
-                updatePostPositions(filtered);
-                updateWinningTimes(filtered);
-                updateTopJockeys(filtered);
-                updateTopTrainers(filtered);
-                updateFieldTrends(filtered);
-                updateWinningOdds(filtered);
-            }
-
-            function updatePostPositions(data) {
-                const postStats = {};
-                
-                data.forEach(race => {
-                    const post = parseInt(race.Startspor) || 0;
-                    if (post > 0 && post <= 15) {
-                        if (!postStats[post]) postStats[post] = {wins: 0, runs: 0};
-                        postStats[post].runs++;
-                        if (race.Place === '1') postStats[post].wins++;
-                    }
-                });
-                
-                let html = '<table><tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win%</th></tr>';
-                for (let i = 1; i <= 15; i++) {
-                    if (postStats[i] && postStats[i].runs > 0) {
-                        const winPct = ((postStats[i].wins / postStats[i].runs) * 100).toFixed(1);
-                        const color = winPct > 15 ? '#22c55e' : winPct > 10 ? '#f59e0b' : '#94a3b8';
-                        html += '<tr>';
-                        html += '<td>' + i + '</td>';
-                        html += '<td>' + postStats[i].runs + '</td>';
-                        html += '<td>' + postStats[i].wins + '</td>';
-                        html += '<td style="color:' + color + '; font-weight:600">' + winPct + '%</td>';
-                        html += '</tr>';
-                    }
-                }
-                html += '</table>';
-                document.getElementById('postPositionAnalysis').innerHTML = html;
-            }
-
-            function updateWinningTimes(data) {
-                const timesByDistance = {};
-                
-                data.filter(r => r.Place === '1').forEach(race => {
-                    const dist = parseInt(race.Distance) || 0;
-                    const time = race.Time || race['Time 2'] || '';
-                    
-                    if (dist > 0 && time) {
-                        if (!timesByDistance[dist]) timesByDistance[dist] = [];
-                        
-                        let seconds = 0;
-                        if (time.includes(':')) {
-                            const parts = time.split(':');
-                            seconds = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
-                        } else {
-                            seconds = parseFloat(time);
-                        }
-                        
-                        if (!isNaN(seconds) && seconds > 0) {
-                            timesByDistance[dist].push(seconds);
-                        }
-                    }
-                });
-                
-                let html = '<table><tr><th>Distance</th><th>Races</th><th>Avg Time</th></tr>';
-                Object.keys(timesByDistance).sort((a, b) => a - b).forEach(dist => {
-                    const times = timesByDistance[dist];
-                    const avg = times.reduce((a, b) => a + b, 0) / times.length;
-                    const mins = Math.floor(avg / 60);
-                    const secs = (avg % 60).toFixed(1);
-                    const timeStr = mins > 0 ? mins + ':' + secs.padStart(4, '0') : secs + 's';
-                    
-                    html += '<tr>';
-                    html += '<td>' + dist + 'm</td>';
-                    html += '<td>' + times.length + '</td>';
-                    html += '<td>' + timeStr + '</td>';
-                    html += '</tr>';
-                });
-                html += '</table>';
-                document.getElementById('winningTimes').innerHTML = html;
-            }
-
-            function updateTopJockeys(data) {
-                const jockeyStats = {};
-                
-                data.forEach(race => {
-                    const jockey = race.Jockey;
-                    if (jockey) {
-                        if (!jockeyStats[jockey]) {
-                            jockeyStats[jockey] = {name: jockey, wins: 0, runs: 0, odds: []};
-                        }
-                        jockeyStats[jockey].runs++;
-                        if (race.Place === '1') {
-                            jockeyStats[jockey].wins++;
-                            if (race.Odds) jockeyStats[jockey].odds.push(parseFloat(race.Odds));
-                        }
-                    }
-                });
-                
-                let jockeyArray = Object.values(jockeyStats)
-                    .filter(stats => showAllJockeys || stats.runs >= 5)
-                    .map(stats => ({
-                        name: stats.name,
-                        wins: stats.wins,
-                        runs: stats.runs,
-                        winPct: (stats.wins / stats.runs) * 100,
-                        avgOdds: stats.odds.length > 0 ? 
-                            stats.odds.reduce((a, b) => a + b, 0) / stats.odds.length : 0
-                    }));
-                
-                jockeyArray.sort((a, b) => {
-                    let aVal, bVal;
-                    switch(jockeySortField) {
-                        case 'name': aVal = a.name; bVal = b.name; break;
-                        case 'wr': aVal = a.wins; bVal = b.wins; break;
-                        case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
-                        case 'odds': aVal = a.avgOdds; bVal = b.avgOdds; break;
-                        default: aVal = a.wins; bVal = b.wins;
-                    }
-                    
-                    if (typeof aVal === 'string') {
-                        return jockeySortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                    }
-                    return jockeySortAsc ? aVal - bVal : bVal - aVal;
-                });
-                
-                const totalPages = Math.ceil(jockeyArray.length / itemsPerPage);
-                const start = (jockeyPage - 1) * itemsPerPage;
-                const displayArray = showAllJockeys ? 
-                    jockeyArray.slice(start, start + itemsPerPage) : 
-                    jockeyArray.slice(0, 10);
-                
-                // Update header to show selected courses
-                const courseText = selectedCourses.length === 1 ? 
-                    `at ${selectedCourses[0]}` : 
-                    `at selected courses`;
-                    
-                document.querySelector('#topJockeys').parentElement.querySelector('h3').innerHTML = 
-                    `🏆 Top Jockeys ${courseText} <button class="show-all-btn" id="showAllJockeysBtn" onclick="toggleJockeyView()">${showAllJockeys ? 'Show Top 10' : 'Show All'}</button>`;
-                
-                let html = '<table><tr>';
-                html += '<th onclick="sortJockeys(\'name\')" style="cursor:pointer">Name ' + (jockeySortField === 'name' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortJockeys(\'wr\')" style="cursor:pointer">W/R ' + (jockeySortField === 'wr' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortJockeys(\'winPct\')" style="cursor:pointer">Win% ' + (jockeySortField === 'winPct' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortJockeys(\'odds\')" style="cursor:pointer">Avg Odds ' + (jockeySortField === 'odds' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '</tr>';
-                
-                displayArray.forEach(j => {
-                    html += '<tr>';
-                    html += '<td>' + j.name.substring(0, 20) + '</td>';
-                    html += '<td>' + j.wins + '/' + j.runs + '</td>';
-                    html += '<td style="color:' + (j.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + j.winPct.toFixed(1) + '%</td>';
-                    html += '<td>' + (j.avgOdds > 0 ? j.avgOdds.toFixed(2) : '-') + '</td>';
-                    html += '</tr>';
-                });
-                html += '</table>';
-                
-                document.getElementById('topJockeys').innerHTML = html;
-                
-                if (showAllJockeys) {
-                    document.getElementById('jockeyPagination').style.display = 'flex';
-                    document.getElementById('jockeyPageInfo').textContent = `Page ${jockeyPage} of ${totalPages}`;
-                    document.getElementById('jockeyPrevBtn').disabled = jockeyPage === 1;
-                    document.getElementById('jockeyNextBtn').disabled = jockeyPage === totalPages;
-                } else {
-                    document.getElementById('jockeyPagination').style.display = 'none';
-                }
-            }Name ' + (jockeySortField === 'name' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortJockeys(\'wr\')" style="cursor:pointer">W/R ' + (jockeySortField === 'wr' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortJockeys(\'winPct\')" style="cursor:pointer">Win% ' + (jockeySortField === 'winPct' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortJockeys(\'odds\')" style="cursor:pointer">Avg Odds ' + (jockeySortField === 'odds' ? (jockeySortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '</tr>';
-                
-                displayArray.forEach(j => {
-                    html += '<tr>';
-                    html += '<td>' + j.name.substring(0, 20) + '</td>';
-                    html += '<td>' + j.wins + '/' + j.runs + '</td>';
-                    html += '<td style="color:' + (j.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + j.winPct.toFixed(1) + '%</td>';
-                    html += '<td>' + (j.avgOdds > 0 ? j.avgOdds.toFixed(2) : '-') + '</td>';
-                    html += '</tr>';
-                });
-                html += '</table>';
-                
-                document.getElementById('topJockeys').innerHTML = html;
-                
-                if (showAllJockeys) {
-                    document.getElementById('jockeyPagination').style.display = 'flex';
-                    document.getElementById('jockeyPageInfo').textContent = `Page ${jockeyPage} of ${totalPages}`;
-                    document.getElementById('jockeyPrevBtn').disabled = jockeyPage === 1;
-                    document.getElementById('jockeyNextBtn').disabled = jockeyPage === totalPages;
-                } else {
-                    document.getElementById('jockeyPagination').style.display = 'none';
-                }
-            }
-            
-            window.sortJockeys = function(field) {
-                if (jockeySortField === field) {
-                    jockeySortAsc = !jockeySortAsc;
-                } else {
-                    jockeySortField = field;
-                    jockeySortAsc = false;
-                }
-                updateCourseAnalysis();
-            }
-
-            function updateTopTrainers(data) {
-                const trainerStats = {};
-                
-                data.forEach(race => {
-                    const trainer = race.Trainer;
-                    if (trainer) {
-                        if (!trainerStats[trainer]) {
-                            trainerStats[trainer] = {name: trainer, wins: 0, runs: 0};
-                        }
-                        trainerStats[trainer].runs++;
-                        if (race.Place === '1') trainerStats[trainer].wins++;
-                    }
-                });
-                
-                let trainerArray = Object.values(trainerStats)
-                    .filter(stats => showAllTrainers || stats.runs >= 5)
-                    .map(stats => ({
-                        name: stats.name,
-                        wins: stats.wins,
-                        runs: stats.runs,
-                        winPct: (stats.wins / stats.runs) * 100
-                    }));
-                
-                trainerArray.sort((a, b) => {
-                    let aVal, bVal;
-                    switch(trainerSortField) {
-                        case 'name': aVal = a.name; bVal = b.name; break;
-                        case 'wr': aVal = a.wins; bVal = b.wins; break;
-                        case 'winPct': aVal = a.winPct; bVal = b.winPct; break;
-                        default: aVal = a.wins; bVal = b.wins;
-                    }
-                    
-                    if (typeof aVal === 'string') {
-                        return trainerSortAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                    }
-                    return trainerSortAsc ? aVal - bVal : bVal - aVal;
-                });
-                
-                const totalPages = Math.ceil(trainerArray.length / itemsPerPage);
-                const start = (trainerPage - 1) * itemsPerPage;
-                const displayArray = showAllTrainers ? 
-                    trainerArray.slice(start, start + itemsPerPage) : 
-                    trainerArray.slice(0, 10);
-                
-                // Update header to show selected courses
-                const courseText = selectedCourses.length === 1 ? 
-                    `at ${selectedCourses[0]}` : 
-                    `at selected courses`;
-                    
-                document.querySelector('#topTrainers').parentElement.querySelector('h3').innerHTML = 
-                    `👥 Top Trainers ${courseText} <button class="show-all-btn" id="showAllTrainersBtn" onclick="toggleTrainerView()">${showAllTrainers ? 'Show Top 10' : 'Show All'}</button>`;
-                
-                let html = '<table><tr>';
-                html += '<th onclick="sortTrainers(\'name\')" style="cursor:pointer">Name ' + (trainerSortField === 'name' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortTrainers(\'wr\')" style="cursor:pointer">W/R ' + (trainerSortField === 'wr' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '<th onclick="sortTrainers(\'winPct\')" style="cursor:pointer">Win% ' + (trainerSortField === 'winPct' ? (trainerSortAsc ? '↑' : '↓') : '') + '</th>';
-                html += '</tr>';
-                
-                displayArray.forEach(t => {
-                    html += '<tr>';
-                    html += '<td>' + t.name.substring(0, 20) + '</td>';
-                    html += '<td>' + t.wins + '/' + t.runs + '</td>';
-                    html += '<td style="color:' + (t.winPct > 20 ? '#22c55e' : '#94a3b8') + '">' + t.winPct.toFixed(1) + '%</td>';
-                    html += '</tr>';
-                });
-                html += '</table>';
-                
-                document.getElementById('topTrainers').innerHTML = html;
-                
-                if (showAllTrainers) {
-                    document.getElementById('trainerPagination').style.display = 'flex';
-                    document.getElementById('trainerPageInfo').textContent = `Page ${trainerPage} of ${totalPages}`;
-                    document.getElementById('trainerPrevBtn').disabled = trainerPage === 1;
-                    document.getElementById('trainerNextBtn').disabled = trainerPage === totalPages;
-                } else {
-                    document.getElementById('trainerPagination').style.display = 'none';
-                }
-            }
-            
-            window.sortTrainers = function(field) {
-                if (trainerSortField === field) {
-                    trainerSortAsc = !trainerSortAsc;
-                } else {
-                    trainerSortField = field;
-                    trainerSortAsc = false;
-                }
-                updateCourseAnalysis();
-            }
-
-            function updateFieldTrends(data) {
-                const monthlyFields = {};
-                
-                data.forEach(race => {
-                    if (race.Date && race.Field) {
-                        const month = race.Date.split('-')[1];
-                        if (month) {
-                            if (!monthlyFields[month]) monthlyFields[month] = [];
-                            monthlyFields[month].push(parseInt(race.Field) || 0);
-                        }
-                    }
-                });
-                
-                const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
-                const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                
-                let html = '<table><tr><th>Month</th><th>Avg Field</th><th>Races</th></tr>';
-                months.forEach((m, i) => {
-                    const fields = monthlyFields[m] || [];
-                    if (fields.length > 0) {
-                        const avg = (fields.reduce((a, b) => a + b, 0) / fields.length).toFixed(1);
-                        html += '<tr>';
-                        html += '<td>' + names[i] + '</td>';
-                        html += '<td>' + avg + '</td>';
-                        html += '<td>' + fields.length + '</td>';
-                        html += '</tr>';
-                    } else {
-                        html += '<tr><td>' + names[i] + '</td><td>-</td><td>0</td></tr>';
-                    }
-                });
-                html += '</table>';
-                document.getElementById('fieldTrends').innerHTML = html;
-            }
-
-            function updateWinningOdds(data) {
-                const oddsByClass = {};
-                
-                // Get ALL unique classes from the entire dataset
-                const allClasses = new Set();
-                racingData.forEach(race => {
-                    if (race.Class && race.Class !== '') {
-                        allClasses.add(race.Class);
-                    }
-                });
-                
-                // Initialize all classes
-                allClasses.forEach(cls => {
-                    oddsByClass[cls] = { wins: [] };
-                });
-                
-                // Count only winners (1st place) in filtered data
-                data.filter(r => r.Place === '1').forEach(race => {
-                    const cls = race.Class;
-                    if (cls && oddsByClass[cls]) {
-                        const odds = parseFloat(race.Odds) || 0;
-                        if (odds > 0) {
-                            oddsByClass[cls].wins.push(odds);
-                        }
-                    }
-                });
-                
-                let html = '<table style="width: 100%;">';
-                html += '<thead><tr>';
-                html += '<th style="text-align: left; padding: 8px;">Class</th>';
-                html += '<th style="text-align: left; padding: 8px;">Races</th>';
-                html += '<th style="text-align: left; padding: 8px;">Avg Odds</th>';
-                html += '</tr></thead><tbody>';
-                
-                // Sort classes naturally
-                const sortedClasses = Array.from(allClasses).sort((a, b) => {
-                    const aNum = parseInt(a);
-                    const bNum = parseInt(b);
-                    if (!isNaN(aNum) && !isNaN(bNum)) {
-                        return aNum - bNum;
-                    }
-                    return a.localeCompare(b);
-                });
-                
-                sortedClasses.forEach(cls => {
-                    const wins = oddsByClass[cls].wins;
-                    if (wins.length > 0) {
-                        const avgOdds = (wins.reduce((a, b) => a + b, 0) / wins.length).toFixed(2);
-                        
-                        html += '<tr>';
-                        html += '<td style="padding: 8px;">' + cls + '</td>';
-                        html += '<td style="padding: 8px;">' + wins.length + '</td>';
-                        html += '<td style="padding: 8px;">' + avgOdds + '</td>';
-                        html += '</tr>';
-                    }
-                });
-                
-                html += '</tbody></table>';
-                document.getElementById('winningOdds').innerHTML = html;
-            }
-
-            async function loadFavoriteTrends() {
-                try {
-                    const response = await fetch(FAVORITES_URL);
-                    
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    
-                    const text = await response.text();
-                    console.log('Loaded favorite trends text, first 300 chars:', text.substring(0, 300));
-                    
-                    // Check if we got HTML instead of CSV
-                    if (text.includes('<!DOCTYPE') || text.includes('<html')) {
-                        console.warn('Received HTML instead of CSV data.');
-                        useSampleFavoriteData();
-                        return;
-                    }
-                    
-                    // Parse the CSV
-                    favoriteTrendsData = parseCSV(text);
-                    
-                    if (favoriteTrendsData.length === 0) {
-                        console.warn('No data parsed from favorite trends.');
-                        useSampleFavoriteData();
-                    } else {
-                        console.log('Successfully parsed favorite trends:', favoriteTrendsData);
-                        updateFavoriteAnalysis();
-                    }
-                } catch (error) {
-                    console.warn('Error loading favorite trends:', error.message);
-                    useSampleFavoriteData();
-                }
-            }
-            
-            function useSampleFavoriteData() {
-                // Sample data matching US format with dots
-                favoriteTrendsData = [
-                    { 'Class': '1', 'Top 25%': '37.00%', '26-50%': '34.00%', '51-75%': '17.00%', '76-100%': '11.00%', 'Races': '70' },
-                    { 'Class': '2', 'Top 25%': '47.00%', '26-50%': '26.00%', '51-75%': '22.00%', '76-100%': '4.00%', 'Races': '179' },
-                    { 'Class': '3', 'Top 25%': '37.00%', '26-50%': '22.00%', '51-75%': '22.00%', '76-100%': '18.00%', 'Races': '220' },
-                    { 'Class': '4', 'Top 25%': '34.00%', '26-50%': '34.00%', '51-75%': '16.00%', '76-100%': '15.00%', 'Races': '216' },
-                    { 'Class': '5', 'Top 25%': '43.00%', '26-50%': '31.00%', '51-75%': '13.00%', '76-100%': '12.00%', 'Races': '137' },
-                    { 'Class': '3 Års Maiden', 'Top 25%': '57.00%', '26-50%': '21.00%', '51-75%': '13.00%', '76-100%': '8.00%', 'Races': '61' },
-                    { 'Class': '3 Års Vinder', 'Top 25%': '58.00%', '26-50%': '31.00%', '51-75%': '10.00%', '76-100%': '1.00%', 'Races': '176' },
-                    { 'Class': 'Ældre Maiden', 'Top 25%': '51.00%', '26-50%': '33.00%', '51-75%': '14.00%', '76-100%': '2.00%', 'Races': '83' },
-                    { 'Class': 'Udskrevet Ældre', 'Top 25%': '56.00%', '26-50%': '26.00%', '51-75%': '10.00%', '76-100%': '7.00%', 'Races': '185' },
-                    { 'Class': '2 Års', 'Top 25%': '48.00%', '26-50%': '29.00%', '51-75%': '13.00%', '76-100%': '11.00%', 'Races': '214' },
-                    { 'Class': 'Max Handicap', 'Top 25%': '38.00%', '26-50%': '33.00%', '51-75%': '22.00%', '76-100%': '6.00%', 'Races': '18' }
-                ];
-                
-                console.log('Using sample favorite data');
-                updateFavoriteAnalysis();
-            }
-
-            function updateFavoriteAnalysis() {
-                if (favoriteTrendsData.length === 0) {
-                    document.getElementById('favoriteAnalysis').innerHTML = 
-                        '<p style="color: #6b7280;">No favorite trends data available.</p>';
-                    return;
-                }
-                
-                let html = '<div style="margin-bottom: 10px; font-weight: 600;">Klampenborg - Grass Surface</div>';
-                html += '<table style="width: 100%; border-collapse: collapse;">';
-                html += '<thead><tr style="background-color: #f3f4f6;">';
-                html += '<th style="text-align: left; padding: 10px; border: 1px solid #e5e7eb;">Class</th>';
-                html += '<th style="text-align: center; padding: 10px; border: 1px solid #e5e7eb; background-color: #dcfce7;">Top 25%</th>';
-                html += '<th style="text-align: center; padding: 10px; border: 1px solid #e5e7eb;">26-50%</th>';
-                html += '<th style="text-align: center; padding: 10px; border: 1px solid #e5e7eb;">51-75%</th>';
-                html += '<th style="text-align: center; padding: 10px; border: 1px solid #e5e7eb; background-color: #fee2e2;">76-100%</th>';
-                html += '<th style="text-align: center; padding: 10px; border: 1px solid #e5e7eb;">Races</th>';
-                html += '</tr></thead><tbody>';
-                
-                favoriteTrendsData.forEach(row => {
-                    html += '<tr>';
-                    html += '<td style="padding: 8px; border: 1px solid #e5e7eb; font-weight: 500;">' + row.Class + '</td>';
-                    html += '<td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; color: #16a34a; font-weight: 600;">' + row['Top 25%'] + '</td>';
-                    html += '<td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">' + row['26-50%'] + '</td>';
-                    html += '<td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">' + row['51-75%'] + '</td>';
-                    html += '<td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center; color: #dc2626; font-weight: 600;">' + row['76-100%'] + '</td>';
-                    html += '<td style="padding: 8px; border: 1px solid #e5e7eb; text-align: center;">' + row.Races + '</td>';
-                    html += '</tr>';
-                });
-                
-                html += '</tbody></table>';
-                document.getElementById('favoriteAnalysis').innerHTML = html;
-            }
-        });
-    </script>
-</body>
-</html>
-                
