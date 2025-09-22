@@ -554,6 +554,7 @@
         function parseCSV(text) {
             const lines = text.split('\n');
             const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+            console.log('CSV Headers found:', headers);
             const data = [];
             
             for (let i = 1; i < lines.length; i++) {
@@ -582,6 +583,12 @@
                 
                 if (row.Horse || row.Class) data.push(row);
             }
+            
+            // Log a sample row to see what fields we have
+            if (data.length > 0) {
+                console.log('Sample data row:', data[0]);
+            }
+            
             return data;
         }
 
@@ -666,8 +673,27 @@
             // Filter data
             let filtered = racingData.filter(r => r.Course && r.Course.includes(courseFilter));
 
-            console.log('Filtering for course:', courseFilter);
-            console.log('Found races:', filtered.length);
+            // Show diagnostic info
+            if (filtered.length > 0) {
+                const firstRow = filtered[0];
+                const columns = Object.keys(firstRow);
+                console.log('Available columns:', columns);
+                console.log('Sample row:', firstRow);
+                
+                // Check specifically for Jockey and Trainer
+                const hasJockey = columns.includes('Jockey');
+                const hasTrainer = columns.includes('Trainer');
+                
+                if (!hasJockey || !hasTrainer) {
+                    let diagnosticMsg = '<p style="color: red;">Missing columns: ';
+                    if (!hasJockey) diagnosticMsg += 'Jockey (column P) ';
+                    if (!hasTrainer) diagnosticMsg += 'Trainer (column Q) ';
+                    diagnosticMsg += '<br>Available columns: ' + columns.slice(0, 20).join(', ') + '...</p>';
+                    
+                    document.getElementById('topJockeys').innerHTML = diagnosticMsg;
+                    document.getElementById('topTrainers').innerHTML = diagnosticMsg;
+                }
+            }
 
             if (monthFilter !== 'all') {
                 filtered = filtered.filter(r => {
@@ -697,8 +723,6 @@
                     return true;
                 });
             }
-
-            console.log('After all filters:', filtered.length);
 
             // Update all analysis sections
             updatePostPositions(filtered);
