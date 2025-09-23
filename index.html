@@ -699,8 +699,29 @@
                     const total = parseInt(cells[5]) || 0;
 
                     if (raceClass && total > 0 && top25 > 0) {
+                        // Create normalized course name for Bro Park and Øvrevoll
+                        let normalizedCourse = currentCourse;
+                        if ((currentCourse.toLowerCase().includes('bro park') || 
+                             currentCourse.toLowerCase().includes('øvrevoll')) && currentSurface) {
+                            // Map surface names to match filter options
+                            let surfaceType = '';
+                            if (currentSurface.toLowerCase().includes('græs') || 
+                                currentSurface.toLowerCase().includes('grass') || 
+                                currentSurface.toLowerCase().includes('turf')) {
+                                surfaceType = 'Grass';
+                            } else if (currentSurface.toLowerCase().includes('dirt') || 
+                                      currentSurface.toLowerCase().includes('sand')) {
+                                surfaceType = 'Dirt';
+                            }
+                            
+                            if (surfaceType) {
+                                normalizedCourse = `${currentCourse} (${surfaceType})`;
+                            }
+                        }
+                        
                         data.push({
-                            Course: currentCourse,
+                            Course: normalizedCourse,
+                            OriginalCourse: currentCourse,
                             Surface: currentSurface,
                             Class: raceClass,
                             Top25: top25,
@@ -1153,23 +1174,15 @@
             html += '<div class="analysis-box">';
             html += '<h3>📊 Favorite Performance by Course</h3>';
 
-            // Normalize course names for matching
-            const normalizeCourseName = (course, surface) => {
-                if ((course.toLowerCase().includes('bro park') || course.toLowerCase().includes('øvrevoll')) && surface) {
-                    return `${course} (${surface.charAt(0).toUpperCase() + surface.slice(1).toLowerCase()})`;
-                }
-                return course;
-            };
-
             // Filter data by selected courses
             let filteredTrends = favoriteTrendsData;
             if (!selectedCourses.includes('all')) {
                 filteredTrends = favoriteTrendsData.filter(item => {
-                    const normalizedCourse = normalizeCourseName(item.Course, item.Surface);
+                    // Use the normalized course name that already includes surface info
                     return selectedCourses.some(selected => 
-                        selected === normalizedCourse || 
-                        selected === item.Course ||
-                        (selected.includes(item.Course) && item.Course)
+                        selected === item.Course || // Exact match with normalized name
+                        selected === item.OriginalCourse || // Match with original course name
+                        (item.OriginalCourse && selected.includes(item.OriginalCourse.replace(' (Dirt)', '').replace(' (Grass)', '')))
                     );
                 });
             }
@@ -1177,7 +1190,7 @@
             // Group by course for display
             const courseGroups = {};
             filteredTrends.forEach(item => {
-                const courseKey = normalizeCourseName(item.Course, item.Surface);
+                const courseKey = item.Course; // Use the already normalized course name
                 if (!courseGroups[courseKey]) {
                     courseGroups[courseKey] = [];
                 }
