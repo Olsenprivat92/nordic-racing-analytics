@@ -512,139 +512,7 @@
                     <button onclick="updateTrainerAnalysis()">🔄 Refresh Analysis</button>
                 </div>
                 <div class="card-body">
-                    <div class="filters">
-                        <div class="filters-grid">
-                            <div class="filter-box">
-                                <div class="filter-title">👥 Trainers</div>
-                                <select id="trainerAnalysisFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Trainers</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🏁 Courses & Surfaces</div>
-                                <select id="trainerCourseFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Courses</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📅 Race Months</div>
-                                <select id="trainerMonthFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Months</option>
-                                    <option value="01">January</option>
-                                    <option value="02">February</option>
-                                    <option value="03">March</option>
-                                    <option value="04">April</option>
-                                    <option value="05">May</option>
-                                    <option value="06">June</option>
-                                    <option value="07">July</option>
-                                    <option value="08">August</option>
-                                    <option value="09">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🏆 Race Classes</div>
-                                <select id="trainerClassFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Classes</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📏 Distances</div>
-                                <select id="trainerDistanceFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Distances</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🎂 Horse Age</div>
-                                <select id="trainerAgeFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Ages</option>
-                                    <option value="2">2 Year Olds</option>
-                                    <option value="3">3 Year Olds</option>
-                                    <option value="4+">4+ Year Olds</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card" style="margin-bottom: 2rem;">
-                        <div class="card-header">
-                            <h3>📊 Performance Period Analysis</h3>
-                        </div>
-                        <div class="card-body">
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                                <div>
-                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Analysis Date:</label>
-                                    <input type="date" id="analysisDate" onchange="updateTrainerAnalysis()" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
-                                </div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                                <div class="analysis-box">
-                                    <h4>📅 Last 1 Month</h4>
-                                    <div id="performance1Month">
-                                        <p class="loading">Loading...</p>
-                                    </div>
-                                </div>
-                                <div class="analysis-box">
-                                    <h4>📅 Last 3 Months</h4>
-                                    <div id="performance3Months">
-                                        <p class="loading">Loading...</p>
-                                    </div>
-                                </div>
-                                <div class="analysis-box">
-                                    <h4>📅 Last 12 Months</h4>
-                                    <div id="performance12Months">
-                                        <p class="loading">Loading...</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="analysis-grid">
-                        <div class="analysis-box">
-                            <h3>📊 Overall Performance</h3>
-                            <div id="trainerOverallStats">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>🎂 Age Group Performance</h3>
-                            <div id="trainerAgeStats">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>🏃 Distance Performance</h3>
-                            <div id="trainerDistanceStats">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>💰 Odds Analysis</h3>
-                            <div id="trainerOddsStats">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card" style="margin-top: 2rem;">
-                        <div class="card-header">
-                            <h3>🐎 Horse Performance Details</h3>
-                        </div>
-                        <div class="card-body">
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Horse:</label>
-                                <select id="horseSelector" onchange="updateHorseDetails()" style="width: 100%; max-width: 400px; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
-                                    <option value="">Select a horse...</option>
-                                </select>
-                            </div>
-                            <div id="horseDetails" style="max-height: 400px; overflow-y: auto;">
-                                <p>Select a horse to view performance details</p>
-                            </div>
-                        </div>
-                    </div>
+                    <p>Trainer analysis functionality coming soon...</p>
                 </div>
             </div>
         </div>
@@ -721,8 +589,8 @@
                 updateCourseAnalysis();
                 loadFavoriteTrends();
             } else if (view === 'trainers') {
-                populateTrainerFilters();
-                updateTrainerAnalysis();
+                // Placeholder for trainer analysis
+                console.log('Trainer analysis selected');
             }
         }
 
@@ -757,3 +625,158 @@
 
         async function loadFavoriteTrends() {
             try {
+                const response = await fetch(FAVORITES_URL);
+                const text = await response.text();
+                favoriteTrendsData = parseFavoriteTrendsCSV(text);
+                console.log('Favorite trends loaded:', favoriteTrendsData.length, 'entries');
+                updateFavoriteAnalysis();
+            } catch (error) {
+                console.error('Favorite trends error:', error);
+                document.getElementById('favoriteAnalysis').innerHTML = '<p class="error-message">Error loading favorite trends data</p>';
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            if (lines.length === 0) return [];
+            
+            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim().replace(/"/g, ''));
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim().replace(/"/g, ''));
+                
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                
+                if (row.Horse || row.Class || Object.values(row).some(val => val.trim() !== '')) {
+                    data.push(row);
+                }
+            }
+            return data;
+        }
+
+        function parseFavoriteTrendsCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const data = [];
+            let currentCourse = '';
+            let currentSurface = '';
+            
+            lines.forEach((line, index) => {
+                const cells = line.split(',').map(cell => cell.trim().replace(/"/g, ''));
+                
+                if (cells[0] === 'Course:' && cells[1]) {
+                    currentCourse = cells[1];
+                    if (cells[3] === 'Surface:' && cells[4]) {
+                        currentSurface = cells[4];
+                    }
+                } else if (cells[0] && 
+                          cells[0] !== 'Course:' && 
+                          cells[0] !== '' && 
+                          !cells[0].includes('top 25') &&
+                          cells[0] !== 'Surface:' &&
+                          cells[1] && cells[1] !== 'top 25' && 
+                          index > 0) {
+                    
+                    const raceClass = cells[0];
+                    const top25 = parseFloat(cells[1].replace('%', '')) || 0;
+                    const range26_50 = parseFloat(cells[2].replace('%', '')) || 0;
+                    const range51_75 = parseFloat(cells[3].replace('%', '')) || 0;
+                    const range76_100 = parseFloat(cells[4].replace('%', '')) || 0;
+                    const total = parseInt(cells[5]) || 0;
+
+                    if (raceClass && total > 0 && top25 > 0) {
+                        let normalizedCourse = currentCourse;
+                        if ((currentCourse.toLowerCase().includes('bro park') || 
+                             currentCourse.toLowerCase().includes('øvrevoll')) && currentSurface) {
+                            let surfaceType = '';
+                            if (currentSurface.toLowerCase().includes('græs') || 
+                                currentSurface.toLowerCase().includes('grass') || 
+                                currentSurface.toLowerCase().includes('turf')) {
+                                surfaceType = 'Grass';
+                            } else if (currentSurface.toLowerCase().includes('dirt') || 
+                                      currentSurface.toLowerCase().includes('sand')) {
+                                surfaceType = 'Dirt';
+                            }
+                            
+                            if (surfaceType) {
+                                normalizedCourse = `${currentCourse} (${surfaceType})`;
+                            }
+                        }
+                        
+                        data.push({
+                            Course: normalizedCourse,
+                            OriginalCourse: currentCourse,
+                            Surface: currentSurface,
+                            Class: raceClass,
+                            Top25: top25,
+                            Range26_50: range26_50,
+                            Range51_75: range51_75,
+                            Range76_100: range76_100,
+                            Total: total
+                        });
+                    }
+                }
+            });
+            
+            return data;
+        }
+
+        function populateFilters() {
+            const courses = new Set();
+            const classes = new Set();
+            const distances = new Set();
+            const fieldSizes = new Set();
+            
+            racingData.forEach(row => {
+                if (row.Course && row.Course.trim()) {
+                    let courseName = row.Course.trim();
+                    
+                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
+                        const surface = (row.Surface || '').toLowerCase();
+                        const track = (row.Track || '').toLowerCase();
+                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
+                        
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') || 
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            courseName += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            courseName += ' (Grass)';
+                        }
+                    }
+                    
+                    courses.add(courseName);
+                }
+                if (row.Class && row.Class.trim()) classes.add(row.Class.trim());
+                if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
+                if (row.Field && row.Field.trim()) {
+                    const fieldSize = parseInt(row.Field.trim());
+                    if (!isNaN(fieldSize)) fieldSizes.add(fieldSize);
+                }
+            });
+            
+            const courseFilter = document.getElementById('courseFilter');
+            courseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
+                Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+            
+            const classFilter = document.getElementById('classFilter');
+            classFilter.innerHTML = '<option value="all" selected>All Classes</option>' +
+                Array.from(classes).sort().map(cls => `<option value="${cls}">${cls}</option>`).join('');
+            
