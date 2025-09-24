@@ -137,7 +137,6 @@
             padding: 1.5rem;
         }
 
-        /* NEW BEAUTIFUL FILTER STYLING */
         .filters {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 2rem;
@@ -174,7 +173,7 @@
             gap: 0.5rem;
         }
 
-        select {
+        select, input {
             width: 100%;
             padding: 12px;
             border: 2px solid #e5e7eb;
@@ -185,12 +184,12 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        select:hover {
+        select:hover, input:hover {
             border-color: #667eea;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
-        select:focus {
+        select:focus, input:focus {
             outline: none;
             border-color: #1e40af;
             box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
@@ -255,7 +254,7 @@
             border: 1px solid #e2e8f0;
         }
 
-        .analysis-box h3 {
+        .analysis-box h3, .analysis-box h4 {
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 1rem;
@@ -383,7 +382,6 @@
                     <button onclick="updateCourseAnalysis()">🔄 Refresh Analysis</button>
                 </div>
                 <div class="card-body">
-                    <!-- Beautiful Filters -->
                     <div class="filters">
                         <div class="filters-grid">
                             <div class="filter-box">
@@ -392,7 +390,6 @@
                                     <option value="all" selected>All Courses</option>
                                 </select>
                             </div>
-
                             <div class="filter-box">
                                 <div class="filter-title">📅 Race Months</div>
                                 <select id="monthFilter" multiple size="5" onchange="updateCourseAnalysis()">
@@ -411,21 +408,18 @@
                                     <option value="12">December</option>
                                 </select>
                             </div>
-
                             <div class="filter-box">
                                 <div class="filter-title">🏆 Race Classes</div>
                                 <select id="classFilter" multiple size="5" onchange="updateCourseAnalysis()">
                                     <option value="all" selected>All Classes</option>
                                 </select>
                             </div>
-
                             <div class="filter-box">
                                 <div class="filter-title">🐎 Field Sizes</div>
                                 <select id="fieldFilter" multiple size="5" onchange="updateCourseAnalysis()">
                                     <option value="all" selected>All Field Sizes</option>
                                 </select>
                             </div>
-
                             <div class="filter-box">
                                 <div class="filter-title">📏 Distances</div>
                                 <select id="distanceFilter" multiple size="5" onchange="updateCourseAnalysis()">
@@ -435,7 +429,6 @@
                         </div>
                     </div>
 
-                    <!-- Analysis Grid -->
                     <div class="analysis-grid">
                         <div class="analysis-box">
                             <h3>📊 Post Position Analysis</h3>
@@ -443,14 +436,12 @@
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
-
                         <div class="analysis-box">
                             <h3>⏱️ Average Winning Times</h3>
                             <div id="winningTimes" class="scrollable">
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
-
                         <div class="analysis-box">
                             <h3>🏆 Top Jockeys 
                                 <button class="show-all-btn" onclick="toggleJockeyView()">Show All</button>
@@ -468,7 +459,6 @@
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
-
                         <div class="analysis-box">
                             <h3>👥 Top Trainers
                                 <button class="show-all-btn" onclick="toggleTrainerView()">Show All</button>
@@ -486,14 +476,12 @@
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
-
                         <div class="analysis-box">
                             <h3>📈 Monthly Field Size Trends</h3>
                             <div id="fieldTrends" class="scrollable">
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
-
                         <div class="analysis-box">
                             <h3>💰 Average Winning Odds by Class</h3>
                             <div id="winningOdds" class="scrollable">
@@ -502,7 +490,6 @@
                         </div>
                     </div>
 
-                    <!-- Favorite Analysis -->
                     <div class="card" style="margin-top: 2rem;">
                         <div class="card-header">
                             <h3>🎯 Favorite vs Longshot Analysis</h3>
@@ -522,10 +509,20 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">👥 Trainer Analysis</h2>
-                    <button onclick="updateTrainerAnalysis()">🔄 Refresh Analysis</button>
+                    <button onclick="alert('Trainer analysis functionality will be implemented step by step')">🔄 Refresh Analysis</button>
                 </div>
                 <div class="card-body">
                     <p>Trainer analysis functionality coming soon...</p>
+                    <p>Will include all requested features:</p>
+                    <ul style="margin-left: 2rem; margin-top: 1rem;">
+                        <li>Filter by trainers, courses, months, classes, distances, age</li>
+                        <li>Performance period analysis (1/3/12 months)</li>
+                        <li>Overall performance statistics</li>
+                        <li>Age group performance breakdown</li>
+                        <li>Distance category analysis</li>
+                        <li>Odds vs performance analysis</li>
+                        <li>Horse details with ranking percentages</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -1288,10 +1285,6 @@
             updateTopTrainers(getFilteredData());
             const btn = document.querySelector('#topTrainers').parentNode.querySelector('.show-all-btn');
             btn.textContent = showAllTrainers ? 'Show Top 10' : 'Show All';
-        }
-
-        function updateTrainerAnalysis() {
-            console.log('Trainer analysis will be implemented here');
         }
     </script>
 </body>
