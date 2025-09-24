@@ -827,14 +827,16 @@
                 const periodData = filteredData.filter(race => {
                     if (!race.Date) return false;
                     
-                    // Try different date parsing methods
+                    // Parse DD/MM/YYYY format correctly
                     let raceDate;
                     if (race.Date.includes('/')) {
-                        // Handle DD/MM/YYYY or MM/DD/YYYY format
                         const parts = race.Date.split('/');
                         if (parts.length === 3) {
-                            // Assume DD/MM/YYYY format (European)
-                            raceDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                            // DD/MM/YYYY format - convert to proper Date object
+                            const day = parseInt(parts[0]);
+                            const month = parseInt(parts[1]) - 1; // Month is 0-indexed in JS Date
+                            const year = parseInt(parts[2]);
+                            raceDate = new Date(year, month, day);
                         }
                     } else if (race.Date.includes('-')) {
                         // Handle YYYY-MM-DD format
@@ -853,10 +855,9 @@
                 const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
                 const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
 
-                // Add debug info to see what's happening
                 const debugInfo = period.months === 1 ? 
                     '<div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">From: ' + 
-                    cutoffDate.toLocaleDateString() + ' to ' + analysisDate.toLocaleDateString() + '</div>' : '';
+                    cutoffDate.toLocaleDateString('en-GB') + ' to ' + analysisDate.toLocaleDateString('en-GB') + '</div>' : '';
 
                 const html = '<div style="text-align: center;"><div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + 
                     winRate + '%</div><div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div>' + debugInfo + '</div>';
