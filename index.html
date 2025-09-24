@@ -509,22 +509,87 @@
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">👥 Trainer Analysis</h2>
-                    <button onclick="alert('Trainer analysis coming soon - will implement step by step to avoid breaking the site')">🔄 Refresh Analysis</button>
+                    <button onclick="updateTrainerAnalysis()">🔄 Refresh Analysis</button>
                 </div>
                 <div class="card-body">
-                    <p><strong>Trainer analysis functionality will be implemented incrementally.</strong></p>
-                    <p>Planned features:</p>
-                    <ul style="margin-left: 2rem; margin-top: 1rem;">
-                        <li>✅ Filter by trainers, courses, months, classes, distances, age</li>
-                        <li>✅ Performance period analysis (1/3/12 months)</li>
-                        <li>✅ Overall performance statistics</li>
-                        <li>✅ Age group performance breakdown</li>
-                        <li>✅ Distance category analysis</li>
-                        <li>✅ Odds vs performance analysis</li>
-                        <li>✅ Horse details with ranking percentages</li>
-                        <li>✅ Ranking percentage system (1st = 0%, last = 100%)</li>
-                    </ul>
-                    <p style="margin-top: 1rem;"><em>Currently working on stable implementation to avoid breaking existing functionality.</em></p>
+                    <!-- Trainer Filters -->
+                    <div class="filters">
+                        <div class="filters-grid">
+                            <div class="filter-box">
+                                <div class="filter-title">👥 Trainers</div>
+                                <select id="trainerAnalysisFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Trainers</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏁 Courses & Surfaces</div>
+                                <select id="trainerCourseFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Courses</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Race Months</div>
+                                <select id="trainerMonthFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Months</option>
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07">July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏆 Race Classes</div>
+                                <select id="trainerClassFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Classes</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📏 Distances</div>
+                                <select id="trainerDistanceFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Distances</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🎂 Horse Age</div>
+                                <select id="trainerAgeFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Ages</option>
+                                    <option value="2">2 Year Olds</option>
+                                    <option value="3">3 Year Olds</option>
+                                    <option value="4+">4+ Year Olds</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Stats Display -->
+                    <div class="analysis-grid">
+                        <div class="analysis-box">
+                            <h3>📊 Filtered Results</h3>
+                            <div id="trainerBasicStats">
+                                <p>Select filters above to see trainer analysis</p>
+                            </div>
+                        </div>
+                        <div class="analysis-box">
+                            <h3>📋 Next Features</h3>
+                            <div>
+                                <p>Coming next:</p>
+                                <ul style="margin-left: 1.5rem;">
+                                    <li>Performance period analysis (1/3/12 months)</li>
+                                    <li>Age group performance breakdown</li>
+                                    <li>Distance category analysis</li>
+                                    <li>Horse details with ranking percentages</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -600,6 +665,9 @@
             if (view === 'courses') {
                 updateCourseAnalysis();
                 loadFavoriteTrends();
+            } else if (view === 'trainers') {
+                populateTrainerFilters();
+                updateTrainerAnalysis();
             }
         }
 
@@ -1287,6 +1355,148 @@
             updateTopTrainers(getFilteredData());
             const btn = document.querySelector('#topTrainers').parentNode.querySelector('.show-all-btn');
             btn.textContent = showAllTrainers ? 'Show Top 10' : 'Show All';
+        }
+
+        // Trainer Analysis Functions - Step 1: Basic Filters and Stats
+        function populateTrainerFilters() {
+            const trainers = new Set();
+            const courses = new Set();
+            const classes = new Set();
+            const distances = new Set();
+            
+            racingData.forEach(row => {
+                const trainer = row.Trainer || row.Owner;
+                if (trainer && trainer.trim()) trainers.add(trainer.trim());
+                
+                if (row.Course && row.Course.trim()) {
+                    let courseName = row.Course.trim();
+                    
+                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
+                        const surface = (row.Surface || '').toLowerCase();
+                        const track = (row.Track || '').toLowerCase();
+                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
+                        
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') || 
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            courseName += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            courseName += ' (Grass)';
+                        }
+                    }
+                    
+                    courses.add(courseName);
+                }
+                if (row.Class && row.Class.trim()) classes.add(row.Class.trim());
+                if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
+            });
+            
+            const trainerFilter = document.getElementById('trainerAnalysisFilter');
+            trainerFilter.innerHTML = '<option value="all" selected>All Trainers</option>' +
+                Array.from(trainers).sort().map(trainer => `<option value="${trainer}">${trainer}</option>`).join('');
+            
+            const courseFilter = document.getElementById('trainerCourseFilter');
+            courseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
+                Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+            
+            const classFilter = document.getElementById('trainerClassFilter');
+            classFilter.innerHTML = '<option value="all" selected>All Classes</option>' +
+                Array.from(classes).sort().map(cls => `<option value="${cls}">${cls}</option>`).join('');
+            
+            const distanceFilter = document.getElementById('trainerDistanceFilter');
+            distanceFilter.innerHTML = '<option value="all" selected>All Distances</option>' +
+                Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
+        }
+
+        function getTrainerFilteredData() {
+            const trainerValues = getSelectedValues('trainerAnalysisFilter');
+            const courseValues = getSelectedValues('trainerCourseFilter');
+            const monthValues = getSelectedValues('trainerMonthFilter');
+            const classValues = getSelectedValues('trainerClassFilter');
+            const distanceValues = getSelectedValues('trainerDistanceFilter');
+            const ageValues = getSelectedValues('trainerAgeFilter');
+
+            return racingData.filter(race => {
+                if (!trainerValues.includes('all')) {
+                    const trainer = race.Trainer || race.Owner || '';
+                    if (!trainerValues.includes(trainer)) return false;
+                }
+
+                if (!courseValues.includes('all')) {
+                    let raceCourse = race.Course || '';
+                    
+                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                        const surface = (race.Surface || '').toLowerCase();
+                        const track = (race.Track || '').toLowerCase();
+                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+                        
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') || 
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            raceCourse += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            raceCourse += ' (Grass)';
+                        }
+                    }
+                    
+                    const matchesCourse = courseValues.some(course => 
+                        raceCourse === course || race.Course === course ||
+                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
+                    );
+                    if (!matchesCourse) return false;
+                }
+
+                if (!monthValues.includes('all')) {
+                    const raceMonth = (race.Date || '').split('-')[1];
+                    if (!monthValues.includes(raceMonth)) return false;
+                }
+
+                if (!classValues.includes('all')) {
+                    if (!classValues.includes(race.Class)) return false;
+                }
+
+                if (!distanceValues.includes('all')) {
+                    if (!distanceValues.includes(race.Distance)) return false;
+                }
+
+                if (!ageValues.includes('all')) {
+                    const age = parseInt(race.Age) || 0;
+                    const ageGroup = age === 2 ? '2' : age === 3 ? '3' : age >= 4 ? '4+' : '';
+                    if (!ageValues.includes(ageGroup)) return false;
+                }
+
+                return true;
+            });
+        }
+
+        function updateTrainerAnalysis() {
+            if (racingData.length === 0) {
+                document.getElementById('trainerBasicStats').innerHTML = '<p>No data loaded yet</p>';
+                return;
+            }
+            
+            const filtered = getTrainerFilteredData();
+            const totalRaces = filtered.length;
+            const wins = filtered.filter(r => r.Place === '1' || r.Place === 1).length;
+            const winRate = totalRaces > 0 ? ((wins / totalRaces) * 100).toFixed(1) : '0.0';
+            
+            const uniqueTrainers = new Set();
+            const uniqueHorses = new Set();
+            filtered.forEach(race => {
+                const trainer = race.Trainer || race.Owner;
+                if (trainer && trainer.trim()) uniqueTrainers.add(trainer.trim());
+                if (race.Horse && race.Horse.trim()) uniqueHorses.add(race.Horse.trim());
+            });
+
+            let html = '<table>';
+            html += '<tr><td><strong>Total Races:</strong></td><td>' + totalRaces + '</td></tr>';
+            html += '<tr><td><strong>Total Wins:</strong></td><td>' + wins + '</td></tr>';
+            html += '<tr><td><strong>Win Rate:</strong></td><td style="color: ' + (parseFloat(winRate) > 15 ? '#22c55e' : '#94a3b8') + '; font-weight: 600">' + winRate + '%</td></tr>';
+            html += '<tr><td><strong>Trainers:</strong></td><td>' + uniqueTrainers.size + '</td></tr>';
+            html += '<tr><td><strong>Horses:</strong></td><td>' + uniqueHorses.size + '</td></tr>';
+            html += '</table>';
+            
+            document.getElementById('trainerBasicStats').innerHTML = html;
         }
     </script>
 </body>
