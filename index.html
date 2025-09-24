@@ -1510,6 +1510,13 @@
                 return;
             }
             
+            // Set default analysis date to today if not already set
+            const analysisDateInput = document.getElementById('analysisDate');
+            if (!analysisDateInput.value) {
+                const today = new Date();
+                analysisDateInput.value = today.toISOString().split('T')[0];
+            }
+            
             const filtered = getTrainerFilteredData();
             const totalRaces = filtered.length;
             const wins = filtered.filter(r => r.Place === '1' || r.Place === 1).length;
