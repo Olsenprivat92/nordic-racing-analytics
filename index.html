@@ -825,7 +825,27 @@
                 cutoffDate.setMonth(cutoffDate.getMonth() - period.months);
                 
                 const periodData = filteredData.filter(race => {
-                    const raceDate = new Date(race.Date);
+                    if (!race.Date) return false;
+                    
+                    // Try different date parsing methods
+                    let raceDate;
+                    if (race.Date.includes('/')) {
+                        // Handle DD/MM/YYYY or MM/DD/YYYY format
+                        const parts = race.Date.split('/');
+                        if (parts.length === 3) {
+                            // Assume DD/MM/YYYY format (European)
+                            raceDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                        }
+                    } else if (race.Date.includes('-')) {
+                        // Handle YYYY-MM-DD format
+                        raceDate = new Date(race.Date);
+                    } else {
+                        raceDate = new Date(race.Date);
+                    }
+                    
+                    // Check if date is valid
+                    if (isNaN(raceDate.getTime())) return false;
+                    
                     return raceDate >= cutoffDate && raceDate <= analysisDate;
                 });
 
@@ -833,8 +853,13 @@
                 const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
                 const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
 
+                // Add debug info to see what's happening
+                const debugInfo = period.months === 1 ? 
+                    '<div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">From: ' + 
+                    cutoffDate.toLocaleDateString() + ' to ' + analysisDate.toLocaleDateString() + '</div>' : '';
+
                 const html = '<div style="text-align: center;"><div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + 
-                    winRate + '%</div><div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div></div>';
+                    winRate + '%</div><div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div>' + debugInfo + '</div>';
                 
                 document.getElementById(period.elementId).innerHTML = html;
             });
