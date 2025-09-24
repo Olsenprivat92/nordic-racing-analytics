@@ -569,10 +569,45 @@
                         </div>
                     </div>
 
+                    <!-- Performance Period Analysis -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>📊 Performance Period Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Analysis Date:</label>
+                                    <input type="date" id="analysisDate" onchange="updateTrainerAnalysis()" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
+                                </div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div class="analysis-box">
+                                    <h4>📅 Last 1 Month</h4>
+                                    <div id="performance1Month">
+                                        <p class="loading">Loading...</p>
+                                    </div>
+                                </div>
+                                <div class="analysis-box">
+                                    <h4>📅 Last 3 Months</h4>
+                                    <div id="performance3Months">
+                                        <p class="loading">Loading...</p>
+                                    </div>
+                                </div>
+                                <div class="analysis-box">
+                                    <h4>📅 Last 12 Months</h4>
+                                    <div id="performance12Months">
+                                        <p class="loading">Loading...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Basic Stats Display -->
                     <div class="analysis-grid">
                         <div class="analysis-box">
-                            <h3>📊 Filtered Results</h3>
+                            <h3>📊 Overall Performance</h3>
                             <div id="trainerBasicStats">
                                 <p>Select filters above to see trainer analysis</p>
                             </div>
@@ -582,9 +617,9 @@
                             <div>
                                 <p>Coming next:</p>
                                 <ul style="margin-left: 1.5rem;">
-                                    <li>Performance period analysis (1/3/12 months)</li>
                                     <li>Age group performance breakdown</li>
                                     <li>Distance category analysis</li>
+                                    <li>Odds vs performance analysis</li>
                                     <li>Horse details with ranking percentages</li>
                                 </ul>
                             </div>
@@ -1497,6 +1532,38 @@
             html += '</table>';
             
             document.getElementById('trainerBasicStats').innerHTML = html;
+
+            // Update performance periods
+            updatePerformancePeriods(filtered);
+        }
+
+        function updatePerformancePeriods(data) {
+            const analysisDate = new Date(document.getElementById('analysisDate').value || new Date());
+            
+            const periods = [
+                { months: 1, elementId: 'performance1Month' },
+                { months: 3, elementId: 'performance3Months' },
+                { months: 12, elementId: 'performance12Months' }
+            ];
+
+            periods.forEach(period => {
+                const cutoffDate = new Date(analysisDate);
+                cutoffDate.setMonth(cutoffDate.getMonth() - period.months);
+                
+                const periodData = data.filter(race => {
+                    const raceDate = new Date(race.Date);
+                    return raceDate >= cutoffDate && raceDate <= analysisDate;
+                });
+
+                const races = periodData.length;
+                const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
+                const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
+
+                const html = '<div style="text-align: center;"><div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + 
+                    winRate + '%</div><div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div></div>';
+                
+                document.getElementById(period.elementId).innerHTML = html;
+            });
         }
     </script>
 </body>
