@@ -613,15 +613,27 @@
                             </div>
                         </div>
                         <div class="analysis-box">
-                            <h3>📋 Next Features</h3>
-                            <div>
-                                <p>Coming next:</p>
-                                <ul style="margin-left: 1.5rem;">
-                                    <li>Age group performance breakdown</li>
-                                    <li>Distance category analysis</li>
-                                    <li>Odds vs performance analysis</li>
-                                    <li>Horse details with ranking percentages</li>
-                                </ul>
+                            <h3>📈 Detailed Performance Metrics</h3>
+                            <div id="trainerDetailedMetrics">
+                                <p>Loading detailed metrics...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horse Performance Details -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>🐎 Horse Performance Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Horse:</label>
+                                <select id="horseDropdown" onchange="updateHorseDetails()" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
+                                    <option value="">Select a horse to see details...</option>
+                                </select>
+                            </div>
+                            <div id="horseDetails" style="max-height: 400px; overflow-y: auto;">
+                                <p>Select a horse from the dropdown to see race details.</p>
                             </div>
                         </div>
                     </div>
@@ -1540,8 +1552,119 @@
             
             document.getElementById('trainerBasicStats').innerHTML = html;
 
+            // Update detailed metrics
+            updateDetailedMetrics();
+            
+            // Populate horse dropdown
+            populateHorseDropdown(filtered);
+
             // Update performance periods
             updatePerformancePeriods();
+        }
+
+        function updateDetailedMetrics() {
+            const filtered = getTrainerFilteredData();
+            const metrics = calculateDetailedMetrics(filtered);
+            
+            if (!metrics) {
+                document.getElementById('trainerDetailedMetrics').innerHTML = '<p>No data available for detailed metrics</p>';
+                return;
+            }
+            
+            let html = '<table style="font-size: 0.9rem;">';
+            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td></tr>';
+            html += '</table>';
+            
+            document.getElementById('trainerDetailedMetrics').innerHTML = html;
+        }
+
+        function populateHorseDropdown(data) {
+            const horses = new Set();
+            data.forEach(race => {
+                if (race.Horse && race.Horse.trim()) {
+                    horses.add(race.Horse.trim());
+                }
+            });
+            
+            const dropdown = document.getElementById('horseDropdown');
+            dropdown.innerHTML = '<option value="">Select a horse to see details...</option>' +
+                Array.from(horses).sort().map(horse => 
+                    `<option value="${horse}">${horse}</option>`
+                ).join('');
+        }
+
+        function updateHorseDetails() {
+            const selectedHorse = document.getElementById('horseDropdown').value;
+            const detailsContainer = document.getElementById('horseDetails');
+            
+            if (!selectedHorse) {
+                detailsContainer.innerHTML = '<p>Select a horse from the dropdown to see race details.</p>';
+                return;
+            }
+            
+            const filtered = getTrainerFilteredData();
+            const horseRaces = filtered.filter(race => race.Horse === selectedHorse);
+            
+            if (horseRaces.length === 0) {
+                detailsContainer.innerHTML = '<p>No races found for this horse with current filters.</p>';
+                return;
+            }
+            
+            // Sort races by date (newest first)
+            horseRaces.sort((a, b) => {
+                const dateA = parseRaceDate(a.Date);
+                const dateB = parseRaceDate(b.Date);
+                return dateB - dateA;
+            });
+            
+            let html = '<table style="font-size: 0.85rem; width: 100%;">';
+            html += '<thead><tr>';
+            html += '<th>Date</th><th>Course</th><th>Surface</th><th>Class</th><th>Place</th>';
+            html += '<th>Field</th><th>Ranking</th><th>Age</th><th>Comment</th>';
+            html += '</tr></thead><tbody>';
+            
+            horseRaces.forEach(race => {
+                const surface = race.Surface || 'N/A';
+                const placeColor = race.Place === '1' || race.Place === 1 ? '#22c55e' : '#64748b';
+                
+                html += '<tr>';
+                html += '<td>' + (race.Date || 'N/A') + '</td>';
+                html += '<td>' + (race.Course || 'N/A') + '</td>';
+                html += '<td>' + surface + '</td>';
+                html += '<td>' + (race.Class || 'N/A') + '</td>';
+                html += '<td style="color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
+                html += '<td>' + (race.Field || 'N/A') + '</td>';
+                html += '<td>' + (race.Ranking || 'N/A') + '</td>';
+                html += '<td>' + (race.Age || 'N/A') + '</td>';
+                html += '<td>' + (race.Comment || '') + '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            // Add summary stats for this horse
+            const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+            const winRate = ((wins / horseRaces.length) * 100).toFixed(1);
+            const avgRanking = horseRaces
+                .map(r => parseFloat(r.Ranking))
+                .filter(r => !isNaN(r) && r > 0);
+            const avgRankingValue = avgRanking.length > 0 ? 
+                (avgRanking.reduce((a, b) => a + b, 0) / avgRanking.length).toFixed(2) : 'N/A';
+            
+            html = '<div style="margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 6px;">' +
+                '<strong>' + selectedHorse + ' Summary:</strong> ' +
+                horseRaces.length + ' races, ' + wins + ' wins (' + winRate + '%), ' +
+                'Avg Ranking: ' + avgRankingValue +
+                '</div>' + html;
+            
+            detailsContainer.innerHTML = html;
         }
 
         // Helper function to properly parse DD-MM-YY dates
@@ -1556,6 +1679,108 @@
             const year = 2000 + parseInt(parts[2]); // Convert YY to YYYY
             
             return new Date(year, month, day);
+        }
+
+        // Helper function to calculate detailed performance metrics
+        function calculateDetailedMetrics(data) {
+            if (data.length === 0) return null;
+            
+            const metrics = {
+                avgRanking: 0,
+                avgRanking2YO: 0,
+                avgRankingJump2YO: 0,
+                avgRankingSprinter: 0,
+                avgRankingMiddle: 0,
+                avgRankingStayer: 0,
+                avgOdds: 0,
+                winPercentage: 0,
+                oddsVsWinFormula: 0
+            };
+            
+            // Calculate average ranking for all performances
+            const validRankings = data.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            if (validRankings.length > 0) {
+                metrics.avgRanking = (validRankings.reduce((a, b) => a + b, 0) / validRankings.length).toFixed(2);
+            }
+            
+            // Calculate average ranking for 2-year-olds
+            const twoYearOlds = data.filter(r => parseInt(r.Age) === 2);
+            const twoYOValidRankings = twoYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            if (twoYOValidRankings.length > 0) {
+                metrics.avgRanking2YO = (twoYOValidRankings.reduce((a, b) => a + b, 0) / twoYOValidRankings.length).toFixed(2);
+            }
+            
+            // Calculate ranking jump for 2-year-olds (first start to second start)
+            const horseFirstSecondStarts = {};
+            twoYearOlds.forEach(race => {
+                const horse = race.Horse;
+                const ranking = parseFloat(race.Ranking);
+                const date = parseRaceDate(race.Date);
+                
+                if (horse && !isNaN(ranking) && date) {
+                    if (!horseFirstSecondStarts[horse]) {
+                        horseFirstSecondStarts[horse] = [];
+                    }
+                    horseFirstSecondStarts[horse].push({ ranking, date });
+                }
+            });
+            
+            const rankingJumps = [];
+            Object.values(horseFirstSecondStarts).forEach(starts => {
+                if (starts.length >= 2) {
+                    starts.sort((a, b) => a.date - b.date);
+                    const jump = starts[0].ranking - starts[1].ranking; // Positive = improvement
+                    rankingJumps.push(jump);
+                }
+            });
+            
+            if (rankingJumps.length > 0) {
+                metrics.avgRankingJump2YO = (rankingJumps.reduce((a, b) => a + b, 0) / rankingJumps.length).toFixed(2);
+            }
+            
+            // Distance categories
+            const sprinters = data.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist >= 900 && dist <= 1400;
+            });
+            const middle = data.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist >= 1401 && dist <= 1800;
+            });
+            const stayers = data.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist >= 1801;
+            });
+            
+            // Calculate average rankings by distance
+            [
+                { races: sprinters, key: 'avgRankingSprinter' },
+                { races: middle, key: 'avgRankingMiddle' },
+                { races: stayers, key: 'avgRankingStayer' }
+            ].forEach(category => {
+                const validRankings = category.races.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+                if (validRankings.length > 0) {
+                    metrics[category.key] = (validRankings.reduce((a, b) => a + b, 0) / validRankings.length).toFixed(2);
+                }
+            });
+            
+            // Calculate average odds
+            const validOdds = data.map(r => parseFloat(r.Odds)).filter(r => !isNaN(r) && r > 0);
+            if (validOdds.length > 0) {
+                metrics.avgOdds = (validOdds.reduce((a, b) => a + b, 0) / validOdds.length).toFixed(2);
+            }
+            
+            // Calculate win percentage and odds vs win formula
+            const wins = data.filter(r => r.Place === '1' || r.Place === 1).length;
+            metrics.winPercentage = ((wins / data.length) * 100).toFixed(1);
+            
+            // Odds vs win formula: Expected wins based on odds vs actual wins
+            const expectedWins = validOdds.reduce((sum, odds) => sum + (1 / odds), 0);
+            if (expectedWins > 0) {
+                metrics.oddsVsWinFormula = ((wins / expectedWins) * 100).toFixed(1);
+            }
+            
+            return metrics;
         }
 
         // FIXED: This function now properly applies all trainer filters to the performance periods
@@ -1587,9 +1812,16 @@
                 const races = periodData.length;
                 const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
                 const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
+                
+                // Calculate detailed metrics for this period
+                const metrics = calculateDetailedMetrics(periodData);
+                const avgPercentage = metrics ? metrics.avgRanking : 'N/A';
 
-                const html = '<div style="text-align: center;"><div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + 
-                    winRate + '%</div><div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div></div>';
+                const html = '<div style="text-align: center;">' +
+                    '<div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + winRate + '%</div>' +
+                    '<div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div>' +
+                    '<div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Avg Ranking: ' + avgPercentage + '</div>' +
+                    '</div>';
                 
                 document.getElementById(period.elementId).innerHTML = html;
             });
