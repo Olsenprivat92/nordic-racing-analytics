@@ -382,7 +382,7 @@
                     <button onclick="updateCourseAnalysis()">🔄 Refresh Analysis</button>
                 </div>
                 <div class="card-body">
-                    <p>Course analysis functionality will be restored here...</p>
+                    <p>Course analysis functionality will be restored...</p>
                 </div>
             </div>
         </div>
@@ -496,10 +496,10 @@
                             </div>
                         </div>
                         <div class="analysis-box">
-                            <h3>📋 Analysis Status</h3>
+                            <h3>📋 Status</h3>
                             <div>
-                                <p>Performance period analysis working correctly.</p>
-                                <p style="margin-top: 0.5rem; color: #64748b;">Select specific trainers and dates above to see detailed analysis.</p>
+                                <p>Fixed performance period filtering issue.</p>
+                                <p style="margin-top: 0.5rem; color: #64748b;">Performance periods now correctly filter by trainer selection AND date range.</p>
                             </div>
                         </div>
                     </div>
@@ -694,7 +694,7 @@
         }
 
         function updateCourseAnalysis() {
-            // Course analysis to be restored
+            // Course analysis functionality
         }
 
         // Trainer Analysis Functions
@@ -780,7 +780,6 @@
             }
             
             const filtered = getTrainerFilteredData();
-            const filtered = getTrainerFilteredData();
             const totalRaces = filtered.length;
             const wins = filtered.filter(r => r.Place === '1' || r.Place === 1).length;
             const winRate = totalRaces > 0 ? ((wins / totalRaces) * 100).toFixed(1) : '0.0';
@@ -803,7 +802,7 @@
             
             document.getElementById('trainerBasicStats').innerHTML = html;
 
-            // Update performance periods with the filtered data
+            // Update performance periods - FIXED VERSION
             updatePerformancePeriods(filtered);
         }
 
@@ -820,7 +819,7 @@
                 const cutoffDate = new Date(analysisDate);
                 cutoffDate.setMonth(cutoffDate.getMonth() - period.months);
                 
-                // Filter the already trainer-filtered data by date period
+                // FIXED: Filter the already trainer-filtered data by date period
                 const periodData = filteredData.filter(race => {
                     if (!race.Date) return false;
                     const raceDate = new Date(race.Date);
@@ -831,7 +830,6 @@
                 const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
                 const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
 
-                // Enhanced display with more detail
                 const html = '<div style="text-align: center;">' +
                     '<div style="font-size: 1.8rem; font-weight: bold; color: ' + (parseFloat(winRate) > 15 ? '#22c55e' : parseFloat(winRate) > 10 ? '#f59e0b' : '#1e40af') + '">' + 
                     winRate + '%</div>' +
