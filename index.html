@@ -620,20 +620,14 @@
                         </div>
                     </div>
 
-                    <!-- Horse Performance Details -->
+                    <!-- Race Data Table -->
                     <div class="card" style="margin-top: 2rem;">
                         <div class="card-header">
-                            <h3>🐎 Horse Performance Details</h3>
+                            <h3>📋 Race Data Table</h3>
                         </div>
                         <div class="card-body">
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Horse:</label>
-                                <select id="horseDropdown" onchange="updateHorseDetails()" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
-                                    <option value="">Select a horse to see details...</option>
-                                </select>
-                            </div>
-                            <div id="horseDetails" style="max-height: 400px; overflow-y: auto;">
-                                <p>Select a horse from the dropdown to see race details.</p>
+                            <div id="horseDetails">
+                                <p>Loading race data table...</p>
                             </div>
                         </div>
                     </div>
@@ -1911,16 +1905,16 @@
             const comparisons = calculateTrainerComparisons(metrics);
             
             let html = '<table style="font-size: 0.9rem;">';
-            html += '<tr><td><strong>Avg Performance (All):</strong></td><td>' + (metrics.avgPerformance || 'N/A') + '%' + 
+            html += '<tr><td><strong>Avg Performance (All):</strong></td><td>' + (metrics.avgPerformance || 'N/A') + 
                 (comparisons.avgPerformance ? ' <span style="color: #666;">(' + comparisons.avgPerformance + 'th %ile)</span>' : '') + '</td></tr>';
-            html += '<tr><td><strong>Avg Performance (2YO):</strong></td><td>' + (metrics.avgPerformance2YO || 'N/A') + '%' + 
+            html += '<tr><td><strong>Avg Performance (2YO):</strong></td><td>' + (metrics.avgPerformance2YO || 'N/A') + 
                 (comparisons.avgPerformance2YO ? ' <span style="color: #666;">(' + comparisons.avgPerformance2YO + 'th %ile)</span>' : '') + '</td></tr>';
-            html += '<tr><td><strong>2YO Performance Jump:</strong></td><td>' + (metrics.avgPerformanceJump2YO || 'N/A') + '%</td></tr>';
-            html += '<tr><td><strong>Avg Performance (Sprint):</strong></td><td>' + (metrics.avgPerformanceSprinter || 'N/A') + '%' + 
+            html += '<tr><td><strong>2YO Performance Jump:</strong></td><td>' + (metrics.avgPerformanceJump2YO || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Performance (Sprint):</strong></td><td>' + (metrics.avgPerformanceSprinter || 'N/A') + 
                 (comparisons.avgPerformanceSprinter ? ' <span style="color: #666;">(' + comparisons.avgPerformanceSprinter + 'th %ile)</span>' : '') + '</td></tr>';
-            html += '<tr><td><strong>Avg Performance (Middle):</strong></td><td>' + (metrics.avgPerformanceMiddle || 'N/A') + '%' + 
+            html += '<tr><td><strong>Avg Performance (Middle):</strong></td><td>' + (metrics.avgPerformanceMiddle || 'N/A') + 
                 (comparisons.avgPerformanceMiddle ? ' <span style="color: #666;">(' + comparisons.avgPerformanceMiddle + 'th %ile)</span>' : '') + '</td></tr>';
-            html += '<tr><td><strong>Avg Performance (Stay):</strong></td><td>' + (metrics.avgPerformanceStayer || 'N/A') + '%' + 
+            html += '<tr><td><strong>Avg Performance (Stay):</strong></td><td>' + (metrics.avgPerformanceStayer || 'N/A') + 
                 (comparisons.avgPerformanceStayer ? ' <span style="color: #666;">(' + comparisons.avgPerformanceStayer + 'th %ile)</span>' : '') + '</td></tr>';
             html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + 
                 (comparisons.avgOdds ? ' <span style="color: #666;">(' + comparisons.avgOdds + 'th %ile)</span>' : '') + '</td></tr>';
@@ -1939,71 +1933,134 @@
         }
 
         function updateHorseDetails() {
-            const selectedHorse = document.getElementById('horseDropdown').value;
-            const detailsContainer = document.getElementById('horseDetails');
-            
-            if (!selectedHorse) {
-                detailsContainer.innerHTML = '<p>Select a horse from the dropdown to see race details.</p>';
-                return;
-            }
-            
             const filtered = getTrainerFilteredData();
-            const horseRaces = filtered.filter(race => race.Horse === selectedHorse);
             
-            if (horseRaces.length === 0) {
-                detailsContainer.innerHTML = '<p>No races found for this horse with current filters.</p>';
+            if (filtered.length === 0) {
+                document.getElementById('horseDetails').innerHTML = '<p>No races found with current filters.</p>';
                 return;
             }
             
             // Sort races by date (newest first)
-            horseRaces.sort((a, b) => {
+            const sortedRaces = filtered.slice().sort((a, b) => {
                 const dateA = parseRaceDate(a.Date);
                 const dateB = parseRaceDate(b.Date);
                 return dateB - dateA;
             });
             
-            let html = '<table style="font-size: 0.85rem; width: 100%;">';
-            html += '<thead><tr>';
-            html += '<th>Date</th><th>Course</th><th>Surface</th><th>Class</th><th>Place</th>';
-            html += '<th>Field</th><th>Performance</th><th>Age</th><th>Comment</th>';
+            let html = '<div style="margin-bottom: 1rem;">';
+            html += '<input type="text" id="raceTableFilter" placeholder="Search races..." onkeyup="filterRaceTable()" ';
+            html += 'style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px; margin-bottom: 10px;">';
+            html += '</div>';
+            
+            html += '<div style="overflow-x: auto; max-height: 500px; overflow-y: auto;">';
+            html += '<table id="raceTable" style="font-size: 0.85rem; width: 100%; border-collapse: collapse;">';
+            html += '<thead style="position: sticky; top: 0; background: white; z-index: 1;">';
+            html += '<tr style="background: #f8fafc; border-bottom: 2px solid #e5e7eb;">';
+            html += '<th onclick="sortRaceTable(0)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Date ⇅</th>';
+            html += '<th onclick="sortRaceTable(1)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Course ⇅</th>';
+            html += '<th onclick="sortRaceTable(2)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Surface ⇅</th>';
+            html += '<th onclick="sortRaceTable(3)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Class ⇅</th>';
+            html += '<th onclick="sortRaceTable(4)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Horse ⇅</th>';
+            html += '<th onclick="sortRaceTable(5)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Place ⇅</th>';
+            html += '<th onclick="sortRaceTable(6)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Field ⇅</th>';
+            html += '<th onclick="sortRaceTable(7)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Ranking ⇅</th>';
+            html += '<th onclick="sortRaceTable(8)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Age ⇅</th>';
+            html += '<th onclick="sortRaceTable(9)" style="cursor: pointer; padding: 8px; text-align: left; border: 1px solid #e5e7eb;">Comment ⇅</th>';
             html += '</tr></thead><tbody>';
             
-            horseRaces.forEach(race => {
+            sortedRaces.forEach(race => {
                 const surface = race.Surface || 'N/A';
                 const placeColor = race.Place === '1' || race.Place === 1 ? '#22c55e' : '#64748b';
-                const performance = race['Percentage Performance'] ? parseFloat(race['Percentage Performance']).toFixed(1) + '%' : 'N/A';
                 
-                html += '<tr>';
-                html += '<td>' + (race.Date || 'N/A') + '</td>';
-                html += '<td>' + (race.Course || 'N/A') + '</td>';
-                html += '<td>' + surface + '</td>';
-                html += '<td>' + (race.Class || 'N/A') + '</td>';
-                html += '<td style="color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
-                html += '<td>' + (race.Field || 'N/A') + '</td>';
-                html += '<td>' + performance + '</td>';
-                html += '<td>' + (race.Age || 'N/A') + '</td>';
-                html += '<td>' + (race.Comment || '') + '</td>';
+                html += '<tr style="border-bottom: 1px solid #f1f5f9;">';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + (race.Date || 'N/A') + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + (race.Course || 'N/A') + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + surface + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + (race.Class || 'N/A') + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;"><strong>' + (race.Horse || 'N/A') + '</strong></td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9; color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + (race.Field || 'N/A') + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + (race.Ranking || 'N/A') + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + (race.Age || 'N/A') + '</td>';
+                html += '<td style="padding: 6px; border: 1px solid #f1f5f9;">' + (race.Comment || '') + '</td>';
                 html += '</tr>';
             });
             
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             
-            // Add summary stats for this horse
-            const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            const winRate = ((wins / horseRaces.length) * 100).toFixed(1);
-            const avgPerformance = horseRaces
-                .map(r => parseFloat(r['Percentage Performance']))
-                .filter(r => !isNaN(r));
-            const avgPerformanceValue = avgPerformance.length > 0 ? 
-                (avgPerformance.reduce((a, b) => a + b, 0) / avgPerformance.length).toFixed(1) + '%' : 'N/A';
+            // Add summary stats
+            const wins = filtered.filter(r => r.Place === '1' || r.Place === 1).length;
+            const winRate = ((wins / filtered.length) * 100).toFixed(1);
             
             html = '<div style="margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 6px;">' +
-                '<strong>' + selectedHorse + ' Summary:</strong> ' +
-                horseRaces.length + ' races, ' + wins + ' wins (' + winRate + '%), ' +
-                'Avg Performance: ' + avgPerformanceValue +
+                '<strong>Filtered Results Summary:</strong> ' +
+                filtered.length + ' races, ' + wins + ' wins (' + winRate + '%)' +
                 '</div>' + html;
             
-            detailsContainer.innerHTML = html;
+            document.getElementById('horseDetails').innerHTML = html;
+        }
+
+        // Add sorting and filtering functions for the race table
+        let currentSortColumn = -1;
+        let sortAscending = true;
+
+        function filterRaceTable() {
+            const input = document.getElementById('raceTableFilter');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('raceTable');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                let showRow = false;
+                const cells = rows[i].getElementsByTagName('td');
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(filter)) {
+                        showRow = true;
+                        break;
+                    }
+                }
+                
+                rows[i].style.display = showRow ? '' : 'none';
+            }
+        }
+
+        function sortRaceTable(columnIndex) {
+            const table = document.getElementById('raceTable');
+            const tbody = table.getElementsByTagName('tbody')[0];
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+            
+            // Toggle sort direction if same column, else default to ascending
+            if (currentSortColumn === columnIndex) {
+                sortAscending = !sortAscending;
+            } else {
+                sortAscending = true;
+                currentSortColumn = columnIndex;
+            }
+            
+            rows.sort((a, b) => {
+                let aVal = a.getElementsByTagName('td')[columnIndex].textContent.trim();
+                let bVal = b.getElementsByTagName('td')[columnIndex].textContent.trim();
+                
+                // Handle numeric columns
+                if (columnIndex === 5 || columnIndex === 6 || columnIndex === 7 || columnIndex === 8) { // Place, Field, Ranking, Age
+                    aVal = parseFloat(aVal) || 0;
+                    bVal = parseFloat(bVal) || 0;
+                }
+                
+                // Handle date column
+                if (columnIndex === 0) {
+                    aVal = parseRaceDate(aVal) || new Date(0);
+                    bVal = parseRaceDate(bVal) || new Date(0);
+                }
+                
+                if (aVal < bVal) return sortAscending ? -1 : 1;
+                if (aVal > bVal) return sortAscending ? 1 : -1;
+                return 0;
+            });
+            
+            // Reorder rows
+            rows.forEach(row => tbody.appendChild(row));
         }
     </script>
 </body>
