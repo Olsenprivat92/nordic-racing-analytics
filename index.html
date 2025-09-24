@@ -812,11 +812,8 @@
         }
 
         function updatePerformancePeriods(filteredData) {
-            const analysisDate = new Date(document.getElementById('analysisDate').value || new Date());
-            
-            // Debug: Show what we're working with
-            console.log('Total filtered races for trainer:', filteredData.length);
-            console.log('Sample dates from filtered data:', filteredData.slice(0, 5).map(r => r.Date));
+            const analysisDateInput = document.getElementById('analysisDate').value;
+            const analysisDate = analysisDateInput ? new Date(analysisDateInput) : new Date();
             
             const periods = [
                 { months: 1, elementId: 'performance1Month' },
@@ -825,55 +822,42 @@
             ];
 
             periods.forEach(period => {
+                // Calculate cutoff date
                 const cutoffDate = new Date(analysisDate);
-                cutoffDate.setMonth(cutoffDate.getMonth() - period.months);
+                cutoffDate.setDate(cutoffDate.getDate() - (period.months * 30)); // Use days instead of months for accuracy
                 
-                console.log(`Period ${period.months} months: ${cutoffDate.toDateString()} to ${analysisDate.toDateString()}`);
+                const periodData = [];
                 
-                const periodData = filteredData.filter(race => {
-                    if (!race.Date || !race.Date.trim()) return false;
+                // Go through each race and check if it's in the time period
+                for (let i = 0; i < filteredData.length; i++) {
+                    const race = filteredData[i];
                     
-                    let raceDate;
-                    const dateStr = race.Date.trim();
+                    if (!race.Date || race.Date.trim() === '') continue;
                     
-                    if (dateStr.includes('/')) {
-                        const parts = dateStr.split('/');
-                        if (parts.length === 3) {
-                            const day = parseInt(parts[0]);
-                            const month = parseInt(parts[1]) - 1;
-                            const year = parseInt(parts[2]);
-                            raceDate = new Date(year, month, day);
-                        }
-                    } else {
-                        raceDate = new Date(dateStr);
+                    // Parse DD/MM/YYYY format
+                    const dateParts = race.Date.trim().split('/');
+                    if (dateParts.length !== 3) continue;
+                    
+                    const day = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]) - 1; // JS months are 0-11
+                    const year = parseInt(dateParts[2]);
+                    
+                    if (isNaN(day) || isNaN(month) || isNaN(year)) continue;
+                    
+                    const raceDate = new Date(year, month, day);
+                    
+                    // Check if race is within the period
+                    if (raceDate >= cutoffDate && raceDate <= analysisDate) {
+                        periodData.push(race);
                     }
-                    
-                    if (isNaN(raceDate.getTime())) {
-                        console.log('Failed to parse date:', dateStr);
-                        return false;
-                    }
-                    
-                    const inRange = raceDate >= cutoffDate && raceDate <= analysisDate;
-                    
-                    if (period.months === 1) {
-                        console.log(`Race date: ${dateStr} -> ${raceDate.toDateString()} -> In range: ${inRange}`);
-                    }
-                    
-                    return inRange;
-                });
-
-                console.log(`Found ${periodData.length} races in ${period.months} month period`);
+                }
 
                 const races = periodData.length;
                 const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
                 const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
 
-                const debugInfo = period.months === 1 ? 
-                    '<div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">From: ' + 
-                    cutoffDate.toLocaleDateString('en-GB') + ' to ' + analysisDate.toLocaleDateString('en-GB') + '</div>' : '';
-
                 const html = '<div style="text-align: center;"><div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + 
-                    winRate + '%</div><div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div>' + debugInfo + '</div>';
+                    winRate + '%</div><div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div></div>';
                 
                 document.getElementById(period.elementId).innerHTML = html;
             });
