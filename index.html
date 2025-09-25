@@ -1680,56 +1680,56 @@
             if (data.length === 0) return null;
             
             const metrics = {
-                avgPerformance: 0,
-                avgPerformance2YO: 0,
-                avgPerformanceJump2YO: 0,
-                avgPerformanceSprinter: 0,
-                avgPerformanceMiddle: 0,
-                avgPerformanceStayer: 0,
+                avgRanking: 0,
+                avgRanking2YO: 0,
+                avgRankingJump2YO: 0,
+                avgRankingSprinter: 0,
+                avgRankingMiddle: 0,
+                avgRankingStayer: 0,
                 avgOdds: 0,
                 winPercentage: 0,
                 oddsVsWinFormula: 0
             };
             
-            // Calculate average Percentage Performance for all performances
-            const validPerformances = data.map(r => parseFloat(r['Percentage Performance'])).filter(r => !isNaN(r));
-            if (validPerformances.length > 0) {
-                metrics.avgPerformance = (validPerformances.reduce((a, b) => a + b, 0) / validPerformances.length).toFixed(1);
+            // Calculate average Ranking for all performances
+            const validRankings = data.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r >= 0);
+            if (validRankings.length > 0) {
+                metrics.avgRanking = (validRankings.reduce((a, b) => a + b, 0) / validRankings.length).toFixed(1);
             }
             
-            // Calculate average Percentage Performance for 2-year-olds
+            // Calculate average Ranking for 2-year-olds
             const twoYearOlds = data.filter(r => parseInt(r.Age) === 2);
-            const twoYOValidPerformances = twoYearOlds.map(r => parseFloat(r['Percentage Performance'])).filter(r => !isNaN(r));
-            if (twoYOValidPerformances.length > 0) {
-                metrics.avgPerformance2YO = (twoYOValidPerformances.reduce((a, b) => a + b, 0) / twoYOValidPerformances.length).toFixed(1);
+            const twoYOValidRankings = twoYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r >= 0);
+            if (twoYOValidRankings.length > 0) {
+                metrics.avgRanking2YO = (twoYOValidRankings.reduce((a, b) => a + b, 0) / twoYOValidRankings.length).toFixed(1);
             }
             
-            // Calculate Percentage Performance jump for 2-year-olds (first start to second start)
+            // Calculate Ranking jump for 2-year-olds (first start to second start)
             const horseFirstSecondStarts = {};
             twoYearOlds.forEach(race => {
                 const horse = race.Horse;
-                const performance = parseFloat(race['Percentage Performance']);
+                const ranking = parseFloat(race.Ranking);
                 const date = parseRaceDate(race.Date);
                 
-                if (horse && !isNaN(performance) && date) {
+                if (horse && !isNaN(ranking) && date) {
                     if (!horseFirstSecondStarts[horse]) {
                         horseFirstSecondStarts[horse] = [];
                     }
-                    horseFirstSecondStarts[horse].push({ performance, date });
+                    horseFirstSecondStarts[horse].push({ ranking, date });
                 }
             });
             
-            const performanceJumps = [];
+            const rankingJumps = [];
             Object.values(horseFirstSecondStarts).forEach(starts => {
                 if (starts.length >= 2) {
                     starts.sort((a, b) => a.date - b.date);
-                    const jump = starts[1].performance - starts[0].performance; // Positive = improvement
-                    performanceJumps.push(jump);
+                    const jump = starts[0].ranking - starts[1].ranking; // Positive = improvement (lower ranking number)
+                    rankingJumps.push(jump);
                 }
             });
             
-            if (performanceJumps.length > 0) {
-                metrics.avgPerformanceJump2YO = (performanceJumps.reduce((a, b) => a + b, 0) / performanceJumps.length).toFixed(1);
+            if (rankingJumps.length > 0) {
+                metrics.avgRankingJump2YO = (rankingJumps.reduce((a, b) => a + b, 0) / rankingJumps.length).toFixed(1);
             }
             
             // Distance categories
@@ -1746,15 +1746,15 @@
                 return dist >= 1801;
             });
             
-            // Calculate average Percentage Performance by distance
+            // Calculate average Rankings by distance
             [
-                { races: sprinters, key: 'avgPerformanceSprinter' },
-                { races: middle, key: 'avgPerformanceMiddle' },
-                { races: stayers, key: 'avgPerformanceStayer' }
+                { races: sprinters, key: 'avgRankingSprinter' },
+                { races: middle, key: 'avgRankingMiddle' },
+                { races: stayers, key: 'avgRankingStayer' }
             ].forEach(category => {
-                const validPerformances = category.races.map(r => parseFloat(r['Percentage Performance'])).filter(r => !isNaN(r));
-                if (validPerformances.length > 0) {
-                    metrics[category.key] = (validPerformances.reduce((a, b) => a + b, 0) / validPerformances.length).toFixed(1);
+                const validRankings = category.races.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r >= 0);
+                if (validRankings.length > 0) {
+                    metrics[category.key] = (validRankings.reduce((a, b) => a + b, 0) / validRankings.length).toFixed(1);
                 }
             });
             
@@ -1769,8 +1769,6 @@
             metrics.winPercentage = ((wins / data.length) * 100).toFixed(1);
             
             // Odds vs win formula: Impact Value (IV) = (Actual win rate / Implied win rate from odds) * 100
-            // Implied win rate = 1/odds, so if horse has 4.0 odds, implied win rate is 25%
-            // If trainer wins 30% with 4.0 odds horses, IV = (30/25) * 100 = 120%
             let totalImpliedWinRate = 0;
             let oddsCount = 0;
             
@@ -1818,8 +1816,8 @@
             // Calculate percentiles for each metric
             const comparisons = {};
             const metricsToCompare = [
-                'avgPerformance', 'avgPerformance2YO', 'avgPerformanceSprinter', 
-                'avgPerformanceMiddle', 'avgPerformanceStayer', 'avgOdds', 'winPercentage', 'oddsVsWinFormula'
+                'avgRanking', 'avgRanking2YO', 'avgRankingSprinter', 
+                'avgRankingMiddle', 'avgRankingStayer', 'avgOdds', 'winPercentage', 'oddsVsWinFormula'
             ];
             
             metricsToCompare.forEach(metric => {
@@ -1829,15 +1827,15 @@
                         .map(m => parseFloat(m[metric]))
                         .filter(v => !isNaN(v))
                         .sort((a, b) => {
-                            // For performance metrics and win%, higher is better
-                            // For avgOdds, lower is better (favorite horses)
-                            if (metric === 'avgOdds') return a - b;
+                            // For ranking metrics and avgOdds, lower is better
+                            // For win% and Impact Value, higher is better
+                            if (metric.includes('Ranking') || metric === 'avgOdds') return a - b;
                             return b - a;
                         });
                     
                     if (allValues.length > 0) {
                         const rank = allValues.findIndex(v => 
-                            metric === 'avgOdds' ? v >= currentValue : v <= currentValue
+                            (metric.includes('Ranking') || metric === 'avgOdds') ? v >= currentValue : v <= currentValue
                         );
                         const percentile = Math.round(((allValues.length - rank) / allValues.length) * 100);
                         comparisons[metric] = percentile;
@@ -1846,6 +1844,90 @@
             });
             
             return comparisons;
+        }
+
+        // FIXED: This function now properly applies all trainer filters to the performance periods
+        function updatePerformancePeriods() {
+            const analysisDateInput = document.getElementById('analysisDate');
+            const analysisDate = new Date(analysisDateInput.value || new Date());
+            
+            const periods = [
+                { months: 1, elementId: 'performance1Month' },
+                { months: 3, elementId: 'performance3Months' },
+                { months: 12, elementId: 'performance12Months' }
+            ];
+
+            periods.forEach(period => {
+                const cutoffDate = new Date(analysisDate);
+                cutoffDate.setMonth(cutoffDate.getMonth() - period.months);
+                
+                // Get the full filtered data (with all trainer filters applied)
+                const baseFilteredData = getTrainerFilteredData();
+                
+                // Then apply the date range filter on top with proper date parsing
+                const periodData = baseFilteredData.filter(race => {
+                    if (!race.Date) return false;
+                    const raceDate = parseRaceDate(race.Date);
+                    if (!raceDate) return false;
+                    return raceDate >= cutoffDate && raceDate <= analysisDate;
+                });
+
+                const races = periodData.length;
+                const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
+                const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
+                
+                // Calculate detailed metrics for this period
+                const metrics = calculateDetailedMetrics(periodData);
+                const avgRanking = metrics ? metrics.avgRanking : 'N/A';
+
+                const html = '<div style="text-align: center;">' +
+                    '<div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + winRate + '%</div>' +
+                    '<div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div>' +
+                    '<div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Avg Ranking: ' + avgRanking + '</div>' +
+                    '</div>';
+                
+                document.getElementById(period.elementId).innerHTML = html;
+            });
+        }
+
+        function updateDetailedMetrics() {
+            const filtered = getTrainerFilteredData();
+            const metrics = calculateDetailedMetrics(filtered);
+            
+            if (!metrics) {
+                document.getElementById('trainerDetailedMetrics').innerHTML = '<p>No data available for detailed metrics</p>';
+                return;
+            }
+            
+            // Calculate trainer comparisons
+            const comparisons = calculateTrainerComparisons(metrics);
+            
+            let html = '<table style="font-size: 0.9rem;">';
+            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + 
+                (comparisons.avgRanking ? ' <span style="color: #666;">(' + comparisons.avgRanking + 'th %ile)</span>' : '') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + 
+                (comparisons.avgRanking2YO ? ' <span style="color: #666;">(' + comparisons.avgRanking2YO + 'th %ile)</span>' : '') + '</td></tr>';
+            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + 
+                (comparisons.avgRankingSprinter ? ' <span style="color: #666;">(' + comparisons.avgRankingSprinter + 'th %ile)</span>' : '') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + 
+                (comparisons.avgRankingMiddle ? ' <span style="color: #666;">(' + comparisons.avgRankingMiddle + 'th %ile)</span>' : '') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + 
+                (comparisons.avgRankingStayer ? ' <span style="color: #666;">(' + comparisons.avgRankingStayer + 'th %ile)</span>' : '') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + 
+                (comparisons.avgOdds ? ' <span style="color: #666;">(' + comparisons.avgOdds + 'th %ile)</span>' : '') + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win % (IV):</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%' + 
+                (comparisons.oddsVsWinFormula ? ' <span style="color: #666;">(' + comparisons.oddsVsWinFormula + 'th %ile)</span>' : '') + '</td></tr>';
+            html += '</table>';
+            
+            // Add explanations
+            html += '<div style="margin-top: 1rem; padding: 0.5rem; background: #f0f9ff; border-radius: 4px; font-size: 0.8rem; color: #0369a1;">';
+            html += '<strong>Ranking Scale:</strong> 0 = Best Performance, 100 = Worst Performance (lower is better)<br>';
+            html += '<strong>Odds vs Win % (Impact Value):</strong> Measures if trainer outperforms market expectations<br>';
+            html += '100% = meets expectations, >100% = beats expectations, <100% = underperforms expectations';
+            html += '</div>';
+            
+            document.getElementById('trainerDetailedMetrics').innerHTML = html;
         }
 
         // FIXED: This function now properly applies all trainer filters to the performance periods
