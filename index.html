@@ -1672,7 +1672,7 @@
             const filtered = getTrainerFilteredData();
             const totalRaces = filtered.length;
             const wins = filtered.filter(r => r.Place === '1' || r.Place === 1).length;
-            const winRate = totalRaces > 0 ? ((wins / totalRaces) * 100).toFixed(1) : '0.0';
+            const winRate = totalRaces > 0 ? ((wins / totalRaces) * 100) : 0;
             
             const uniqueTrainers = new Set();
             const uniqueHorses = new Set();
@@ -1682,10 +1682,108 @@
                 if (race.Horse && race.Horse.trim()) uniqueHorses.add(race.Horse.trim());
             });
 
+            // Calculate percentiles for overall stats
+            let winRatePercentile = null;
+            let totalRacesPercentile = null;
+
+            try {
+                // Group all races by trainer for overall comparison
+                const trainerGroups = {};
+                racingData.forEach(race => {
+                    const trainer = race.Trainer || race.Owner;
+                    if (trainer && trainer.trim()) {
+                        if (!trainerGroups[trainer]) trainerGroups[trainer] = [];
+                        trainerGroups[trainer].push(race);
+                    }
+                });
+                
+                // Calculate overall stats for each trainer
+                const allWinRates = [];
+                const allTotalRaces = [];
+                
+                Object.keys(trainerGroups).forEach(trainer => {
+                    const trainerRaces = trainerGroups[trainer];
+                    if (trainerRaces.length >= 5) { // Minimum races for meaningful comparison
+                        const races = trainerRaces.length;
+                        const wins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+                        const trainerWinRate = (wins / races) * 100;
+                        
+                        allWinRates.push(trainerWinRate);
+                        allTotalRaces.push(races);
+                    }
+                });
+                
+                // Calculate percentiles for current selection
+                if (totalRaces >= 5) {
+                    winRatePercentile = getPercentileRank(winRate, allWinRates, true);
+                }
+                totalRacesPercentile = getPercentileRank(totalRaces, allTotalRaces, true);
+            } catch (error) {
+                console.error('Error calculating overall percentiles:', error);
+            }
+
+            // Format display text
+            const winRateText = winRatePercentile ? 
+                `${winRate.toFixed(1)}% (${winRatePercentile}th)` : `${winRate.toFixed(1)}%`;
+            const totalRacesText = totalRacesPercentile ? 
+                `${totalRaces} (${totalRacesPercentile}th)` : totalRaces.toString();
+
             let html = '<table>';
-            html += '<tr><td><strong>Total Races:</strong></td><td>' + totalRaces + '</td></tr>';
+            html += '<tr><td><strong>Total Races:</strong></td><td>' + totalRacesText + '</td></tr>';
             html += '<tr><td><strong>Total Wins:</strong></td><td>' + wins + '</td></tr>';
-            html += '<tr><td><strong>Win Rate:</strong></td><td style="color: ' + (parseFloat(winRate) > 15 ? '#22c55e' : '#94a3b8') + '; font-weight: 600">' + winRate + '%</td></tr>';
+            html += '<tr><td><strong>Win Rate:</strong></td><td style="color: ' + (parseFloat(winRate) > 15 ? '#22c55e' : '#94a3b8') + '; font-weight: 600">' + winRateText + '</td></tr>';
+            html += '<tr><td><strong>Trainers:</strong></td><td>' + uniqueTrainers.size + '</td></tr>';
+            html += '<tr><td><strong>Horses:</strong></td><td>' + uniqueHorses.size + '</td></tr>';
+            html += '</table>';
+            
+            document.getElementById('trainerBasicStats').innerHTML = html;
+
+            // Update detailed metrics
+            updateDetailedMetrics();
+            
+            // Populate horse dropdown
+            populateHorseDropdown(filtered);
+
+            // Update performance periods
+            updatePerformancePeriods();
+        } [];
+                    trainerGroups[trainer].push(race);
+                }
+            });
+            
+            // Calculate overall stats for each trainer
+            Object.keys(trainerGroups).forEach(trainer => {
+                const trainerRaces = trainerGroups[trainer];
+                if (trainerRaces.length >= 5) { // Minimum races for meaningful comparison
+                    const races = trainerRaces.length;
+                    const wins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+                    const trainerWinRate = (wins / races) * 100;
+                    
+                    allTrainerOverallStats[trainer] = {
+                        winRate: trainerWinRate,
+                        totalRaces: races
+                    };
+                }
+            });
+            
+            // Get arrays for percentile calculation
+            const allWinRates = Object.values(allTrainerOverallStats).map(stats => stats.winRate);
+            const allTotalRaces = Object.values(allTrainerOverallStats).map(stats => stats.totalRaces);
+            
+            // Calculate percentiles for current selection
+            const winRatePercentile = totalRaces >= 5 ? getPercentileRank(winRate, allWinRates, true) : 'N/A';
+            const totalRacesPercentile = getPercentileRank(totalRaces, allTotalRaces, true);
+
+            // Format display text
+            const winRateText = totalRaces >= 5 && winRatePercentile !== 'N/A' ? 
+                `${winRate.toFixed(1)}% (${winRatePercentile}th percentile)` : `${winRate.toFixed(1)}%`;
+            const totalRacesText = totalRacesPercentile !== 'N/A' ? 
+                `${totalRaces} (${totalRacesPercentile}th percentile)` : totalRaces.toString();
+
+            let html = '<table>';
+            html += '<tr><td><strong>Total Races:</strong></td><td>' + totalRacesText + '</td></tr>';
+            html += '<tr><td><strong>Total Wins:</strong></td><td>' + wins + '</td></tr>';
+            html += '<tr><td><strong>Win Rate:</strong></td><td style="color: ' + (parseFloat(winRate) > 15 ? '#22c55e' : '#94a3b8') + '; font-weight: 600">' + winRateText + '</td></tr>';
             html += '<tr><td><strong>Trainers:</strong></td><td>' + uniqueTrainers.size + '</td></tr>';
             html += '<tr><td><strong>Horses:</strong></td><td>' + uniqueHorses.size + '</td></tr>';
             html += '</table>';
@@ -1711,16 +1809,71 @@
                 return;
             }
             
+            // Calculate percentiles for detailed metrics by comparing against all trainers
+            const allTrainerDetailedStats = {};
+            
+            // Group all races by trainer
+            const trainerGroups = {};
+            racingData.forEach(race => {
+                const trainer = race.Trainer || race.Owner;
+                if (trainer && trainer.trim()) {
+                    if (!trainerGroups[trainer]) trainerGroups[trainer] = [];
+                    trainerGroups[trainer].push(race);
+                }
+            });
+            
+            // Calculate detailed metrics for each trainer
+            Object.keys(trainerGroups).forEach(trainer => {
+                const trainerRaces = trainerGroups[trainer];
+                if (trainerRaces.length >= 10) { // Minimum for detailed metrics
+                    const detailedMetrics = calculateDetailedMetrics(trainerRaces);
+                    if (detailedMetrics) {
+                        allTrainerDetailedStats[trainer] = detailedMetrics;
+                    }
+                }
+            });
+            
+            // Get arrays for percentile calculations
+            const allAvgRankings = Object.values(allTrainerDetailedStats)
+                .map(m => parseFloat(m.avgRanking))
+                .filter(r => !isNaN(r) && r > 0);
+            const allAvgOdds = Object.values(allTrainerDetailedStats)
+                .map(m => parseFloat(m.avgOdds))
+                .filter(o => !isNaN(o) && o > 0);
+            const allOddsVsWin = Object.values(allTrainerDetailedStats)
+                .map(m => parseFloat(m.oddsVsWinFormula))
+                .filter(o => !isNaN(o) && o > 0);
+            
+            // Calculate percentiles
+            const avgRankingPercentile = filtered.length >= 10 ? 
+                getPercentileRank(parseFloat(metrics.avgRanking), allAvgRankings, false) : 'N/A';
+            const avgOddsPercentile = filtered.length >= 10 ? 
+                getPercentileRank(parseFloat(metrics.avgOdds), allAvgOdds, false) : 'N/A';
+            const oddsVsWinPercentile = filtered.length >= 10 ? 
+                getPercentileRank(parseFloat(metrics.oddsVsWinFormula), allOddsVsWin, true) : 'N/A';
+            
+            // Format display text
+            const avgRankingText = filtered.length >= 10 && avgRankingPercentile !== 'N/A' ? 
+                `${metrics.avgRanking || 'N/A'} (${avgRankingPercentile}th)` : (metrics.avgRanking || 'N/A');
+            const avgOddsText = filtered.length >= 10 && avgOddsPercentile !== 'N/A' ? 
+                `${metrics.avgOdds || 'N/A'} (${avgOddsPercentile}th)` : (metrics.avgOdds || 'N/A');
+            const oddsVsWinText = filtered.length >= 10 && oddsVsWinPercentile !== 'N/A' ? 
+                `${metrics.oddsVsWinFormula || 'N/A'}% (${oddsVsWinPercentile}th)` : `${metrics.oddsVsWinFormula || 'N/A'}%`;
+            
             let html = '<table style="font-size: 0.9rem;">';
-            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + avgRankingText + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td></tr>';
             html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + avgOddsText + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + oddsVsWinText + '</td></tr>';
             html += '</table>';
+            
+            if (filtered.length < 10) {
+                html += '<p style="font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; font-style: italic;">*Percentiles shown when 10+ races available</p>';
+            }
             
             document.getElementById('trainerDetailedMetrics').innerHTML = html;
         }
@@ -1923,10 +2076,112 @@
             return metrics;
         }
 
-        // Enhanced function that calculates average percentage performance
+        // Function to calculate percentiles for trainer comparisons
+        function calculateTrainerPercentiles(analysisDate) {
+            const allTrainerStats = {};
+            
+            // Calculate stats for all trainers across different periods
+            const periods = [1, 3, 12];
+            
+            periods.forEach(monthsPeriod => {
+                const cutoffDate = new Date(analysisDate);
+                cutoffDate.setMonth(cutoffDate.getMonth() - monthsPeriod);
+                
+                // Get all data for this period
+                const periodData = racingData.filter(race => {
+                    if (!race.Date) return false;
+                    const raceDate = parseRaceDate(race.Date);
+                    if (!raceDate) return false;
+                    return raceDate >= cutoffDate && raceDate <= analysisDate;
+                });
+                
+                // Group by trainer
+                const trainerGroups = {};
+                periodData.forEach(race => {
+                    const trainer = race.Trainer || race.Owner;
+                    if (trainer && trainer.trim()) {
+                        if (!trainerGroups[trainer]) trainerGroups[trainer] = [];
+                        trainerGroups[trainer].push(race);
+                    }
+                });
+                
+                // Calculate metrics for each trainer
+                Object.keys(trainerGroups).forEach(trainer => {
+                    const trainerRaces = trainerGroups[trainer];
+                    if (trainerRaces.length >= 3) { // Minimum races for meaningful comparison
+                        if (!allTrainerStats[trainer]) allTrainerStats[trainer] = {};
+                        
+                        const races = trainerRaces.length;
+                        const wins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+                        const winRate = (wins / races) * 100;
+                        
+                        // Calculate average percentage performance
+                        const percentages = [];
+                        trainerRaces.forEach(race => {
+                            const ranking = parseFloat(race.Ranking);
+                            const field = parseInt(race.Field);
+                            if (!isNaN(ranking) && !isNaN(field) && ranking > 0 && field > 0) {
+                                const percentage = ((field - ranking + 1) / field) * 100;
+                                percentages.push(percentage);
+                            }
+                        });
+                        
+                        const avgPerformance = percentages.length > 0 ? 
+                            percentages.reduce((a, b) => a + b, 0) / percentages.length : 0;
+                        
+                        // Calculate average ranking
+                        const validRankings = trainerRaces.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+                        const avgRanking = validRankings.length > 0 ?
+                            validRankings.reduce((a, b) => a + b, 0) / validRankings.length : 999;
+                        
+                        allTrainerStats[trainer][`${monthsPeriod}m`] = {
+                            winRate,
+                            avgPerformance,
+                            avgRanking,
+                            races
+                        };
+                    }
+                });
+            });
+            
+            return allTrainerStats;
+        }
+        
+        // Function to calculate percentile rank for a value in an array
+        function getPercentileRank(value, allValues, higherIsBetter = true) {
+            if (allValues.length === 0 || value === null || value === undefined || isNaN(value)) return null;
+            
+            const sortedValues = [...allValues].sort((a, b) => a - b);
+            let rank = 0;
+            
+            if (higherIsBetter) {
+                // Count how many values are less than our value
+                for (let i = 0; i < sortedValues.length; i++) {
+                    if (sortedValues[i] < value) rank++;
+                }
+            } else {
+                // Count how many values are greater than our value (for rankings where lower is better)
+                for (let i = 0; i < sortedValues.length; i++) {
+                    if (sortedValues[i] > value) rank++;
+                }
+            }
+            
+            const percentile = Math.round((rank / sortedValues.length) * 100);
+            return Math.min(99, Math.max(1, percentile));
+        }
+
+        // Enhanced function that calculates average percentage performance with percentiles
         function updatePerformancePeriods() {
             const analysisDateInput = document.getElementById('analysisDate');
             const analysisDate = new Date(analysisDateInput.value || new Date());
+            
+            // Calculate percentiles for all trainers
+            let allTrainerStats = {};
+            try {
+                allTrainerStats = calculateTrainerPercentiles(analysisDate);
+            } catch (error) {
+                console.error('Error calculating trainer percentiles:', error);
+            }
             
             const periods = [
                 { months: 1, prefix: 'performance1Month' },
@@ -1951,20 +2206,15 @@
 
                 const races = periodData.length;
                 const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
-                const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
+                const winRate = races > 0 ? ((wins / races) * 100) : 0;
                 
                 // Calculate detailed metrics for this period
                 const metrics = calculateDetailedMetrics(periodData);
-                const avgRanking = metrics ? metrics.avgRanking : 'N/A';
+                const avgRanking = metrics ? parseFloat(metrics.avgRanking) : null;
                 
                 // Calculate average percentage performance
-                // This converts rankings to percentages (lower ranking = higher percentage)
-                const validRankings = periodData.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
-                const validFields = periodData.map(r => parseInt(r.Field)).filter(f => !isNaN(f) && f > 0);
-                
-                let avgPercentagePerformance = 'N/A';
-                if (validRankings.length > 0 && validFields.length > 0) {
-                    // Calculate percentage for each race: (Field Size - Ranking + 1) / Field Size * 100
+                let avgPerformance = 0;
+                if (races > 0) {
                     const percentages = [];
                     periodData.forEach(race => {
                         const ranking = parseFloat(race.Ranking);
@@ -1976,15 +2226,57 @@
                     });
                     
                     if (percentages.length > 0) {
-                        avgPercentagePerformance = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
+                        avgPerformance = percentages.reduce((a, b) => a + b, 0) / percentages.length;
                     }
                 }
 
+                // Calculate percentiles by comparing to all trainers
+                let winRatePercentile = null;
+                let avgPerfPercentile = null;
+                let avgRankPercentile = null;
+
+                try {
+                    const periodKey = `${period.months}m`;
+                    const allWinRates = Object.values(allTrainerStats)
+                        .map(trainer => trainer[periodKey]?.winRate)
+                        .filter(rate => rate !== undefined && !isNaN(rate));
+                        
+                    const allAvgPerformances = Object.values(allTrainerStats)
+                        .map(trainer => trainer[periodKey]?.avgPerformance)
+                        .filter(perf => perf !== undefined && !isNaN(perf) && perf > 0);
+                        
+                    const allAvgRankings = Object.values(allTrainerStats)
+                        .map(trainer => trainer[periodKey]?.avgRanking)
+                        .filter(rank => rank !== undefined && !isNaN(rank) && rank < 999);
+
+                    // Get percentiles
+                    if (races >= 3) {
+                        winRatePercentile = getPercentileRank(winRate, allWinRates, true);
+                        avgPerfPercentile = getPercentileRank(avgPerformance, allAvgPerformances, true);
+                        avgRankPercentile = avgRanking ? getPercentileRank(avgRanking, allAvgRankings, false) : null;
+                    }
+                } catch (error) {
+                    console.error('Error calculating percentiles:', error);
+                }
+
+                // Format display values
+                const winRateDisplay = races > 0 ? winRate.toFixed(1) + '%' : '0.0%';
+                const avgPerfDisplay = avgPerformance > 0 ? avgPerformance.toFixed(1) + '%' : 'N/A';
+                const avgRankDisplay = avgRanking ? avgRanking.toFixed(2) : 'N/A';
+
+                // Add percentiles to display
+                const winRateText = winRatePercentile ? 
+                    `${winRateDisplay} (${winRatePercentile}th)` : winRateDisplay;
+                const avgPerfText = avgPerfPercentile ? 
+                    `${avgPerfDisplay} (${avgPerfPercentile}th)` : avgPerfDisplay;
+                const avgRankText = avgRankPercentile ? 
+                    `${avgRankDisplay} (${avgRankPercentile}th)` : avgRankDisplay;
+
                 // Update all the period elements
-                document.getElementById(period.prefix + 'WinRate').textContent = winRate + '%';
-                document.getElementById(period.prefix + 'AvgPerf').textContent = avgPercentagePerformance;
+                document.getElementById(period.prefix + 'WinRate').textContent = winRateText;
+                document.getElementById(period.prefix + 'AvgPerf').textContent = avgPerfText;
                 document.getElementById(period.prefix + 'Races').textContent = races;
-                document.getElementById(period.prefix + 'Ranking').textContent = avgRanking;
+                document.getElementById(period.prefix + 'Ranking').textContent = avgRankText;
             });
         }
     </script>
