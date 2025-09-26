@@ -297,8 +297,92 @@
             padding: 2rem;
         }
 
+        /* NEW: Enhanced performance period styling */
+        .performance-period-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .performance-period-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .performance-period-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .period-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .period-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .period-icon {
+            font-size: 1.5rem;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .win-rate {
+            color: #22c55e;
+        }
+
+        .avg-performance {
+            color: #f59e0b;
+        }
+
+        .races-count {
+            color: #64748b;
+        }
+
+        .avg-ranking {
+            color: #8b5cf6;
+        }
+
         @media (max-width: 768px) {
-            .analysis-grid, .filters-grid {
+            .analysis-grid, .filters-grid, .performance-period-grid {
+                grid-template-columns: 1fr;
+            }
+            .performance-metrics {
                 grid-template-columns: 1fr;
             }
         }
@@ -569,35 +653,91 @@
                         </div>
                     </div>
 
-                    <!-- Performance Period Analysis -->
+                    <!-- ENHANCED: Performance Period Analysis with Average Percentage -->
                     <div class="card" style="margin-bottom: 2rem;">
                         <div class="card-header">
                             <h3>📊 Performance Period Analysis</h3>
                         </div>
                         <div class="card-body">
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                                <div>
-                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Analysis Date:</label>
-                                    <input type="date" id="analysisDate" onchange="updateTrainerAnalysis()" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
-                                </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1e40af;">Analysis Date:</label>
+                                <input type="date" id="analysisDate" onchange="updateTrainerAnalysis()" style="max-width: 200px; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">
                             </div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                                <div class="analysis-box">
-                                    <h4>📅 Last 1 Month</h4>
-                                    <div id="performance1Month">
-                                        <p class="loading">Loading...</p>
+                            
+                            <!-- Enhanced Performance Period Cards -->
+                            <div class="performance-period-grid">
+                                <div class="performance-period-card">
+                                    <div class="period-header">
+                                        <h4 class="period-title">Last 1 Month</h4>
+                                        <span class="period-icon">📅</span>
+                                    </div>
+                                    <div class="performance-metrics">
+                                        <div class="metric-item">
+                                            <div class="metric-label">Win Rate</div>
+                                            <div class="metric-value win-rate" id="performance1MonthWinRate">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Performance</div>
+                                            <div class="metric-value avg-performance" id="performance1MonthAvgPerf">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Total Races</div>
+                                            <div class="metric-value races-count" id="performance1MonthRaces">0</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Ranking</div>
+                                            <div class="metric-value avg-ranking" id="performance1MonthRanking">N/A</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="analysis-box">
-                                    <h4>📅 Last 3 Months</h4>
-                                    <div id="performance3Months">
-                                        <p class="loading">Loading...</p>
+
+                                <div class="performance-period-card">
+                                    <div class="period-header">
+                                        <h4 class="period-title">Last 3 Months</h4>
+                                        <span class="period-icon">📅</span>
+                                    </div>
+                                    <div class="performance-metrics">
+                                        <div class="metric-item">
+                                            <div class="metric-label">Win Rate</div>
+                                            <div class="metric-value win-rate" id="performance3MonthsWinRate">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Performance</div>
+                                            <div class="metric-value avg-performance" id="performance3MonthsAvgPerf">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Total Races</div>
+                                            <div class="metric-value races-count" id="performance3MonthsRaces">0</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Ranking</div>
+                                            <div class="metric-value avg-ranking" id="performance3MonthsRanking">N/A</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="analysis-box">
-                                    <h4>📅 Last 12 Months</h4>
-                                    <div id="performance12Months">
-                                        <p class="loading">Loading...</p>
+
+                                <div class="performance-period-card">
+                                    <div class="period-header">
+                                        <h4 class="period-title">Last 12 Months</h4>
+                                        <span class="period-icon">📅</span>
+                                    </div>
+                                    <div class="performance-metrics">
+                                        <div class="metric-item">
+                                            <div class="metric-label">Win Rate</div>
+                                            <div class="metric-value win-rate" id="performance12MonthsWinRate">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Performance</div>
+                                            <div class="metric-value avg-performance" id="performance12MonthsAvgPerf">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Total Races</div>
+                                            <div class="metric-value races-count" id="performance12MonthsRaces">0</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Ranking</div>
+                                            <div class="metric-value avg-ranking" id="performance12MonthsRanking">N/A</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1404,7 +1544,7 @@
             btn.textContent = showAllTrainers ? 'Show Top 10' : 'Show All';
         }
 
-        // Trainer Analysis Functions - Fixed Version
+        // Trainer Analysis Functions - Enhanced Version
         function populateTrainerFilters() {
             const trainers = new Set();
             const courses = new Set();
@@ -1783,15 +1923,15 @@
             return metrics;
         }
 
-        // FIXED: This function now properly applies all trainer filters to the performance periods
+        // ENHANCED: This function now calculates average percentage performance along with other metrics
         function updatePerformancePeriods() {
             const analysisDateInput = document.getElementById('analysisDate');
             const analysisDate = new Date(analysisDateInput.value || new Date());
             
             const periods = [
-                { months: 1, elementId: 'performance1Month' },
-                { months: 3, elementId: 'performance3Months' },
-                { months: 12, elementId: 'performance12Months' }
+                { months: 1, prefix: 'performance1Month' },
+                { months: 3, prefix: 'performance3Months' },
+                { months: 12, prefix: 'performance12Months' }
             ];
 
             periods.forEach(period => {
@@ -1815,17 +1955,33 @@
                 
                 // Calculate detailed metrics for this period
                 const metrics = calculateDetailedMetrics(periodData);
-                const avgPercentage = metrics ? metrics.avgRanking : 'N/A';
-
-                const html = '<div style="text-align: center;">' +
-                    '<div style="font-size: 1.5rem; font-weight: bold; color: #1e40af">' + winRate + '%</div>' +
-                    '<div style="font-size: 0.875rem; color: #64748b">' + wins + '/' + races + ' wins</div>' +
-                    '<div style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">Avg Ranking: ' + avgPercentage + '</div>' +
-                    '</div>';
+                const avgRanking = metrics ? metrics.avgRanking : 'N/A';
                 
-                document.getElementById(period.elementId).innerHTML = html;
-            });
-        }
-    </script>
-</body>
-</html>
+                // NEW: Calculate average percentage performance
+                // This converts rankings to percentages (lower ranking = higher percentage)
+                const validRankings = periodData.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+                const validFields = periodData.map(r => parseInt(r.Field)).filter(f => !isNaN(f) && f > 0);
+                
+                let avgPercentagePerformance = 'N/A';
+                if (validRankings.length > 0 && validFields.length > 0) {
+                    // Calculate percentage for each race: (Field Size - Ranking + 1) / Field Size * 100
+                    const percentages = [];
+                    periodData.forEach(race => {
+                        const ranking = parseFloat(race.Ranking);
+                        const field = parseInt(race.Field);
+                        if (!isNaN(ranking) && !isNaN(field) && ranking > 0 && field > 0) {
+                            const percentage = ((field - ranking + 1) / field) * 100;
+                            percentages.push(percentage);
+                        }
+                    });
+                    
+                    if (percentages.length > 0) {
+                        avgPercentagePerformance = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
+                    }
+                }
+
+                // Update all the period elements
+                document.getElementById(period.prefix + 'WinRate').textContent = winRate + '%';
+                document.getElementById(period.prefix + 'AvgPerf').textContent = avgPercentagePerformance;
+                document.getElementById(period.prefix + 'Races').textContent = races;
+                document.getElementById(period.prefix
