@@ -1,780 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nordic Racing Analytics Platform</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #0f172a;
-        }
-
-        .header {
-            background: #0f172a;
-            color: white;
-            padding: 1rem 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .sync-status {
-            padding: 8px 16px;
-            background: #22c55e;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-
-        .nav {
-            background: white;
-            padding: 0 2rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .nav-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-        }
-
-        .nav-item {
-            padding: 1rem 1.5rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .nav-item:hover {
-            background: #f8fafc;
-        }
-
-        .nav-item.active {
-            border-bottom-color: #1e40af;
-            color: #1e40af;
-            font-weight: 600;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-label {
-            color: #475569;
-            font-size: 0.875rem;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #0f172a;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-
-        .card-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .filters {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 2rem;
-            border-radius: 16px;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .filter-box {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .filter-box:hover {
-            transform: translateY(-2px);
-        }
-
-        .filter-title {
-            font-weight: 700;
-            color: #1e40af;
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            background: white;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        select:hover, input:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-        }
-
-        select:focus, input:focus {
-            outline: none;
-            border-color: #1e40af;
-            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 8px;
-            font-weight: 600;
-            color: #475569;
-            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-            font-size: 0.875rem;
-            cursor: pointer;
-        }
-
-        th:hover {
-            background: #f8fafc;
-        }
-
-        td {
-            padding: 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .view-container {
-            display: none;
-        }
-
-        .view-container.active {
-            display: block;
-        }
-
-        button {
-            padding: 8px 16px;
-            background: #1e40af;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        button:hover {
-            background: #1e3a8a;
-        }
-
-        .analysis-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        .analysis-box {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .analysis-box h3, .analysis-box h4 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #0f172a;
-        }
-
-        .scrollable {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .show-all-btn {
-            padding: 4px 8px;
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 8px;
-        }
-
-        .show-all-btn:hover {
-            background: #059669;
-        }
-
-        .error-message {
-            color: #dc2626;
-            background: #fef2f2;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            border: 1px solid #fecaca;
-        }
-
-        .loading {
-            text-align: center;
-            color: #64748b;
-            font-style: italic;
-            padding: 2rem;
-        }
-
-        /* Enhanced performance period styling */
-        .performance-period-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .performance-period-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 2px solid #e5e7eb;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .performance-period-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .period-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .period-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #1e40af;
-        }
-
-        .period-icon {
-            font-size: 1.5rem;
-        }
-
-        .performance-metrics {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .metric-item {
-            text-align: center;
-            padding: 0.75rem;
-            background: #f8fafc;
-            border-radius: 8px;
-        }
-
-        .metric-label {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-bottom: 0.25rem;
-        }
-
-        .metric-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-        }
-
-        .win-rate {
-            color: #22c55e;
-        }
-
-        .avg-performance {
-            color: #f59e0b;
-        }
-
-        .races-count {
-            color: #64748b;
-        }
-
-        .avg-ranking {
-            color: #8b5cf6;
-        }
-
-        @media (max-width: 768px) {
-            .analysis-grid, .filters-grid, .performance-period-grid {
-                grid-template-columns: 1fr;
-            }
-            .performance-metrics {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <span>🏇</span>
-                <span>Nordic Racing Analytics</span>
-            </div>
-            <div class="sync-status" id="syncStatus">
-                Ready
-            </div>
-        </div>
-    </header>
-
-    <nav class="nav">
-        <div class="nav-content">
-            <div class="nav-item active" onclick="switchView('dashboard', event)">📊 Dashboard</div>
-            <div class="nav-item" onclick="switchView('courses', event)">🏁 Course Analysis</div>
-            <div class="nav-item" onclick="switchView('trainers', event)">👥 Trainer Analysis</div>
-            <div class="nav-item" onclick="switchView('predictor', event)">🔮 Race Predictor</div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <!-- Dashboard View -->
-        <div class="view-container active" id="dashboard-view">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Races</div>
-                    <div class="stat-value" id="totalRaces">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Unique Horses</div>
-                    <div class="stat-value" id="uniqueHorses">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Jockeys</div>
-                    <div class="stat-value" id="totalJockeys">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Courses</div>
-                    <div class="stat-value" id="totalCourses">0</div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Recent Races</h2>
-                    <button onclick="loadData()">🔄 Refresh Data</button>
-                </div>
-                <div class="card-body">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Course</th>
-                                <th>Race</th>
-                                <th>Winner</th>
-                                <th>Jockey</th>
-                                <th>Time</th>
-                                <th>Odds</th>
-                            </tr>
-                        </thead>
-                        <tbody id="racesTable">
-                            <tr><td colspan="7" class="loading">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Course Analysis View -->
-        <div class="view-container" id="courses-view">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">🏁 Course Analysis</h2>
-                    <button onclick="updateCourseAnalysis()">🔄 Refresh Analysis</button>
-                </div>
-                <div class="card-body">
-                    <div class="filters">
-                        <div class="filters-grid">
-                            <div class="filter-box">
-                                <div class="filter-title">🏁 Courses & Surfaces</div>
-                                <select id="courseFilter" multiple size="5" onchange="updateCourseAnalysis()">
-                                    <option value="all" selected>All Courses</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📅 Race Months</div>
-                                <select id="monthFilter" multiple size="5" onchange="updateCourseAnalysis()">
-                                    <option value="all" selected>All Months</option>
-                                    <option value="01">January</option>
-                                    <option value="02">February</option>
-                                    <option value="03">March</option>
-                                    <option value="04">April</option>
-                                    <option value="05">May</option>
-                                    <option value="06">June</option>
-                                    <option value="07">July</option>
-                                    <option value="08">August</option>
-                                    <option value="09">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🏆 Race Classes</div>
-                                <select id="classFilter" multiple size="5" onchange="updateCourseAnalysis()">
-                                    <option value="all" selected>All Classes</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🐎 Field Sizes</div>
-                                <select id="fieldFilter" multiple size="5" onchange="updateCourseAnalysis()">
-                                    <option value="all" selected>All Field Sizes</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📏 Distances</div>
-                                <select id="distanceFilter" multiple size="5" onchange="updateCourseAnalysis()">
-                                    <option value="all" selected>All Distances</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="analysis-grid">
-                        <div class="analysis-box">
-                            <h3>📊 Post Position Analysis</h3>
-                            <div id="postPositionAnalysis" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>⏱️ Average Winning Times</h3>
-                            <div id="winningTimes" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>🏆 Top Jockeys 
-                                <button class="show-all-btn" onclick="toggleJockeyView()">Show All</button>
-                            </h3>
-                            <div style="margin-bottom: 0.5rem; font-size: 12px;">
-                                Sort by: 
-                                <select id="jockeySortBy" onchange="updateTopJockeys(getFilteredData())" style="font-size: 12px; padding: 2px; width: auto; margin: 0;">
-                                    <option value="wins">Wins</option>
-                                    <option value="name">Name</option>
-                                    <option value="winPct">Win%</option>
-                                    <option value="avgOdds">Avg Odds</option>
-                                </select>
-                            </div>
-                            <div id="topJockeys" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>👥 Top Trainers
-                                <button class="show-all-btn" onclick="toggleTrainerView()">Show All</button>
-                            </h3>
-                            <div style="margin-bottom: 0.5rem; font-size: 12px;">
-                                Sort by: 
-                                <select id="trainerSortBy" onchange="updateTopTrainers(getFilteredData())" style="font-size: 12px; padding: 2px; width: auto; margin: 0;">
-                                    <option value="wins">Wins</option>
-                                    <option value="name">Name</option>
-                                    <option value="winPct">Win%</option>
-                                    <option value="avgOdds">Avg Odds</option>
-                                </select>
-                            </div>
-                            <div id="topTrainers" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>📈 Monthly Field Size Trends</h3>
-                            <div id="fieldTrends" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>💰 Average Winning Odds by Class</h3>
-                            <div id="winningOdds" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card" style="margin-top: 2rem;">
-                        <div class="card-header">
-                            <h3>🎯 Favorite vs Longshot Analysis</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="favoriteAnalysis">
-                                <p class="loading">Loading favorite trends data...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Trainer Analysis View -->
-        <div class="view-container" id="trainers-view">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">👥 Trainer Analysis</h2>
-                    <button onclick="updateTrainerAnalysis()">🔄 Refresh Analysis</button>
-                </div>
-                <div class="card-body">
-                    <!-- Trainer Filters -->
-                    <div class="filters">
-                        <div class="filters-grid">
-                            <div class="filter-box">
-                                <div class="filter-title">👥 Trainers</div>
-                                <select id="trainerAnalysisFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Trainers</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🏁 Courses & Surfaces</div>
-                                <select id="trainerCourseFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Courses</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📅 Race Months</div>
-                                <select id="trainerMonthFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Months</option>
-                                    <option value="01">January</option>
-                                    <option value="02">February</option>
-                                    <option value="03">March</option>
-                                    <option value="04">April</option>
-                                    <option value="05">May</option>
-                                    <option value="06">June</option>
-                                    <option value="07">July</option>
-                                    <option value="08">August</option>
-                                    <option value="09">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🏆 Race Classes</div>
-                                <select id="trainerClassFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Classes</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📏 Distances</div>
-                                <select id="trainerDistanceFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Distances</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🎂 Horse Age</div>
-                                <select id="trainerAgeFilter" multiple size="5" onchange="updateTrainerAnalysis()">
-                                    <option value="all" selected>All Ages</option>
-                                    <option value="2">2 Year Olds</option>
-                                    <option value="3">3 Year Olds</option>
-                                    <option value="4+">4+ Year Olds</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Enhanced Performance Period Analysis with Average Percentage -->
-                    <div class="card" style="margin-bottom: 2rem;">
-                        <div class="card-header">
-                            <h3>📊 Performance Period Analysis</h3>
-                        </div>
-                        <div class="card-body">
-                            <div style="margin-bottom: 1.5rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1e40af;">Analysis Date:</label>
-                                <input type="date" id="analysisDate" onchange="updateTrainerAnalysis()" style="max-width: 200px; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">
-                            </div>
-                            
-                            <!-- Enhanced Performance Period Cards -->
-                            <div class="performance-period-grid">
-                                <div class="performance-period-card">
-                                    <div class="period-header">
-                                        <h4 class="period-title">Last 1 Month</h4>
-                                        <span class="period-icon">📅</span>
-                                    </div>
-                                    <div class="performance-metrics">
-                                        <div class="metric-item">
-                                            <div class="metric-label">Win Rate</div>
-                                            <div class="metric-value win-rate" id="performance1MonthWinRate">0%</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Performance</div>
-                                            <div class="metric-value avg-performance" id="performance1MonthAvgPerf">0%</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Total Races</div>
-                                            <div class="metric-value races-count" id="performance1MonthRaces">0</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Ranking</div>
-                                            <div class="metric-value avg-ranking" id="performance1MonthRanking">N/A</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="performance-period-card">
-                                    <div class="period-header">
-                                        <h4 class="period-title">Last 3 Months</h4>
-                                        <span class="period-icon">📅</span>
-                                    </div>
-                                    <div class="performance-metrics">
-                                        <div class="metric-item">
-                                            <div class="metric-label">Win Rate</div>
-                                            <div class="metric-value win-rate" id="performance3MonthsWinRate">0%</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Performance</div>
-                                            <div class="metric-value avg-performance" id="performance3MonthsAvgPerf">0%</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Total Races</div>
-                                            <div class="metric-value races-count" id="performance3MonthsRaces">0</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Ranking</div>
-                                            <div class="metric-value avg-ranking" id="performance3MonthsRanking">N/A</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="performance-period-card">
-                                    <div class="period-header">
-                                        <h4 class="period-title">Last 12 Months</h4>
-                                        <span class="period-icon">📅</span>
-                                    </div>
-                                    <div class="performance-metrics">
-                                        <div class="metric-item">
-                                            <div class="metric-label">Win Rate</div>
-                                            <div class="metric-value win-rate" id="performance12MonthsWinRate">0%</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Performance</div>
-                                            <div class="metric-value avg-performance" id="performance12MonthsAvgPerf">0%</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Total Races</div>
-                                            <div class="metric-value races-count" id="performance12MonthsRaces">0</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Ranking</div>
-                                            <div class="metric-value avg-ranking" id="performance12MonthsRanking">N/A</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Basic Stats Display -->
-                    <div class="analysis-grid">
-                        <div class="analysis-box">
-                            <h3>📊 Overall Performance</h3>
-                            <div id="trainerBasicStats">
-                                <p>Select filters above to see trainer analysis</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>📈 Detailed Performance Metrics</h3>
-                            <div id="trainerDetailedMetrics">
-                                <p>Loading detailed metrics...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Horse Performance Details -->
-                    <div class="card" style="margin-top: 2rem;">
-                        <div class="card-header">
-                            <h3>🐎 Horse Performance Details</h3>
-                        </div>
-                        <div class="card-body">
-                            <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Horse:</label>
-                                <select id="horseDropdown" onchange="updateHorseDetails()" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
-                                    <option value="">Select a horse to see details...</option>
-                                </select>
-                            </div>
-                            <div id="horseDetails" style="max-height: 400px; overflow-y: auto;">
-                                <p>Select a horse from the dropdown to see race details.</p>
-                            </div>
+</div>
                         </div>
                     </div>
                 </div>
@@ -1692,7 +916,7 @@
             
             document.getElementById('trainerBasicStats').innerHTML = html;
 
-            // Update detailed metrics
+            // Update detailed metrics with percentiles
             updateDetailedMetrics();
             
             // Populate horse dropdown
@@ -1711,18 +935,163 @@
                 return;
             }
             
+            // Calculate percentiles for the current selection
+            const percentiles = calculatePercentiles(metrics);
+            
             let html = '<table style="font-size: 0.9rem;">';
-            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td></tr>';
+            html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Percentile</th></tr>';
+            
+            // Helper function to get percentile color
+            const getPercentileColor = (percentile, inverse = false) => {
+                if (percentile === 'N/A') return '#94a3b8';
+                const p = parseFloat(percentile);
+                if (inverse) {
+                    // For metrics where lower is better (like ranking)
+                    return p >= 75 ? '#22c55e' : p >= 50 ? '#f59e0b' : p >= 25 ? '#fb923c' : '#ef4444';
+                } else {
+                    // For metrics where higher is better
+                    return p >= 75 ? '#22c55e' : p >= 50 ? '#f59e0b' : p >= 25 ? '#fb923c' : '#ef4444';
+                }
+            };
+            
+            // Helper function to format percentile badge
+            const formatPercentile = (percentile, inverse = false) => {
+                if (percentile === 'N/A') return '<span style="color: #94a3b8;">N/A</span>';
+                const color = getPercentileColor(percentile, inverse);
+                return `<span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">${percentile}%</span>`;
+            };
+            
+            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking, true) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking2YO, true) + '</td></tr>';
+            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingJump2YO) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingSprinter, true) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingMiddle, true) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingStayer, true) + '</td></tr>';
+            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + formatPercentile(percentiles.winPercentage) + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgOdds, true) + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + formatPercentile(percentiles.oddsVsWinFormula) + '</td></tr>';
             html += '</table>';
             
+            // Add legend for percentile colors
+            html += '<div style="margin-top: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 6px; font-size: 0.8rem;">';
+            html += '<strong>Percentile Legend:</strong> ';
+            html += '<span style="background: #22c55e; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">75-100</span>';
+            html += '<span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">50-74</span>';
+            html += '<span style="background: #fb923c; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">25-49</span>';
+            html += '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">0-24</span>';
+            html += '</div>';
+            
             document.getElementById('trainerDetailedMetrics').innerHTML = html;
+        }
+
+        // Helper function to calculate percentiles based on all trainers in the dataset
+        function calculatePercentiles(currentMetrics) {
+            // Get all unique trainer combinations and calculate their metrics
+            const allTrainerCombinations = {};
+            
+            // Group races by trainer
+            racingData.forEach(race => {
+                const trainer = race.Trainer || race.Owner || '';
+                if (trainer.trim()) {
+                    if (!allTrainerCombinations[trainer]) {
+                        allTrainerCombinations[trainer] = [];
+                    }
+                    allTrainerCombinations[trainer].push(race);
+                }
+            });
+            
+            // Calculate metrics for all trainers
+            const allMetrics = [];
+            Object.keys(allTrainerCombinations).forEach(trainer => {
+                const trainerRaces = allTrainerCombinations[trainer];
+                if (trainerRaces.length >= 3) { // Only include trainers with at least 3 races
+                    const metrics = calculateDetailedMetrics(trainerRaces);
+                    if (metrics) {
+                        allMetrics.push(metrics);
+                    }
+                }
+            });
+            
+            // Calculate percentiles for each metric
+            const percentiles = {};
+            
+            // Helper function to calculate percentile
+            const calculatePercentile = (value, allValues, inverse = false) => {
+                if (!value || value === 'N/A' || allValues.length === 0) return 'N/A';
+                
+                const numValue = parseFloat(value);
+                if (isNaN(numValue)) return 'N/A';
+                
+                const sortedValues = allValues.sort((a, b) => inverse ? b - a : a - b);
+                const position = sortedValues.findIndex(v => inverse ? v <= numValue : v >= numValue);
+                
+                if (position === -1) {
+                    return inverse ? '0' : '100';
+                }
+                
+                const percentile = ((sortedValues.length - position) / sortedValues.length) * 100;
+                return Math.round(percentile).toString();
+            };
+            
+            // Calculate percentiles for each metric
+            // For rankings (lower is better, so inverse = true)
+            percentiles.avgRanking = calculatePercentile(
+                currentMetrics.avgRanking,
+                allMetrics.map(m => parseFloat(m.avgRanking)).filter(v => !isNaN(v)),
+                true
+            );
+            
+            percentiles.avgRanking2YO = calculatePercentile(
+                currentMetrics.avgRanking2YO,
+                allMetrics.map(m => parseFloat(m.avgRanking2YO)).filter(v => !isNaN(v)),
+                true
+            );
+            
+            percentiles.avgRankingSprinter = calculatePercentile(
+                currentMetrics.avgRankingSprinter,
+                allMetrics.map(m => parseFloat(m.avgRankingSprinter)).filter(v => !isNaN(v)),
+                true
+            );
+            
+            percentiles.avgRankingMiddle = calculatePercentile(
+                currentMetrics.avgRankingMiddle,
+                allMetrics.map(m => parseFloat(m.avgRankingMiddle)).filter(v => !isNaN(v)),
+                true
+            );
+            
+            percentiles.avgRankingStayer = calculatePercentile(
+                currentMetrics.avgRankingStayer,
+                allMetrics.map(m => parseFloat(m.avgRankingStayer)).filter(v => !isNaN(v)),
+                true
+            );
+            
+            // For jump improvement and win-related metrics (higher is better)
+            percentiles.avgRankingJump2YO = calculatePercentile(
+                currentMetrics.avgRankingJump2YO,
+                allMetrics.map(m => parseFloat(m.avgRankingJump2YO)).filter(v => !isNaN(v)),
+                false
+            );
+            
+            percentiles.winPercentage = calculatePercentile(
+                currentMetrics.winPercentage,
+                allMetrics.map(m => parseFloat(m.winPercentage)).filter(v => !isNaN(v)),
+                false
+            );
+            
+            percentiles.oddsVsWinFormula = calculatePercentile(
+                currentMetrics.oddsVsWinFormula,
+                allMetrics.map(m => parseFloat(m.oddsVsWinFormula)).filter(v => !isNaN(v)),
+                false
+            );
+            
+            // For odds (lower might be better for favorites, but context-dependent)
+            percentiles.avgOdds = calculatePercentile(
+                currentMetrics.avgOdds,
+                allMetrics.map(m => parseFloat(m.avgOdds)).filter(v => !isNaN(v)),
+                true
+            );
+            
+            return percentiles;
         }
 
         function populateHorseDropdown(data) {
@@ -1989,4 +1358,779 @@
         }
     </script>
 </body>
-</html>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nordic Racing Analytics Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #0f172a;
+        }
+
+        .header {
+            background: #0f172a;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .sync-status {
+            padding: 8px 16px;
+            background: #22c55e;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .nav {
+            background: white;
+            padding: 0 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+        }
+
+        .nav-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            background: #f8fafc;
+        }
+
+        .nav-item.active {
+            border-bottom-color: #1e40af;
+            color: #1e40af;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            color: #475569;
+            font-size: 0.875rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .filters {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .filter-box:hover {
+            transform: translateY(-2px);
+        }
+
+        .filter-title {
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        select:hover, input:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 8px;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        th:hover {
+            background: #f8fafc;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .view-container {
+            display: none;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #1e3a8a;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .analysis-box {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .analysis-box h3, .analysis-box h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #0f172a;
+        }
+
+        .scrollable {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .show-all-btn {
+            padding: 4px 8px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .show-all-btn:hover {
+            background: #059669;
+        }
+
+        .error-message {
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #fecaca;
+        }
+
+        .loading {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        /* Enhanced performance period styling */
+        .performance-period-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .performance-period-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .performance-period-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .period-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .period-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .period-icon {
+            font-size: 1.5rem;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .win-rate {
+            color: #22c55e;
+        }
+
+        .avg-performance {
+            color: #f59e0b;
+        }
+
+        .races-count {
+            color: #64748b;
+        }
+
+        .avg-ranking {
+            color: #8b5cf6;
+        }
+
+        @media (max-width: 768px) {
+            .analysis-grid, .filters-grid, .performance-period-grid {
+                grid-template-columns: 1fr;
+            }
+            .performance-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🏇</span>
+                <span>Nordic Racing Analytics</span>
+            </div>
+            <div class="sync-status" id="syncStatus">
+                Ready
+            </div>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="nav-content">
+            <div class="nav-item active" onclick="switchView('dashboard', event)">📊 Dashboard</div>
+            <div class="nav-item" onclick="switchView('courses', event)">🏁 Course Analysis</div>
+            <div class="nav-item" onclick="switchView('trainers', event)">👥 Trainer Analysis</div>
+            <div class="nav-item" onclick="switchView('predictor', event)">🔮 Race Predictor</div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard View -->
+        <div class="view-container active" id="dashboard-view">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Races</div>
+                    <div class="stat-value" id="totalRaces">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Unique Horses</div>
+                    <div class="stat-value" id="uniqueHorses">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Jockeys</div>
+                    <div class="stat-value" id="totalJockeys">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Courses</div>
+                    <div class="stat-value" id="totalCourses">0</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Races</h2>
+                    <button onclick="loadData()">🔄 Refresh Data</button>
+                </div>
+                <div class="card-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Course</th>
+                                <th>Race</th>
+                                <th>Winner</th>
+                                <th>Jockey</th>
+                                <th>Time</th>
+                                <th>Odds</th>
+                            </tr>
+                        </thead>
+                        <tbody id="racesTable">
+                            <tr><td colspan="7" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Analysis View -->
+        <div class="view-container" id="courses-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏁 Course Analysis</h2>
+                    <button onclick="updateCourseAnalysis()">🔄 Refresh Analysis</button>
+                </div>
+                <div class="card-body">
+                    <div class="filters">
+                        <div class="filters-grid">
+                            <div class="filter-box">
+                                <div class="filter-title">🏁 Courses & Surfaces</div>
+                                <select id="courseFilter" multiple size="5" onchange="updateCourseAnalysis()">
+                                    <option value="all" selected>All Courses</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Race Months</div>
+                                <select id="monthFilter" multiple size="5" onchange="updateCourseAnalysis()">
+                                    <option value="all" selected>All Months</option>
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07">July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏆 Race Classes</div>
+                                <select id="classFilter" multiple size="5" onchange="updateCourseAnalysis()">
+                                    <option value="all" selected>All Classes</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🐎 Field Sizes</div>
+                                <select id="fieldFilter" multiple size="5" onchange="updateCourseAnalysis()">
+                                    <option value="all" selected>All Field Sizes</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📏 Distances</div>
+                                <select id="distanceFilter" multiple size="5" onchange="updateCourseAnalysis()">
+                                    <option value="all" selected>All Distances</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-grid">
+                        <div class="analysis-box">
+                            <h3>📊 Post Position Analysis</h3>
+                            <div id="postPositionAnalysis" class="scrollable">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="analysis-box">
+                            <h3>⏱️ Average Winning Times</h3>
+                            <div id="winningTimes" class="scrollable">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="analysis-box">
+                            <h3>🏆 Top Jockeys 
+                                <button class="show-all-btn" onclick="toggleJockeyView()">Show All</button>
+                            </h3>
+                            <div style="margin-bottom: 0.5rem; font-size: 12px;">
+                                Sort by: 
+                                <select id="jockeySortBy" onchange="updateTopJockeys(getFilteredData())" style="font-size: 12px; padding: 2px; width: auto; margin: 0;">
+                                    <option value="wins">Wins</option>
+                                    <option value="name">Name</option>
+                                    <option value="winPct">Win%</option>
+                                    <option value="avgOdds">Avg Odds</option>
+                                </select>
+                            </div>
+                            <div id="topJockeys" class="scrollable">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="analysis-box">
+                            <h3>👥 Top Trainers
+                                <button class="show-all-btn" onclick="toggleTrainerView()">Show All</button>
+                            </h3>
+                            <div style="margin-bottom: 0.5rem; font-size: 12px;">
+                                Sort by: 
+                                <select id="trainerSortBy" onchange="updateTopTrainers(getFilteredData())" style="font-size: 12px; padding: 2px; width: auto; margin: 0;">
+                                    <option value="wins">Wins</option>
+                                    <option value="name">Name</option>
+                                    <option value="winPct">Win%</option>
+                                    <option value="avgOdds">Avg Odds</option>
+                                </select>
+                            </div>
+                            <div id="topTrainers" class="scrollable">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="analysis-box">
+                            <h3>📈 Monthly Field Size Trends</h3>
+                            <div id="fieldTrends" class="scrollable">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="analysis-box">
+                            <h3>💰 Average Winning Odds by Class</h3>
+                            <div id="winningOdds" class="scrollable">
+                                <p class="loading">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>🎯 Favorite vs Longshot Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="favoriteAnalysis">
+                                <p class="loading">Loading favorite trends data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trainer Analysis View -->
+        <div class="view-container" id="trainers-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">👥 Trainer Analysis</h2>
+                    <button onclick="updateTrainerAnalysis()">🔄 Refresh Analysis</button>
+                </div>
+                <div class="card-body">
+                    <!-- Trainer Filters -->
+                    <div class="filters">
+                        <div class="filters-grid">
+                            <div class="filter-box">
+                                <div class="filter-title">👥 Trainers</div>
+                                <select id="trainerAnalysisFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Trainers</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏁 Courses & Surfaces</div>
+                                <select id="trainerCourseFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Courses</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Race Months</div>
+                                <select id="trainerMonthFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Months</option>
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07">July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏆 Race Classes</div>
+                                <select id="trainerClassFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Classes</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📏 Distances</div>
+                                <select id="trainerDistanceFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Distances</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🎂 Horse Age</div>
+                                <select id="trainerAgeFilter" multiple size="5" onchange="updateTrainerAnalysis()">
+                                    <option value="all" selected>All Ages</option>
+                                    <option value="2">2 Year Olds</option>
+                                    <option value="3">3 Year Olds</option>
+                                    <option value="4+">4+ Year Olds</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Performance Period Analysis with Average Percentage -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>📊 Performance Period Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1e40af;">Analysis Date:</label>
+                                <input type="date" id="analysisDate" onchange="updateTrainerAnalysis()" style="max-width: 200px; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;">
+                            </div>
+                            
+                            <!-- Enhanced Performance Period Cards -->
+                            <div class="performance-period-grid">
+                                <div class="performance-period-card">
+                                    <div class="period-header">
+                                        <h4 class="period-title">Last 1 Month</h4>
+                                        <span class="period-icon">📅</span>
+                                    </div>
+                                    <div class="performance-metrics">
+                                        <div class="metric-item">
+                                            <div class="metric-label">Win Rate</div>
+                                            <div class="metric-value win-rate" id="performance1MonthWinRate">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Performance</div>
+                                            <div class="metric-value avg-performance" id="performance1MonthAvgPerf">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Total Races</div>
+                                            <div class="metric-value races-count" id="performance1MonthRaces">0</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Ranking</div>
+                                            <div class="metric-value avg-ranking" id="performance1MonthRanking">N/A</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="performance-period-card">
+                                    <div class="period-header">
+                                        <h4 class="period-title">Last 3 Months</h4>
+                                        <span class="period-icon">📅</span>
+                                    </div>
+                                    <div class="performance-metrics">
+                                        <div class="metric-item">
+                                            <div class="metric-label">Win Rate</div>
+                                            <div class="metric-value win-rate" id="performance3MonthsWinRate">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Performance</div>
+                                            <div class="metric-value avg-performance" id="performance3MonthsAvgPerf">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Total Races</div>
+                                            <div class="metric-value races-count" id="performance3MonthsRaces">0</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Ranking</div>
+                                            <div class="metric-value avg-ranking" id="performance3MonthsRanking">N/A</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="performance-period-card">
+                                    <div class="period-header">
+                                        <h4 class="period-title">Last 12 Months</h4>
+                                        <span class="period-icon">📅</span>
+                                    </div>
+                                    <div class="performance-metrics">
+                                        <div class="metric-item">
+                                            <div class="metric-label">Win Rate</div>
+                                            <div class="metric-value win-rate" id="performance12MonthsWinRate">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Performance</div>
+                                            <div class="metric-value avg-performance" id="performance12MonthsAvgPerf">0%</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Total Races</div>
+                                            <div class="metric-value races-count" id="performance12MonthsRaces">0</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-label">Avg Ranking</div>
+                                            <div class="metric-value avg-ranking" id="performance12MonthsRanking">N/A</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Basic Stats Display -->
+                    <div class="analysis-grid">
+                        <div class="analysis-box">
+                            <h3>📊 Overall Performance</h3>
+                            <div id="trainerBasicStats">
+                                <p>Select filters above to see trainer analysis</p>
+                            </div>
+                        </div>
+                        <div class="analysis-box">
+                            <h3>📈 Detailed Performance Metrics</h3>
+                            <div id="trainerDetailedMetrics">
+                                <p>Loading detailed metrics...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horse Performance Details -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>🐎 Horse Performance Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="margin-bottom: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select Horse:</label>
+                                <select id="horseDropdown" onchange="updateHorseDetails()" style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
+                                    <option value="">Select a horse to see details...</option>
+                                </select>
+                            </div>
+                            <div id="horseDetails" style="max-height: 400px; overflow-y: auto;">
+                                <p>Select a horse from the dropdown to see race details.
