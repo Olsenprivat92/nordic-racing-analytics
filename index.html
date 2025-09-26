@@ -963,13 +963,13 @@
             
             html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking, true) + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking2YO, true) + '</td></tr>';
-            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingJump2YO) + '</td></tr>';
+            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingJump2YO, true) + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingSprinter, true) + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingMiddle, true) + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingStayer, true) + '</td></tr>';
-            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + formatPercentile(percentiles.winPercentage) + '</td></tr>';
+            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + formatPercentile(percentiles.winPercentage, false) + '</td></tr>';
             html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgOdds, true) + '</td></tr>';
-            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + formatPercentile(percentiles.oddsVsWinFormula) + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + formatPercentile(percentiles.oddsVsWinFormula, false) + '</td></tr>';
             html += '</table>';
             
             // Add legend for percentile colors
@@ -1034,7 +1034,7 @@
             };
             
             // Calculate percentiles for each metric
-            // For rankings (lower is better, so inverse = true)
+            // For rankings and ranking jump (lower is better, so inverse = true)
             percentiles.avgRanking = calculatePercentile(
                 currentMetrics.avgRanking,
                 allMetrics.map(m => parseFloat(m.avgRanking)).filter(v => !isNaN(v)),
@@ -1044,6 +1044,13 @@
             percentiles.avgRanking2YO = calculatePercentile(
                 currentMetrics.avgRanking2YO,
                 allMetrics.map(m => parseFloat(m.avgRanking2YO)).filter(v => !isNaN(v)),
+                true
+            );
+            
+            // 2YO Ranking Jump - LOWER is better (negative values mean improvement)
+            percentiles.avgRankingJump2YO = calculatePercentile(
+                currentMetrics.avgRankingJump2YO,
+                allMetrics.map(m => parseFloat(m.avgRankingJump2YO)).filter(v => !isNaN(v)),
                 true
             );
             
@@ -1065,13 +1072,7 @@
                 true
             );
             
-            // For jump improvement and win-related metrics (higher is better)
-            percentiles.avgRankingJump2YO = calculatePercentile(
-                currentMetrics.avgRankingJump2YO,
-                allMetrics.map(m => parseFloat(m.avgRankingJump2YO)).filter(v => !isNaN(v)),
-                false
-            );
-            
+            // For win percentage and odds vs win formula (higher is better)
             percentiles.winPercentage = calculatePercentile(
                 currentMetrics.winPercentage,
                 allMetrics.map(m => parseFloat(m.winPercentage)).filter(v => !isNaN(v)),
@@ -1084,7 +1085,7 @@
                 false
             );
             
-            // For odds (lower might be better for favorites, but context-dependent)
+            // For avg odds (lower is better)
             percentiles.avgOdds = calculatePercentile(
                 currentMetrics.avgOdds,
                 allMetrics.map(m => parseFloat(m.avgOdds)).filter(v => !isNaN(v)),
