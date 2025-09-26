@@ -297,7 +297,7 @@
             padding: 2rem;
         }
 
-        /* NEW: Enhanced performance period styling */
+        /* Enhanced performance period styling */
         .performance-period-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -653,7 +653,7 @@
                         </div>
                     </div>
 
-                    <!-- ENHANCED: Performance Period Analysis with Average Percentage -->
+                    <!-- Enhanced Performance Period Analysis with Average Percentage -->
                     <div class="card" style="margin-bottom: 2rem;">
                         <div class="card-header">
                             <h3>📊 Performance Period Analysis</h3>
@@ -1923,7 +1923,7 @@
             return metrics;
         }
 
-        // ENHANCED: This function now calculates average percentage performance along with other metrics
+        // Enhanced function that calculates average percentage performance
         function updatePerformancePeriods() {
             const analysisDateInput = document.getElementById('analysisDate');
             const analysisDate = new Date(analysisDateInput.value || new Date());
@@ -1957,7 +1957,7 @@
                 const metrics = calculateDetailedMetrics(periodData);
                 const avgRanking = metrics ? metrics.avgRanking : 'N/A';
                 
-                // NEW: Calculate average percentage performance
+                // Calculate average percentage performance
                 // This converts rankings to percentages (lower ranking = higher percentage)
                 const validRankings = periodData.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
                 const validFields = periodData.map(r => parseInt(r.Field)).filter(f => !isNaN(f) && f > 0);
@@ -1984,4 +1984,9 @@
                 document.getElementById(period.prefix + 'WinRate').textContent = winRate + '%';
                 document.getElementById(period.prefix + 'AvgPerf').textContent = avgPercentagePerformance;
                 document.getElementById(period.prefix + 'Races').textContent = races;
-                document.getElementById(period.prefix
+                document.getElementById(period.prefix + 'Ranking').textContent = avgRanking;
+            });
+        }
+    </script>
+</body>
+</html>
