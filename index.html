@@ -1124,7 +1124,7 @@
             // Show filters
             filtersContainer.style.display = 'block';
             
-            // Get ALL races for this horse (not filtered by trainer filters)
+            // Get ALL races for this horse from the entire dataset (not filtered)
             const horseRaces = racingData.filter(race => race.Horse === selectedHorse);
             
             if (horseRaces.length === 0) {
