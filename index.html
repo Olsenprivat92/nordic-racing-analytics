@@ -1113,17 +1113,92 @@
         function updateHorseDetails() {
             const selectedHorse = document.getElementById('horseDropdown').value;
             const detailsContainer = document.getElementById('horseDetails');
+            const filtersContainer = document.getElementById('horseDetailFilters');
             
             if (!selectedHorse) {
                 detailsContainer.innerHTML = '<p>Select a horse from the dropdown to see race details.</p>';
+                filtersContainer.style.display = 'none';
                 return;
             }
             
-            const filtered = getTrainerFilteredData();
-            const horseRaces = filtered.filter(race => race.Horse === selectedHorse);
+            // Show filters
+            filtersContainer.style.display = 'block';
+            
+            // Get ALL races for this horse (not filtered by trainer filters)
+            const horseRaces = racingData.filter(race => race.Horse === selectedHorse);
             
             if (horseRaces.length === 0) {
-                detailsContainer.innerHTML = '<p>No races found for this horse with current filters.</p>';
+                detailsContainer.innerHTML = '<p>No races found for this horse.</p>';
+                filtersContainer.style.display = 'none';
+                return;
+            }
+            
+            // Store all horse races globally for filtering
+            window.currentHorseRaces = horseRaces;
+            
+            // Populate filter dropdowns based on this horse's data
+            populateHorseFilters(horseRaces);
+            
+            // Display all races initially
+            displayHorseRaces(horseRaces);
+        }
+        
+        function populateHorseFilters(races) {
+            // Populate course filter
+            const courses = new Set();
+            const classes = new Set();
+            const surfaces = new Set();
+            
+            races.forEach(race => {
+                if (race.Course) courses.add(race.Course);
+                if (race.Class) classes.add(race.Class);
+                if (race.Surface) surfaces.add(race.Surface);
+            });
+            
+            const courseFilter = document.getElementById('horseCourseFilter');
+            courseFilter.innerHTML = '<option value="all">All Courses</option>' +
+                Array.from(courses).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            const classFilter = document.getElementById('horseClassFilter');
+            classFilter.innerHTML = '<option value="all">All Classes</option>' +
+                Array.from(classes).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            const surfaceFilter = document.getElementById('horseSurfaceFilter');
+            surfaceFilter.innerHTML = '<option value="all">All Surfaces</option>' +
+                Array.from(surfaces).sort().map(s => `<option value="${s}">${s || 'Unknown'}</option>`).join('');
+        }
+        
+        function filterHorseDetails() {
+            if (!window.currentHorseRaces) return;
+            
+            const courseFilter = document.getElementById('horseCourseFilter').value;
+            const classFilter = document.getElementById('horseClassFilter').value;
+            const surfaceFilter = document.getElementById('horseSurfaceFilter').value;
+            const resultFilter = document.getElementById('horseResultFilter').value;
+            
+            let filteredRaces = window.currentHorseRaces.filter(race => {
+                if (courseFilter !== 'all' && race.Course !== courseFilter) return false;
+                if (classFilter !== 'all' && race.Class !== classFilter) return false;
+                if (surfaceFilter !== 'all' && race.Surface !== surfaceFilter) return false;
+                
+                if (resultFilter !== 'all') {
+                    const place = parseInt(race.Place);
+                    if (resultFilter === 'wins' && place !== 1) return false;
+                    if (resultFilter === 'top3' && place > 3) return false;
+                    if (resultFilter === 'top5' && place > 5) return false;
+                }
+                
+                return true;
+            });
+            
+            displayHorseRaces(filteredRaces);
+        }
+        
+        function displayHorseRaces(horseRaces) {
+            const detailsContainer = document.getElementById('horseDetails');
+            
+            if (horseRaces.length === 0) {
+                detailsContainer.innerHTML = '<p>No races match the selected filters.</p>';
                 return;
             }
             
@@ -1134,45 +1209,65 @@
                 return dateB - dateA;
             });
             
-            let html = '<table style="font-size: 0.85rem; width: 100%;">';
-            html += '<thead><tr>';
-            html += '<th>Date</th><th>Course</th><th>Surface</th><th>Class</th><th>Place</th>';
-            html += '<th>Field</th><th>Ranking</th><th>Age</th><th>Comment</th>';
-            html += '</tr></thead><tbody>';
-            
-            horseRaces.forEach(race => {
-                const surface = race.Surface || 'N/A';
-                const placeColor = race.Place === '1' || race.Place === 1 ? '#22c55e' : '#64748b';
-                
-                html += '<tr>';
-                html += '<td>' + (race.Date || 'N/A') + '</td>';
-                html += '<td>' + (race.Course || 'N/A') + '</td>';
-                html += '<td>' + surface + '</td>';
-                html += '<td>' + (race.Class || 'N/A') + '</td>';
-                html += '<td style="color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
-                html += '<td>' + (race.Field || 'N/A') + '</td>';
-                html += '<td>' + (race.Ranking || 'N/A') + '</td>';
-                html += '<td>' + (race.Age || 'N/A') + '</td>';
-                html += '<td>' + (race.Comment || '') + '</td>';
-                html += '</tr>';
-            });
-            
-            html += '</tbody></table>';
-            
-            // Add summary stats for this horse
+            // Add summary stats for the filtered races
             const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+            const top3 = horseRaces.filter(r => {
+                const place = parseInt(r.Place);
+                return place >= 1 && place <= 3;
+            }).length;
             const winRate = ((wins / horseRaces.length) * 100).toFixed(1);
+            const placeRate = ((top3 / horseRaces.length) * 100).toFixed(1);
+            
             const avgRanking = horseRaces
                 .map(r => parseFloat(r.Ranking))
                 .filter(r => !isNaN(r) && r > 0);
             const avgRankingValue = avgRanking.length > 0 ? 
                 (avgRanking.reduce((a, b) => a + b, 0) / avgRanking.length).toFixed(2) : 'N/A';
             
-            html = '<div style="margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 6px;">' +
-                '<strong>' + selectedHorse + ' Summary:</strong> ' +
-                horseRaces.length + ' races, ' + wins + ' wins (' + winRate + '%), ' +
-                'Avg Ranking: ' + avgRankingValue +
-                '</div>' + html;
+            const avgOdds = horseRaces
+                .filter(r => r.Place === '1' || r.Place === 1)
+                .map(r => parseFloat(r.Odds))
+                .filter(o => !isNaN(o) && o > 0);
+            const avgWinOdds = avgOdds.length > 0 ?
+                (avgOdds.reduce((a, b) => a + b, 0) / avgOdds.length).toFixed(2) : 'N/A';
+            
+            let html = '<div style="margin-bottom: 1rem; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white;">';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">';
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Races</div><div style="font-size: 1.5rem; font-weight: bold;">${horseRaces.length}</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Wins</div><div style="font-size: 1.5rem; font-weight: bold;">${wins}</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Win%</div><div style="font-size: 1.5rem; font-weight: bold;">${winRate}%</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Place%</div><div style="font-size: 1.5rem; font-weight: bold;">${placeRate}%</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Avg Rank</div><div style="font-size: 1.5rem; font-weight: bold;">${avgRankingValue}</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Avg Win Odds</div><div style="font-size: 1.5rem; font-weight: bold;">${avgWinOdds}</div></div>`;
+            html += '</div></div>';
+            
+            html += '<table style="font-size: 0.85rem; width: 100%;">';
+            html += '<thead><tr>';
+            html += '<th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th>';
+            html += '<th>Field</th><th>Ranking</th><th>Odds</th><th>Jockey</th><th>Comment</th>';
+            html += '</tr></thead><tbody>';
+            
+            horseRaces.forEach(race => {
+                const place = parseInt(race.Place);
+                const placeColor = place === 1 ? '#22c55e' : place <= 3 ? '#f59e0b' : place <= 5 ? '#94a3b8' : '#ef4444';
+                const surface = race.Surface || 'N/A';
+                
+                html += '<tr>';
+                html += '<td>' + (race.Date || 'N/A') + '</td>';
+                html += '<td>' + (race.Course || 'N/A') + '</td>';
+                html += '<td>' + surface + '</td>';
+                html += '<td>' + (race.Distance || 'N/A') + '</td>';
+                html += '<td>' + (race.Class || 'N/A') + '</td>';
+                html += '<td style="color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
+                html += '<td>' + (race.Field || 'N/A') + '</td>';
+                html += '<td>' + (race.Ranking || 'N/A') + '</td>';
+                html += '<td>' + (race.Odds || 'N/A') + '</td>';
+                html += '<td>' + (race.Jockey || 'N/A') + '</td>';
+                html += '<td>' + (race.Comment || '') + '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
             
             detailsContainer.innerHTML = html;
         }
