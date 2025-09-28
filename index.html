@@ -1121,14 +1121,24 @@
                 return;
             }
             
+            // Check if racingData is available
+            if (!racingData || racingData.length === 0) {
+                detailsContainer.innerHTML = '<p>No racing data loaded. Please refresh the data.</p>';
+                filtersContainer.style.display = 'none';
+                return;
+            }
+            
             // Show filters
             filtersContainer.style.display = 'block';
             
-            // Get ALL races for this horse from the entire dataset (not filtered)
+            // Get ALL races for this horse from the entire dataset
             const horseRaces = racingData.filter(race => race.Horse === selectedHorse);
             
+            console.log('Selected horse:', selectedHorse);
+            console.log('Found races:', horseRaces.length);
+            
             if (horseRaces.length === 0) {
-                detailsContainer.innerHTML = '<p>No races found for this horse.</p>';
+                detailsContainer.innerHTML = '<p>No races found for ' + selectedHorse + '.</p>';
                 filtersContainer.style.display = 'none';
                 return;
             }
@@ -1156,20 +1166,23 @@
             });
             
             const courseFilter = document.getElementById('horseCourseFilter');
-            courseFilter.innerHTML = '<option value="all">All Courses</option>' +
+            courseFilter.innerHTML = '<option value="all">All Courses (' + courses.size + ')</option>' +
                 Array.from(courses).sort().map(c => `<option value="${c}">${c}</option>`).join('');
             
             const classFilter = document.getElementById('horseClassFilter');
-            classFilter.innerHTML = '<option value="all">All Classes</option>' +
+            classFilter.innerHTML = '<option value="all">All Classes (' + classes.size + ')</option>' +
                 Array.from(classes).sort().map(c => `<option value="${c}">${c}</option>`).join('');
             
             const surfaceFilter = document.getElementById('horseSurfaceFilter');
-            surfaceFilter.innerHTML = '<option value="all">All Surfaces</option>' +
+            surfaceFilter.innerHTML = '<option value="all">All Surfaces (' + surfaces.size + ')</option>' +
                 Array.from(surfaces).sort().map(s => `<option value="${s}">${s || 'Unknown'}</option>`).join('');
         }
         
         function filterHorseDetails() {
-            if (!window.currentHorseRaces) return;
+            if (!window.currentHorseRaces || window.currentHorseRaces.length === 0) {
+                console.log('No current horse races to filter');
+                return;
+            }
             
             const courseFilter = document.getElementById('horseCourseFilter').value;
             const classFilter = document.getElementById('horseClassFilter').value;
@@ -1183,6 +1196,7 @@
                 
                 if (resultFilter !== 'all') {
                     const place = parseInt(race.Place);
+                    if (isNaN(place)) return false;
                     if (resultFilter === 'wins' && place !== 1) return false;
                     if (resultFilter === 'top3' && place > 3) return false;
                     if (resultFilter === 'top5' && place > 5) return false;
@@ -1196,8 +1210,9 @@
         
         function displayHorseRaces(horseRaces) {
             const detailsContainer = document.getElementById('horseDetails');
+            const selectedHorse = document.getElementById('horseDropdown').value;
             
-            if (horseRaces.length === 0) {
+            if (!horseRaces || horseRaces.length === 0) {
                 detailsContainer.innerHTML = '<p>No races match the selected filters.</p>';
                 return;
             }
@@ -1206,33 +1221,47 @@
             horseRaces.sort((a, b) => {
                 const dateA = parseRaceDate(a.Date);
                 const dateB = parseRaceDate(b.Date);
+                if (!dateA && !dateB) return 0;
+                if (!dateA) return 1;
+                if (!dateB) return -1;
                 return dateB - dateA;
             });
             
-            // Add summary stats for the filtered races
-            const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+            // Calculate statistics
+            const wins = horseRaces.filter(r => {
+                const place = parseInt(r.Place);
+                return place === 1;
+            }).length;
+            
             const top3 = horseRaces.filter(r => {
                 const place = parseInt(r.Place);
-                return place >= 1 && place <= 3;
+                return !isNaN(place) && place >= 1 && place <= 3;
             }).length;
-            const winRate = ((wins / horseRaces.length) * 100).toFixed(1);
-            const placeRate = ((top3 / horseRaces.length) * 100).toFixed(1);
             
-            const avgRanking = horseRaces
+            const winRate = horseRaces.length > 0 ? ((wins / horseRaces.length) * 100).toFixed(1) : '0';
+            const placeRate = horseRaces.length > 0 ? ((top3 / horseRaces.length) * 100).toFixed(1) : '0';
+            
+            const validRankings = horseRaces
                 .map(r => parseFloat(r.Ranking))
                 .filter(r => !isNaN(r) && r > 0);
-            const avgRankingValue = avgRanking.length > 0 ? 
-                (avgRanking.reduce((a, b) => a + b, 0) / avgRanking.length).toFixed(2) : 'N/A';
+            const avgRankingValue = validRankings.length > 0 ? 
+                (validRankings.reduce((a, b) => a + b, 0) / validRankings.length).toFixed(2) : 'N/A';
             
-            const avgOdds = horseRaces
-                .filter(r => r.Place === '1' || r.Place === 1)
+            const winningRaces = horseRaces.filter(r => {
+                const place = parseInt(r.Place);
+                return place === 1;
+            });
+            
+            const avgOdds = winningRaces
                 .map(r => parseFloat(r.Odds))
                 .filter(o => !isNaN(o) && o > 0);
             const avgWinOdds = avgOdds.length > 0 ?
                 (avgOdds.reduce((a, b) => a + b, 0) / avgOdds.length).toFixed(2) : 'N/A';
             
+            // Build HTML
             let html = '<div style="margin-bottom: 1rem; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white;">';
-            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; text-align: center;">';
+            html += '<div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">' + selectedHorse + '</div>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; text-align: center;">';
             html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Races</div><div style="font-size: 1.5rem; font-weight: bold;">${horseRaces.length}</div></div>`;
             html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Wins</div><div style="font-size: 1.5rem; font-weight: bold;">${wins}</div></div>`;
             html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Win%</div><div style="font-size: 1.5rem; font-weight: bold;">${winRate}%</div></div>`;
@@ -1241,21 +1270,25 @@
             html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Avg Win Odds</div><div style="font-size: 1.5rem; font-weight: bold;">${avgWinOdds}</div></div>`;
             html += '</div></div>';
             
+            // Build table
             html += '<table style="font-size: 0.85rem; width: 100%;">';
             html += '<thead><tr>';
             html += '<th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th>';
-            html += '<th>Field</th><th>Ranking</th><th>Odds</th><th>Jockey</th><th>Comment</th>';
+            html += '<th>Field</th><th>Ranking</th><th>Odds</th><th>Jockey</th>';
             html += '</tr></thead><tbody>';
             
             horseRaces.forEach(race => {
                 const place = parseInt(race.Place);
-                const placeColor = place === 1 ? '#22c55e' : place <= 3 ? '#f59e0b' : place <= 5 ? '#94a3b8' : '#ef4444';
-                const surface = race.Surface || 'N/A';
+                let placeColor = '#94a3b8';
+                if (place === 1) placeColor = '#22c55e';
+                else if (place <= 3) placeColor = '#f59e0b';
+                else if (place <= 5) placeColor = '#94a3b8';
+                else if (!isNaN(place)) placeColor = '#ef4444';
                 
                 html += '<tr>';
                 html += '<td>' + (race.Date || 'N/A') + '</td>';
                 html += '<td>' + (race.Course || 'N/A') + '</td>';
-                html += '<td>' + surface + '</td>';
+                html += '<td>' + (race.Surface || 'N/A') + '</td>';
                 html += '<td>' + (race.Distance || 'N/A') + '</td>';
                 html += '<td>' + (race.Class || 'N/A') + '</td>';
                 html += '<td style="color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
@@ -1263,7 +1296,6 @@
                 html += '<td>' + (race.Ranking || 'N/A') + '</td>';
                 html += '<td>' + (race.Odds || 'N/A') + '</td>';
                 html += '<td>' + (race.Jockey || 'N/A') + '</td>';
-                html += '<td>' + (race.Comment || '') + '</td>';
                 html += '</tr>';
             });
             
