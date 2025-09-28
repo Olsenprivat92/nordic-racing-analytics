@@ -1110,153 +1110,70 @@
                 ).join('');
         }
 
-        function updateHorseDetails() {
-            const selectedHorse = document.getElementById('horseDropdown').value;
-            const detailsContainer = document.getElementById('horseDetails');
-            const filtersContainer = document.getElementById('horseDetailFilters');
+        // Enhanced function that calculates average percentage performance
+        function updatePerformancePeriods() {
+            const analysisDateInput = document.getElementById('analysisDate');
+            const analysisDate = new Date(analysisDateInput.value || new Date());
             
-            if (!selectedHorse) {
-                detailsContainer.innerHTML = '<p>Select a horse from the dropdown to see race details.</p>';
-                filtersContainer.style.display = 'none';
-                return;
-            }
-            
-            // Check if racingData is available
-            if (!racingData || racingData.length === 0) {
-                detailsContainer.innerHTML = '<p>No racing data loaded. Please refresh the data.</p>';
-                filtersContainer.style.display = 'none';
-                return;
-            }
-            
-            // Show filters
-            filtersContainer.style.display = 'block';
-            
-            // Get ALL races for this horse from the entire dataset
-            const horseRaces = racingData.filter(race => race.Horse === selectedHorse);
-            
-            console.log('Selected horse:', selectedHorse);
-            console.log('Found races:', horseRaces.length);
-            
-            if (horseRaces.length === 0) {
-                detailsContainer.innerHTML = '<p>No races found for ' + selectedHorse + '.</p>';
-                filtersContainer.style.display = 'none';
-                return;
-            }
-            
-            // Store all horse races globally for filtering
-            window.currentHorseRaces = horseRaces;
-            
-            // Populate filter dropdowns based on this horse's data
-            populateHorseFilters(horseRaces);
-            
-            // Display all races initially
-            displayHorseRaces(horseRaces);
-        }
-        
-        function populateHorseFilters(races) {
-            // Populate course filter
-            const courses = new Set();
-            const classes = new Set();
-            const surfaces = new Set();
-            
-            races.forEach(race => {
-                if (race.Course) courses.add(race.Course);
-                if (race.Class) classes.add(race.Class);
-                if (race.Surface) surfaces.add(race.Surface);
-            });
-            
-            const courseFilter = document.getElementById('horseCourseFilter');
-            courseFilter.innerHTML = '<option value="all">All Courses (' + courses.size + ')</option>' +
-                Array.from(courses).sort().map(c => `<option value="${c}">${c}</option>`).join('');
-            
-            const classFilter = document.getElementById('horseClassFilter');
-            classFilter.innerHTML = '<option value="all">All Classes (' + classes.size + ')</option>' +
-                Array.from(classes).sort().map(c => `<option value="${c}">${c}</option>`).join('');
-            
-            const surfaceFilter = document.getElementById('horseSurfaceFilter');
-            surfaceFilter.innerHTML = '<option value="all">All Surfaces (' + surfaces.size + ')</option>' +
-                Array.from(surfaces).sort().map(s => `<option value="${s}">${s || 'Unknown'}</option>`).join('');
-        }
-        
-        function filterHorseDetails() {
-            if (!window.currentHorseRaces || window.currentHorseRaces.length === 0) {
-                console.log('No current horse races to filter');
-                return;
-            }
-            
-            const courseFilter = document.getElementById('horseCourseFilter').value;
-            const classFilter = document.getElementById('horseClassFilter').value;
-            const surfaceFilter = document.getElementById('horseSurfaceFilter').value;
-            const resultFilter = document.getElementById('horseResultFilter').value;
-            
-            let filteredRaces = window.currentHorseRaces.filter(race => {
-                if (courseFilter !== 'all' && race.Course !== courseFilter) return false;
-                if (classFilter !== 'all' && race.Class !== classFilter) return false;
-                if (surfaceFilter !== 'all' && race.Surface !== surfaceFilter) return false;
+            const periods = [
+                { months: 1, prefix: 'performance1Month' },
+                { months: 3, prefix: 'performance3Months' },
+                { months: 12, prefix: 'performance12Months' }
+            ];
+
+            periods.forEach(period => {
+                const cutoffDate = new Date(analysisDate);
+                cutoffDate.setMonth(cutoffDate.getMonth() - period.months);
                 
-                if (resultFilter !== 'all') {
-                    const place = parseInt(race.Place);
-                    if (isNaN(place)) return false;
-                    if (resultFilter === 'wins' && place !== 1) return false;
-                    if (resultFilter === 'top3' && place > 3) return false;
-                    if (resultFilter === 'top5' && place > 5) return false;
+                // Get the full filtered data (with all trainer filters applied)
+                const baseFilteredData = getTrainerFilteredData();
+                
+                // Then apply the date range filter on top with proper date parsing
+                const periodData = baseFilteredData.filter(race => {
+                    if (!race.Date) return false;
+                    const raceDate = parseRaceDate(race.Date);
+                    if (!raceDate) return false;
+                    return raceDate >= cutoffDate && raceDate <= analysisDate;
+                });
+
+                const races = periodData.length;
+                const wins = periodData.filter(r => r.Place === '1' || r.Place === 1).length;
+                const winRate = races > 0 ? ((wins / races) * 100).toFixed(1) : '0.0';
+                
+                // Calculate detailed metrics for this period
+                const metrics = calculateDetailedMetrics(periodData);
+                const avgRanking = metrics ? metrics.avgRanking : 'N/A';
+                
+                // Calculate average percentage performance
+                // This converts rankings to percentages (lower ranking = higher percentage)
+                const validRankings = periodData.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+                const validFields = periodData.map(r => parseInt(r.Field)).filter(f => !isNaN(f) && f > 0);
+                
+                let avgPercentagePerformance = 'N/A';
+                if (validRankings.length > 0 && validFields.length > 0) {
+                    // Calculate percentage for each race: (Field Size - Ranking + 1) / Field Size * 100
+                    const percentages = [];
+                    periodData.forEach(race => {
+                        const ranking = parseFloat(race.Ranking);
+                        const field = parseInt(race.Field);
+                        if (!isNaN(ranking) && !isNaN(field) && ranking > 0 && field > 0) {
+                            const percentage = ((field - ranking + 1) / field) * 100;
+                            percentages.push(percentage);
+                        }
+                    });
+                    
+                    if (percentages.length > 0) {
+                        avgPercentagePerformance = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
+                    }
                 }
-                
-                return true;
+
+                // Update all the period elements
+                document.getElementById(period.prefix + 'WinRate').textContent = winRate + '%';
+                document.getElementById(period.prefix + 'AvgPerf').textContent = avgPercentagePerformance;
+                document.getElementById(period.prefix + 'Races').textContent = races;
+                document.getElementById(period.prefix + 'Ranking').textContent = avgRanking;
             });
-            
-            displayHorseRaces(filteredRaces);
-        }
-        
-        function displayHorseRaces(horseRaces) {
-            const detailsContainer = document.getElementById('horseDetails');
-            const selectedHorse = document.getElementById('horseDropdown').value;
-            
-            if (!horseRaces || horseRaces.length === 0) {
-                detailsContainer.innerHTML = '<p>No races match the selected filters.</p>';
-                return;
-            }
-            
-            // Sort races by date (newest first)
-            horseRaces.sort((a, b) => {
-                const dateA = parseRaceDate(a.Date);
-                const dateB = parseRaceDate(b.Date);
-                if (!dateA && !dateB) return 0;
-                if (!dateA) return 1;
-                if (!dateB) return -1;
-                return dateB - dateA;
-            });
-            
-            // Calculate statistics
-            const wins = horseRaces.filter(r => {
-                const place = parseInt(r.Place);
-                return place === 1;
-            }).length;
-            
-            const top3 = horseRaces.filter(r => {
-                const place = parseInt(r.Place);
-                return !isNaN(place) && place >= 1 && place <= 3;
-            }).length;
-            
-            const winRate = horseRaces.length > 0 ? ((wins / horseRaces.length) * 100).toFixed(1) : '0';
-            const placeRate = horseRaces.length > 0 ? ((top3 / horseRaces.length) * 100).toFixed(1) : '0';
-            
-            const validRankings = horseRaces
-                .map(r => parseFloat(r.Ranking))
-                .filter(r => !isNaN(r) && r > 0);
-            const avgRankingValue = validRankings.length > 0 ? 
-                (validRankings.reduce((a, b) => a + b, 0) / validRankings.length).toFixed(2) : 'N/A';
-            
-            const winningRaces = horseRaces.filter(r => {
-                const place = parseInt(r.Place);
-                return place === 1;
-            });
-            
-            const avgOdds = winningRaces
-                .map(r => parseFloat(r.Odds))
-                .filter(o => !isNaN(o) && o > 0);
-            const avgWinOdds = avgOdds.length > 0 ?
-                (avgOdds.reduce((a, b) => a + b, 0) / avgOdds.length).toFixed(2) : 'N/A';
+        } + b, 0) / avgOdds.length).toFixed(2) : 'N/A';
             
             // Build HTML
             let html = '<div style="margin-bottom: 1rem; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white;">';
