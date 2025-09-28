@@ -1173,6 +1173,182 @@
                 document.getElementById(period.prefix + 'Races').textContent = races;
                 document.getElementById(period.prefix + 'Ranking').textContent = avgRanking;
             });
+        }
+        
+        // New functions for All Performances Detail View
+        function updatePerformanceDetails() {
+            const filtered = getTrainerFilteredData();
+            
+            // Store filtered data globally for performance filtering
+            window.currentPerformanceData = filtered;
+            
+            // Populate filter dropdowns
+            populatePerformanceFilters(filtered);
+            
+            // Display all performances initially
+            displayPerformances(filtered);
+        }
+        
+        function populatePerformanceFilters(data) {
+            const horses = new Set();
+            const courses = new Set();
+            const classes = new Set();
+            const surfaces = new Set();
+            
+            data.forEach(race => {
+                if (race.Horse) horses.add(race.Horse);
+                if (race.Course) courses.add(race.Course);
+                if (race.Class) classes.add(race.Class);
+                if (race.Surface) surfaces.add(race.Surface);
+            });
+            
+            const horseFilter = document.getElementById('performanceHorseFilter');
+            if (horseFilter) {
+                horseFilter.innerHTML = '<option value="all">All Horses (' + horses.size + ')</option>' +
+                    Array.from(horses).sort().map(h => `<option value="${h}">${h}</option>`).join('');
+            }
+            
+            const courseFilter = document.getElementById('performanceCourseFilter');
+            if (courseFilter) {
+                courseFilter.innerHTML = '<option value="all">All Courses (' + courses.size + ')</option>' +
+                    Array.from(courses).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+            
+            const classFilter = document.getElementById('performanceClassFilter');
+            if (classFilter) {
+                classFilter.innerHTML = '<option value="all">All Classes (' + classes.size + ')</option>' +
+                    Array.from(classes).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+            
+            const surfaceFilter = document.getElementById('performanceSurfaceFilter');
+            if (surfaceFilter) {
+                surfaceFilter.innerHTML = '<option value="all">All Surfaces (' + surfaces.size + ')</option>' +
+                    Array.from(surfaces).sort().map(s => `<option value="${s}">${s || 'Unknown'}</option>`).join('');
+            }
+        }
+        
+        function filterPerformanceDetails() {
+            if (!window.currentPerformanceData || window.currentPerformanceData.length === 0) {
+                return;
+            }
+            
+            const horseFilter = document.getElementById('performanceHorseFilter').value;
+            const courseFilter = document.getElementById('performanceCourseFilter').value;
+            const classFilter = document.getElementById('performanceClassFilter').value;
+            const surfaceFilter = document.getElementById('performanceSurfaceFilter').value;
+            const resultFilter = document.getElementById('performanceResultFilter').value;
+            
+            let filteredData = window.currentPerformanceData.filter(race => {
+                if (horseFilter !== 'all' && race.Horse !== horseFilter) return false;
+                if (courseFilter !== 'all' && race.Course !== courseFilter) return false;
+                if (classFilter !== 'all' && race.Class !== classFilter) return false;
+                if (surfaceFilter !== 'all' && race.Surface !== surfaceFilter) return false;
+                
+                if (resultFilter !== 'all') {
+                    const place = parseInt(race.Place);
+                    if (isNaN(place)) return false;
+                    if (resultFilter === 'wins' && place !== 1) return false;
+                    if (resultFilter === 'top3' && place > 3) return false;
+                    if (resultFilter === 'top5' && place > 5) return false;
+                }
+                
+                return true;
+            });
+            
+            displayPerformances(filteredData);
+        }
+        
+        function displayPerformances(data) {
+            const container = document.getElementById('performanceDetails');
+            if (!container) return;
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p>No performances match the selected filters.</p>';
+                return;
+            }
+            
+            // Sort based on selected option
+            const sortByElement = document.getElementById('performanceSortBy');
+            const sortBy = sortByElement ? sortByElement.value : 'date';
+            
+            data.sort((a, b) => {
+                switch(sortBy) {
+                    case 'horse':
+                        return (a.Horse || '').localeCompare(b.Horse || '');
+                    case 'place':
+                        return parseInt(a.Place) - parseInt(b.Place);
+                    case 'ranking':
+                        const rankA = parseFloat(a.Ranking) || 999;
+                        const rankB = parseFloat(b.Ranking) || 999;
+                        return rankA - rankB;
+                    default: // date
+                        const dateA = parseRaceDate(a.Date);
+                        const dateB = parseRaceDate(b.Date);
+                        if (!dateA && !dateB) return 0;
+                        if (!dateA) return 1;
+                        if (!dateB) return -1;
+                        return dateB - dateA;
+                }
+            });
+            
+            // Calculate statistics
+            const totalRaces = data.length;
+            const wins = data.filter(r => parseInt(r.Place) === 1).length;
+            const top3 = data.filter(r => {
+                const place = parseInt(r.Place);
+                return !isNaN(place) && place >= 1 && place <= 3;
+            }).length;
+            
+            const winRate = totalRaces > 0 ? ((wins / totalRaces) * 100).toFixed(1) : '0';
+            const placeRate = totalRaces > 0 ? ((top3 / totalRaces) * 100).toFixed(1) : '0';
+            
+            const uniqueHorses = new Set(data.map(r => r.Horse).filter(h => h));
+            const uniqueCourses = new Set(data.map(r => r.Course).filter(c => c));
+            
+            // Build HTML
+            let html = '<div style="margin-bottom: 1rem; padding: 1rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; color: white;">';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; text-align: center;">';
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Total Races</div><div style="font-size: 1.5rem; font-weight: bold;">${totalRaces}</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Horses</div><div style="font-size: 1.5rem; font-weight: bold;">${uniqueHorses.size}</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Wins</div><div style="font-size: 1.5rem; font-weight: bold;">${wins}</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Win%</div><div style="font-size: 1.5rem; font-weight: bold;">${winRate}%</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Place%</div><div style="font-size: 1.5rem; font-weight: bold;">${placeRate}%</div></div>`;
+            html += `<div><div style="font-size: 0.75rem; opacity: 0.9;">Courses</div><div style="font-size: 1.5rem; font-weight: bold;">${uniqueCourses.size}</div></div>`;
+            html += '</div></div>';
+            
+            // Build table
+            html += '<table style="font-size: 0.85rem; width: 100%;">';
+            html += '<thead><tr>';
+            html += '<th>Date</th><th>Horse</th><th>Course</th><th>Surface</th><th>Distance</th>';
+            html += '<th>Class</th><th>Place</th><th>Field</th><th>Ranking</th><th>Odds</th><th>Jockey</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.forEach(race => {
+                const place = parseInt(race.Place);
+                let placeColor = '#94a3b8';
+                if (place === 1) placeColor = '#22c55e';
+                else if (place <= 3) placeColor = '#f59e0b';
+                else if (place <= 5) placeColor = '#94a3b8';
+                else if (!isNaN(place)) placeColor = '#ef4444';
+                
+                html += '<tr>';
+                html += '<td>' + (race.Date || 'N/A') + '</td>';
+                html += '<td style="font-weight: 600;">' + (race.Horse || 'N/A') + '</td>';
+                html += '<td>' + (race.Course || 'N/A') + '</td>';
+                html += '<td>' + (race.Surface || 'N/A') + '</td>';
+                html += '<td>' + (race.Distance || 'N/A') + '</td>';
+                html += '<td>' + (race.Class || 'N/A') + '</td>';
+                html += '<td style="color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
+                html += '<td>' + (race.Field || 'N/A') + '</td>';
+                html += '<td>' + (race.Ranking || 'N/A') + '</td>';
+                html += '<td>' + (race.Odds || 'N/A') + '</td>';
+                html += '<td>' + (race.Jockey || 'N/A') + '</td>';
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            container.innerHTML = html;
         } + b, 0) / avgOdds.length).toFixed(2) : 'N/A';
             
             // Build HTML
