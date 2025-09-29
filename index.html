@@ -768,8 +768,8 @@
                         </div>
                         <div class="card-body">
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Search Horse:</label>
-                                <input type="text" id="horseSearch" oninput="filterHorseTable()" placeholder="Type horse name to filter..." style="width: 100%; padding: 8px; border: 1px solid #e5e7eb; border-radius: 4px;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter Horses:</label>
+                                <select id="horseFilter" multiple size="5" onchange="filterHorseTable()"></select>
                             </div>
                             <div id="horseDetails" style="max-height: 400px; overflow-y: auto;">
                                 <p>Select filters above to see race details.</p>
@@ -2091,20 +2091,23 @@
             html += '</tbody></table>';
             
             document.getElementById('horseDetails').innerHTML = html;
+
+            // Populate horse filter dropdown
+            const uniqueHorsesSet = new Set(data.map(race => race.Horse).filter(h => h && h.trim()));
+            const uniqueHorses = Array.from(uniqueHorsesSet).sort();
+            const horseFilter = document.getElementById('horseFilter');
+            horseFilter.innerHTML = uniqueHorses.map(horse => `<option value="${horse}">${horse}</option>`).join('');
         }
 
         function filterHorseTable() {
-            const search = document.getElementById('horseSearch').value.toLowerCase().trim();
+            const selectedHorses = Array.from(document.getElementById('horseFilter').selectedOptions).map(opt => opt.value);
             const table = document.querySelector('#horseDetails table');
             if (!table) return;
             
             const rows = table.querySelectorAll('tbody tr');
             rows.forEach(row => {
-                const horseCell = row.querySelector('td:nth-child(2)'); // Horse is second column
-                if (horseCell) {
-                    const horse = horseCell.textContent.toLowerCase();
-                    row.style.display = search === '' || horse.includes(search) ? '' : 'none';
-                }
+                const horse = row.dataset.horse;
+                row.style.display = (selectedHorses.length === 0 || selectedHorses.includes(horse)) ? '' : 'none';
             });
         }
     </script>
