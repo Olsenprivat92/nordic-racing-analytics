@@ -877,10 +877,6 @@
                                             <div class="metric-label">Total Races</div>
                                             <div class="metric-value races-count" id="jockey-performance1MonthRaces">0</div>
                                         </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Ranking</div>
-                                            <div class="metric-value avg-ranking" id="jockey-performance1MonthRanking">N/A</div>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -902,10 +898,6 @@
                                             <div class="metric-label">Total Races</div>
                                             <div class="metric-value races-count" id="jockey-performance3MonthsRaces">0</div>
                                         </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Ranking</div>
-                                            <div class="metric-value avg-ranking" id="jockey-performance3MonthsRanking">N/A</div>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -926,10 +918,6 @@
                                         <div class="metric-item">
                                             <div class="metric-label">Total Races</div>
                                             <div class="metric-value races-count" id="jockey-performance12MonthsRaces">0</div>
-                                        </div>
-                                        <div class="metric-item">
-                                            <div class="metric-label">Avg Ranking</div>
-                                            <div class="metric-value avg-ranking" id="jockey-performance12MonthsRanking">N/A</div>
                                         </div>
                                     </div>
                                 </div>
@@ -2139,7 +2127,6 @@
                 return `<span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">${percentile}%</span>`;
             };
             
-            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking, true) + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking2YO, true) + '</td></tr>';
             html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingJump2YO, true) + '</td></tr>';
             html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingSprinter, true) + '</td></tr>';
@@ -2414,7 +2401,9 @@
                 document.getElementById(prefix + '-performance' + period.subPrefix + 'WinRate').textContent = winRate + '%';
                 document.getElementById(prefix + '-performance' + period.subPrefix + 'AvgPerf').textContent = avgPercentagePerformance;
                 document.getElementById(prefix + '-performance' + period.subPrefix + 'Races').textContent = races;
-                document.getElementById(prefix + '-performance' + period.subPrefix + 'Ranking').textContent = avgRanking;
+                if (document.getElementById(prefix + '-performance' + period.subPrefix + 'Ranking')) {
+                    document.getElementById(prefix + '-performance' + period.subPrefix + 'Ranking').textContent = avgRanking;
+                }
             });
         }
 
