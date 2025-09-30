@@ -381,6 +381,15 @@
             color: #8b5cf6;
         }
 
+        .small-table {
+            font-size: 0.75rem;
+            line-height: 1.1;
+        }
+
+        .small-table td {
+            padding: 4px;
+        }
+
         @media (max-width: 768px) {
             .analysis-grid, .filters-grid, .performance-period-grid {
                 grid-template-columns: 1fr;
@@ -957,6 +966,105 @@
                             </div>
                             <div id="jockey-horseDetails" style="max-height: 400px; overflow-y: auto;">
                                 <p>Select filters above to see race details.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Horse Analysis View -->
+        <div class="view-container" id="horses-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🐎 Horse Analysis</h2>
+                    <button onclick="updateHorseAnalysis()">🔄 Refresh Analysis</button>
+                </div>
+                <div class="card-body">
+                    <!-- Horse Filters -->
+                    <div class="filters">
+                        <div class="filters-grid">
+                            <div class="filter-box">
+                                <div class="filter-title">🌱 Surfaces</div>
+                                <select id="horseSurfaceFilter" multiple size="3" onchange="updateHorseAnalysis()">
+                                    <option value="Grass">Grass</option>
+                                    <option value="Dirt">Dirt</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏁 Courses</div>
+                                <select id="horseCourseFilter" multiple size="5" onchange="updateHorseAnalysis()">
+                                    <option value="all" selected>All Courses</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🎂 Horse Age</div>
+                                <select id="horseAgeFilter" multiple size="4" onchange="updateHorseAnalysis()">
+                                    <option value="2">2 Year Olds</option>
+                                    <option value="3">3 Year Olds</option>
+                                    <option value="4+">4+ Year Olds</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Date From</div>
+                                <input type="date" id="horseFromDate" onchange="updateHorseAnalysis()">
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Date To</div>
+                                <input type="date" id="horseToDate" onchange="updateHorseAnalysis()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horse Selection -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>🐴 Select Horse</h3>
+                        </div>
+                        <div class="card-body">
+                            <input list="horseList" id="horseInput" placeholder="Type to search and select horse..." onchange="updateHorseDetails(this.value)">
+                            <datalist id="horseList">
+                                <!-- Options will be populated here -->
+                            </datalist>
+                        </div>
+                    </div>
+
+                    <!-- Main Horse Info -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>🐴 Horse Information</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="horseMainInfo">
+                                <p>Select a horse to see details.</p>
+                            </div>
+                            <div style="margin-top: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Comment:</label>
+                                <textarea id="horseComment" rows="4" onblur="saveHorseComment()"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Stats -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>📊 Detailed Ratings</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="horseDetailedStats">
+                                <p>Select a horse to see detailed ratings.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Race History -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🏁 Race History</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="horseRaceHistory" class="scrollable">
+                                <p>Select a horse to see race history.</p>
                             </div>
                         </div>
                     </div>
@@ -2874,16 +2982,49 @@
             const last5 = horseRaces.slice(0, 5);
             let last5Html = '<table class="small-table">';
             last5.forEach(race => {
+                let courseAbbr = race.Course || 'N/A';
+                const courseMap = {
+                    'Klampenborg': 'KL',
+                    'Odense': 'OD',
+                    'Aarhus': 'AR',
+                    'Aalborg': 'AL',
+                    'Jægersro': 'JÆ',
+                    'Göteborg': 'GG',
+                    'Bro Park': 'BP',
+                    'Øvrevoll': 'ØV'
+                };
+                for (const [full, abbr] of Object.entries(courseMap)) {
+                    if (courseAbbr.includes(full)) {
+                        courseAbbr = abbr;
+                        break;
+                    }
+                }
+
+                let surfaceAbbr = race.Surface || 'N/A';
+                if (surfaceAbbr.toLowerCase().includes('græs')) {
+                    surfaceAbbr = 'GR';
+                } else if (surfaceAbbr.toLowerCase().includes('dirt')) {
+                    surfaceAbbr = 'DT';
+                }
+
+                let jockeyAbbr = race.Jockey || 'N/A';
+                const jockeyParts = jockeyAbbr.split(' ');
+                if (jockeyParts.length > 1) {
+                    const firstInitial = jockeyParts[0][0] + '.';
+                    const last = jockeyParts[jockeyParts.length - 1];
+                    jockeyAbbr = firstInitial + ' ' + last;
+                }
+
                 last5Html += '<tr>';
                 last5Html += '<td>' + (race.Date || 'N/A') + '</td>';
-                last5Html += '<td>' + (race.Course || 'N/A') + '</td>';
+                last5Html += '<td>' + courseAbbr + '</td>';
                 last5Html += '<td>' + (race.Distance || 'N/A') + '</td>';
-                last5Html += '<td>' + (race.Surface || 'N/A') + '</td>';
+                last5Html += '<td>' + surfaceAbbr + '</td>';
                 last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
                 last5Html += '<td>' + (race.Place || 'N/A') + '</td>';
                 last5Html += '<td>' + (race.Field || 'N/A') + '</td>';
                 last5Html += '<td>' + (race.Ranking || 'N/A') + '</td>';
-                last5Html += '<td>' + (race.Jockey || 'N/A') + '</td>';
+                last5Html += '<td>' + jockeyAbbr + '</td>';
                 last5Html += '<td>' + (race.Comment || 'N/A') + '</td>';
                 last5Html += '</tr>';
             });
@@ -2925,14 +3066,3 @@
             const jockeyRaces = racingData.filter(r => r.Jockey === jockey);
             const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
             const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-            document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
-        }
-
-        function clearNextRaceRow(rowNum) {
-            ['last5', 'winsRaces', 'avgRanking', 'avgOdds', 'oddsVsWin', 'comment', 'trainerPct', 'jockeyPct'].forEach(id => {
-                document.getElementById(`${id}-${rowNum}`).textContent = '';
-            });
-        }
-    </script>
-</body>
-</html>
