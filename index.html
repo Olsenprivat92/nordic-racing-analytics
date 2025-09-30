@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -362,6 +361,7 @@
             <div class="nav-item" onclick="switchView('trainers', event)">👥 Trainer Analysis</div>
             <div class="nav-item" onclick="switchView('jockeys', event)">🏇 Jockey Analysis</div>
             <div class="nav-item" onclick="switchView('horses', event)">🐎 Horse Analysis</div>
+            <div class="nav-item" onclick="switchView('breeding', event)">🧬 Breeding Analysis</div>
             <div class="nav-item" onclick="switchView('next-race', event)">🏁 Next Race</div>
             <div class="nav-item" onclick="switchView('predictor', event)">🔮 Race Predictor</div>
         </div>
@@ -897,6 +897,35 @@
                 </div>
             </div>
         </div>
+        <!-- Breeding Analysis View -->
+        <div class="view-container" id="breeding-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🧬 Breeding Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <div class="filters">
+                        <div class="filters-grid">
+                            <div class="filter-box">
+                                <div class="filter-title">Type</div>
+                                <select id="breedingType" onchange="updateBreedingFilters()">
+                                    <option value="sire">Sire</option>
+                                    <option value="dam">Dam</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">Name</div>
+                                <input list="breedingList" id="breedingName" placeholder="Select name" onchange="updateBreedingAnalysis()">
+                                <datalist id="breedingList"></datalist>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="breedingResults">
+                        <p>Select a name to see offspring details.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Next Race View -->
         <div class="view-container" id="next-race-view">
             <div class="card">
@@ -987,6 +1016,8 @@
         let favoriteTrendsData = [];
         let showAllJockeys = false;
         let showAllTrainers = false;
+        let sires = new Set();
+        let dams = new Set();
        
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=0&single=true&output=csv';
         const FAVORITES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=964028900&single=true&output=csv';
@@ -1020,6 +1051,9 @@
             } else if (view === 'horses') {
                 populateHorseFilters();
                 updateHorseAnalysis();
+            } else if (view === 'breeding') {
+                updateBreedingFilters();
+                updateBreedingAnalysis();
             } else if (view === 'next-race') {
                 populateNextRaceView();
                 updateNextRaceAnalysis();
@@ -1041,6 +1075,7 @@
                 if (racingData.length > 0) {
                     console.log('Data loaded:', racingData.length, 'races');
                     populateFilters();
+                    populateBreedingData();
                     updateDashboard();
                     document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
                     document.getElementById('syncStatus').style.background = '#22c55e';
@@ -1052,6 +1087,14 @@
                 document.getElementById('syncStatus').textContent = 'Error';
                 document.getElementById('syncStatus').style.background = '#dc2626';
             }
+        }
+        function populateBreedingData() {
+            sires = new Set();
+            dams = new Set();
+            racingData.forEach(row => {
+                if (row.Sire && row.Sire.trim()) sires.add(row.Sire.trim());
+                if (row.Dam && row.Dam.trim()) dams.add(row.Dam.trim());
+            });
         }
         async function loadFavoriteTrends() {
             try {
@@ -2062,6 +2105,8 @@
             const metrics = {
                 avgRanking: 0,
                 avgRanking2YO: 0,
+                avgRanking3YO: 0,
+                avgRanking4Plus: 0,
                 avgRankingJump2YO: 0,
                 avgRankingSprinter: 0,
                 avgRankingMiddle: 0,
@@ -2082,6 +2127,20 @@
             const twoYOValidRankings = twoYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
             if (twoYOValidRankings.length > 0) {
                 metrics.avgRanking2YO = (twoYOValidRankings.reduce((a, b) => a + b, 0) / twoYOValidRankings.length).toFixed(2);
+            }
+           
+            // Calculate average ranking for 3-year-olds
+            const threeYearOlds = data.filter(r => parseInt(r.Age) === 3);
+            const threeYOValidRankings = threeYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            if (threeYOValidRankings.length > 0) {
+                metrics.avgRanking3YO = (threeYOValidRankings.reduce((a, b) => a + b, 0) / threeYOValidRankings.length).toFixed(2);
+            }
+           
+            // Calculate average ranking for 4+ year olds
+            const fourPlusYearOlds = data.filter(r => parseInt(r.Age) >= 4);
+            const fourPlusValidRankings = fourPlusYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            if (fourPlusValidRankings.length > 0) {
+                metrics.avgRanking4Plus = (fourPlusValidRankings.reduce((a, b) => a + b, 0) / fourPlusValidRankings.length).toFixed(2);
             }
            
             // Calculate ranking jump for 2-year-olds (first start to second start)
@@ -2399,6 +2458,82 @@
             const year = 2000 + parseInt(parts[2]); // Convert YY to YYYY
            
             return new Date(year, month, day);
+        }
+        // Breeding Analysis Functions
+        function updateBreedingFilters() {
+            const type = document.getElementById('breedingType').value;
+            const list = document.getElementById('breedingList');
+            const names = type === 'sire' ? Array.from(sires) : Array.from(dams);
+            list.innerHTML = names.sort().map(name => `<option value="${name}"></option>`).join('');
+        }
+        function updateBreedingAnalysis() {
+            const type = document.getElementById('breedingType').value;
+            const name = document.getElementById('breedingName').value;
+            if (!name) {
+                document.getElementById('breedingResults').innerHTML = '<p>Select a name</p>';
+                return;
+            }
+            const offspringSet = new Set();
+            racingData.forEach(row => {
+                if ((type === 'sire' && row.Sire === name) || (type === 'dam' && row.Dam === name)) {
+                    if (row.Horse) offspringSet.add(row.Horse);
+                }
+            });
+            const offspring = Array.from(offspringSet).sort();
+            if (offspring.length === 0) {
+                document.getElementById('breedingResults').innerHTML = '<p>No offspring found</p>';
+                return;
+            }
+            let html = '<h3>Offspring of ' + name + ' (' + type + ')</h3>';
+            html += '<table><thead><tr><th>Horse</th><th>Overall Avg/Best</th><th>2YO Avg/Best</th><th>3YO Avg/Best</th><th>4+ Avg/Best</th><th>Sprint Avg/Best</th><th>Middle Avg/Best</th><th>Stay Avg/Best</th></tr></thead><tbody>';
+            offspring.forEach(horse => {
+                const horseRaces = racingData.filter(r => r.Horse === horse);
+                const metrics = calculateDetailedMetrics(horseRaces, 'horse');
+                if (!metrics) return;
+                // Compute bests
+                const addBests = (races, keyAvg, keyBest) => {
+                    const valid = races.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+                    if (valid.length > 0) {
+                        metrics[keyBest] = Math.min(...valid).toFixed(2);
+                    } else {
+                        metrics[keyBest] = 'N/A';
+                    }
+                };
+                addBests(horseRaces, 'avgRanking', 'bestRanking');
+                const twoYO = horseRaces.filter(r => parseInt(r.Age) === 2);
+                addBests(twoYO, 'avgRanking2YO', 'bestRanking2YO');
+                const threeYO = horseRaces.filter(r => parseInt(r.Age) === 3);
+                addBests(threeYO, 'avgRanking3YO', 'bestRanking3YO');
+                const fourPlus = horseRaces.filter(r => parseInt(r.Age) >= 4);
+                addBests(fourPlus, 'avgRanking4Plus', 'bestRanking4Plus');
+                const sprinters = horseRaces.filter(r => {
+                    const dist = parseInt(r.Distance);
+                    return dist >= 900 && dist <= 1400;
+                });
+                addBests(sprinters, 'avgRankingSprinter', 'bestRankingSprinter');
+                const middle = horseRaces.filter(r => {
+                    const dist = parseInt(r.Distance);
+                    return dist >= 1401 && dist <= 1800;
+                });
+                addBests(middle, 'avgRankingMiddle', 'bestRankingMiddle');
+                const stayers = horseRaces.filter(r => {
+                    const dist = parseInt(r.Distance);
+                    return dist >= 1801;
+                });
+                addBests(stayers, 'avgRankingStayer', 'bestRankingStayer');
+                html += '<tr>';
+                html += '<td>' + horse + '</td>';
+                html += '<td>' + (metrics.avgRanking || 'N/A') + '/' + (metrics.bestRanking || 'N/A') + '</td>';
+                html += '<td>' + (metrics.avgRanking2YO || 'N/A') + '/' + (metrics.bestRanking2YO || 'N/A') + '</td>';
+                html += '<td>' + (metrics.avgRanking3YO || 'N/A') + '/' + (metrics.bestRanking3YO || 'N/A') + '</td>';
+                html += '<td>' + (metrics.avgRanking4Plus || 'N/A') + '/' + (metrics.bestRanking4Plus || 'N/A') + '</td>';
+                html += '<td>' + (metrics.avgRankingSprinter || 'N/A') + '/' + (metrics.bestRankingSprinter || 'N/A') + '</td>';
+                html += '<td>' + (metrics.avgRankingMiddle || 'N/A') + '/' + (metrics.bestRankingMiddle || 'N/A') + '</td>';
+                html += '<td>' + (metrics.avgRankingStayer || 'N/A') + '/' + (metrics.bestRankingStayer || 'N/A') + '</td>';
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('breedingResults').innerHTML = html;
         }
         // Horse Analysis Functions
         function populateHorseFilters() {
@@ -2760,4 +2895,3 @@
     </script>
 </body>
 </html>
-```
