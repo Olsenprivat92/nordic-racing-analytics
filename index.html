@@ -562,7 +562,7 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">👥 Trainers</div>
-                                <input list="trainerList" id="trainerSearch" placeholder="Search trainers..." onchange="updateTrainerAnalysis()">
+                                <input list="trainerList" id="trainerSearch" placeholder="Search trainers..." oninput="filterTrainerSelect()">
                                 <datalist id="trainerList"></datalist>
                                 <select id="trainerAnalysisFilter" multiple size="5" onchange="updateTrainerAnalysis()">
                                     <option value="all" selected>All Trainers</option>
@@ -726,7 +726,7 @@
                         <div class="card-body">
                             <div style="margin-bottom: 1rem;">
                                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter Horses:</label>
-                                <input list="trainerHorseList" id="trainerHorseSearch" placeholder="Search horses..." onchange="trainerFilterHorseTable()">
+                                <input list="trainerHorseList" id="trainerHorseSearch" placeholder="Search horses..." oninput="filterHorseSelect('trainer')">
                                 <datalist id="trainerHorseList"></datalist>
                                 <select id="trainer-horseFilter" multiple size="5" onchange="trainerFilterHorseTable()"></select>
                             </div>
@@ -901,7 +901,7 @@
                         <div class="card-body">
                             <div style="margin-bottom: 1rem;">
                                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter Horses:</label>
-                                <input list="jockeyHorseList" id="jockeyHorseSearch" placeholder="Search horses..." onchange="jockeyFilterHorseTable()">
+                                <input list="jockeyHorseList" id="jockeyHorseSearch" placeholder="Search horses..." oninput="filterHorseSelect('jockey')">
                                 <datalist id="jockeyHorseList"></datalist>
                                 <select id="jockey-horseFilter" multiple size="5" onchange="jockeyFilterHorseTable()"></select>
                             </div>
@@ -1672,7 +1672,7 @@
                     html += '<table style="font-size: 0.875rem;">';
                     html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
                     courseData.forEach(item => {
-                        const top25Color = item.Top25 > 50 ? '#22c55e' : item.Top25 > 30 ? '#000000' : '#ef4444';
+                        const top25Color = item.Top25 > 40 ? '#22c55e' : item.Top25 > 20 ? '#000000' : '#ef4444';
                         const range26_50Color = '#000000'; // black
                         const range51_75Color = '#000000'; // black
                         const range76_100Color = '#000000'; // black
@@ -1869,14 +1869,12 @@
                 if (trainer && trainer.trim()) uniqueTrainers.add(trainer.trim());
                 if (race.Horse && race.Horse.trim()) uniqueHorses.add(race.Horse.trim());
             });
-            const rankings = calculateRankings(calculateDetailedMetrics(filtered, 'trainer'), 'trainer');
             let html = '<table>';
             html += '<tr><td><strong>Total Races:</strong></td><td>' + totalRaces + '</td></tr>';
             html += '<tr><td><strong>Total Wins:</strong></td><td>' + wins + '</td></tr>';
             html += '<tr><td><strong>Win Rate:</strong></td><td style="color: ' + (parseFloat(winRate) > 15 ? '#22c55e' : '#94a3b8') + '; font-weight: 600">' + winRate + '%</td></tr>';
             html += '<tr><td><strong>Trainers:</strong></td><td>' + uniqueTrainers.size + '</td></tr>';
             html += '<tr><td><strong>Horses:</strong></td><td>' + uniqueHorses.size + '</td></tr>';
-            html += '<tr><td><strong>Ranking (Win %):</strong></td><td>' + rankings.winPercentage + '/' + rankings.totalWinPercentage + '</td></tr>';
             html += '</table>';
            
             document.getElementById('trainerBasicStats').innerHTML = html;
@@ -1961,7 +1959,7 @@
                
                 let sorted = allValues.slice().sort((a, b) => inverse ? b - a : a - b);
                 let rank = sorted.findIndex(v => v === numValue) + 1;
-                if (rank === 0) rank = sorted.length + 1; // if not found, but should be since current is included? No, current is for selected, which may be aggregate
+                if (rank === 0) rank = sorted.length + 1; // if not found
                 return rank.toString();
             };
            
@@ -2579,6 +2577,26 @@
             ['last5', 'winsRaces', 'avgRanking', 'avgOdds', 'oddsVsWin', 'comment', 'trainerPct', 'jockeyPct'].forEach(id => {
                 document.getElementById(`${id}-${rowNum}`).textContent = '';
             });
+        }
+        // Filter functions for select
+        function filterTrainerSelect() {
+            const filter = document.getElementById('trainerSearch').value.toLowerCase();
+            const select = document.getElementById('trainerAnalysisFilter');
+            Array.from(select.options).forEach(option => {
+                if (option.value === 'all') return;
+                const text = option.text.toLowerCase();
+                option.style.display = text.includes(filter) ? '' : 'none';
+            });
+            updateTrainerAnalysis();
+        }
+        function filterHorseSelect(prefix) {
+            const filter = document.getElementById(prefix + 'HorseSearch').value.toLowerCase();
+            const select = document.getElementById(prefix + '-horseFilter');
+            Array.from(select.options).forEach(option => {
+                const text = option.text.toLowerCase();
+                option.style.display = text.includes(filter) ? '' : 'none';
+            });
+            filterHorseTable(prefix);
         }
     </script>
 </body>
