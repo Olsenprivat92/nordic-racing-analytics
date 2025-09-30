@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1035,7 +1036,7 @@
         let sires = new Set();
         let dams = new Set();
        
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=0&single=true&output=csv';
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?output=csv';
         const FAVORITES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=964028900&single=true&output=csv';
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
@@ -1101,7 +1102,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('syncStatus').textContent = 'Error';
+                document.getElementById('syncStatus').textContent = 'Error: ' + error.message;
                 document.getElementById('syncStatus').style.background = '#dc2626';
             }
         }
@@ -1672,7 +1673,7 @@
                     html += '<table style="font-size: 0.875rem;">';
                     html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
                     courseData.forEach(item => {
-                        const top25Color = item.Top25 > 40 ? '#22c55e' : item.Top25 > 20 ? '#000000' : '#ef4444';
+                        const top25Color = item.Top25 > 50 ? '#22c55e' : item.Top25 > 30 ? '#000000' : '#ef4444';
                         const range26_50Color = '#000000'; // black
                         const range51_75Color = '#000000'; // black
                         const range76_100Color = '#000000'; // black
@@ -1958,44 +1959,43 @@
                 if (isNaN(numValue)) return 'N/A';
                
                 let sorted = allValues.slice().sort((a, b) => inverse ? b - a : a - b);
-                let rank = sorted.findIndex(v => v === numValue) + 1;
-                if (rank === 0) rank = sorted.length + 1; // if not found
-                return rank.toString();
+                const rank = sorted.indexOf(numValue) + 1;
+                return rank > 0 ? rank.toString() : 'N/A';
             };
            
-            const allAvgRanking = allMetrics.map(m => parseFloat(m.metrics.avgRanking)).filter(v => !isNaN(v));
+            const allAvgRanking = allMetrics.filter(m => m.metrics.avgRanking !== 'N/A').map(m => parseFloat(m.metrics.avgRanking));
             rankings.totalAvgRanking = allAvgRanking.length;
             rankings.avgRanking = calculateRank(currentMetrics.avgRanking, allAvgRanking, false); // lower better
            
-            const allAvgRanking2YO = allMetrics.map(m => parseFloat(m.metrics.avgRanking2YO)).filter(v => !isNaN(v));
+            const allAvgRanking2YO = allMetrics.filter(m => m.metrics.avgRanking2YO !== 'N/A').map(m => parseFloat(m.metrics.avgRanking2YO));
             rankings.totalAvgRanking2YO = allAvgRanking2YO.length;
             rankings.avgRanking2YO = calculateRank(currentMetrics.avgRanking2YO, allAvgRanking2YO, false);
            
-            const allAvgRankingJump2YO = allMetrics.map(m => parseFloat(m.metrics.avgRankingJump2YO)).filter(v => !isNaN(v));
+            const allAvgRankingJump2YO = allMetrics.filter(m => m.metrics.avgRankingJump2YO !== 'N/A').map(m => parseFloat(m.metrics.avgRankingJump2YO));
             rankings.totalAvgRankingJump2YO = allAvgRankingJump2YO.length;
             rankings.avgRankingJump2YO = calculateRank(currentMetrics.avgRankingJump2YO, allAvgRankingJump2YO, false);
            
-            const allAvgRankingSprinter = allMetrics.map(m => parseFloat(m.metrics.avgRankingSprinter)).filter(v => !isNaN(v));
+            const allAvgRankingSprinter = allMetrics.filter(m => m.metrics.avgRankingSprinter !== 'N/A').map(m => parseFloat(m.metrics.avgRankingSprinter));
             rankings.totalAvgRankingSprinter = allAvgRankingSprinter.length;
             rankings.avgRankingSprinter = calculateRank(currentMetrics.avgRankingSprinter, allAvgRankingSprinter, false);
            
-            const allAvgRankingMiddle = allMetrics.map(m => parseFloat(m.metrics.avgRankingMiddle)).filter(v => !isNaN(v));
+            const allAvgRankingMiddle = allMetrics.filter(m => m.metrics.avgRankingMiddle !== 'N/A').map(m => parseFloat(m.metrics.avgRankingMiddle));
             rankings.totalAvgRankingMiddle = allAvgRankingMiddle.length;
             rankings.avgRankingMiddle = calculateRank(currentMetrics.avgRankingMiddle, allAvgRankingMiddle, false);
            
-            const allAvgRankingStayer = allMetrics.map(m => parseFloat(m.metrics.avgRankingStayer)).filter(v => !isNaN(v));
+            const allAvgRankingStayer = allMetrics.filter(m => m.metrics.avgRankingStayer !== 'N/A').map(m => parseFloat(m.metrics.avgRankingStayer));
             rankings.totalAvgRankingStayer = allAvgRankingStayer.length;
             rankings.avgRankingStayer = calculateRank(currentMetrics.avgRankingStayer, allAvgRankingStayer, false);
            
-            const allWinPercentage = allMetrics.map(m => parseFloat(m.metrics.winPercentage)).filter(v => !isNaN(v));
+            const allWinPercentage = allMetrics.filter(m => m.metrics.winPercentage !== 'N/A').map(m => parseFloat(m.metrics.winPercentage));
             rankings.totalWinPercentage = allWinPercentage.length;
             rankings.winPercentage = calculateRank(currentMetrics.winPercentage, allWinPercentage, true); // higher better
            
-            const allAvgOdds = allMetrics.map(m => parseFloat(m.metrics.avgOdds)).filter(v => !isNaN(v));
+            const allAvgOdds = allMetrics.filter(m => m.metrics.avgOdds !== 'N/A').map(m => parseFloat(m.metrics.avgOdds));
             rankings.totalAvgOdds = allAvgOdds.length;
             rankings.avgOdds = calculateRank(currentMetrics.avgOdds, allAvgOdds, false); // lower better
            
-            const allOddsVsWinFormula = allMetrics.map(m => parseFloat(m.metrics.oddsVsWinFormula)).filter(v => !isNaN(v));
+            const allOddsVsWinFormula = allMetrics.filter(m => m.metrics.oddsVsWinFormula !== 'N/A').map(m => parseFloat(m.metrics.oddsVsWinFormula));
             rankings.totalOddsVsWinFormula = allOddsVsWinFormula.length;
             rankings.oddsVsWinFormula = calculateRank(currentMetrics.oddsVsWinFormula, allOddsVsWinFormula, true); // higher better
            
@@ -2587,6 +2587,13 @@
                 const text = option.text.toLowerCase();
                 option.style.display = text.includes(filter) ? '' : 'none';
             });
+            if (filter) {
+                const firstMatching = Array.from(select.options).find(option => option.style.display !== 'none' && option.value !== 'all');
+                if (firstMatching) {
+                    firstMatching.selected = true;
+                    select.scrollTop = firstMatching.offsetTop;
+                }
+            }
             updateTrainerAnalysis();
         }
         function filterHorseSelect(prefix) {
@@ -2596,8 +2603,16 @@
                 const text = option.text.toLowerCase();
                 option.style.display = text.includes(filter) ? '' : 'none';
             });
+            if (filter) {
+                const firstMatching = Array.from(select.options).find(option => option.style.display !== 'none');
+                if (firstMatching) {
+                    firstMatching.selected = true;
+                    select.scrollTop = firstMatching.offsetTop;
+                }
+            }
             filterHorseTable(prefix);
         }
     </script>
 </body>
 </html>
+```
