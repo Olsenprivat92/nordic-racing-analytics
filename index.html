@@ -1013,10 +1013,10 @@
                             <h3>🐴 Select Horse</h3>
                         </div>
                         <div class="card-body">
-                            <input type="text" id="horseSearchInput" placeholder="Search horse..." oninput="filterHorseOptions()" style="margin-bottom: 1rem;">
-                            <select id="horseSelect" onchange="updateHorseDetails()" size="10">
+                            <input list="horseList" id="horseInput" placeholder="Type to search and select horse..." onchange="updateHorseDetails(this.value)">
+                            <datalist id="horseList">
                                 <!-- Options will be populated here -->
-                            </select>
+                            </datalist>
                         </div>
                     </div>
 
@@ -2701,32 +2701,21 @@
         }
 
         function updateHorseAnalysis() {
-            // Populate horse select if not done
-            if (document.getElementById('horseSelect').innerHTML === '') {
+            // Populate datalist if not done
+            if (document.getElementById('horseList').innerHTML === '') {
                 const horses = new Set();
                 racingData.forEach(row => {
                     if (row.Horse && row.Horse.trim()) horses.add(row.Horse.trim());
                 });
-                const horseSelect = document.getElementById('horseSelect');
-                horseSelect.innerHTML = Array.from(horses).sort().map(horse => `<option value="${horse}">${horse}</option>`).join('');
+                const horseList = document.getElementById('horseList');
+                horseList.innerHTML = Array.from(horses).sort().map(horse => `<option value="${horse}">${horse}</option>`).join('');
             }
 
             // Update selected horse if any
-            updateHorseDetails();
+            updateHorseDetails(document.getElementById('horseInput').value);
         }
 
-        function filterHorseOptions() {
-            const search = document.getElementById('horseSearchInput').value.toLowerCase();
-            const select = document.getElementById('horseSelect');
-            const options = select.options;
-            for (let option of options) {
-                option.style.display = option.text.toLowerCase().includes(search) ? '' : 'none';
-            }
-        }
-
-        function updateHorseDetails() {
-            const horseSelect = document.getElementById('horseSelect');
-            const selectedHorse = horseSelect.value;
+        function updateHorseDetails(selectedHorse) {
             if (!selectedHorse) {
                 document.getElementById('horseMainInfo').innerHTML = '<p>Select a horse to see details.</p>';
                 document.getElementById('horseDetailedStats').innerHTML = '<p>Select a horse to see detailed ratings.</p>';
@@ -2850,8 +2839,7 @@
         }
 
         function saveHorseComment() {
-            const horseSelect = document.getElementById('horseSelect');
-            const selectedHorse = horseSelect.value;
+            const selectedHorse = document.getElementById('horseInput').value;
             const comment = document.getElementById('horseComment').value;
             if (selectedHorse) {
                 localStorage.setItem('horseComment_' + selectedHorse, comment);
