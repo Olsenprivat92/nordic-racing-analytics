@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -340,8 +341,11 @@
 
         .performance-metrics {
             display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 1rem;
+        }
+
+        .performance-metrics.jockey {
+            grid-template-columns: 1fr 1fr 1fr;
         }
 
         .metric-item {
@@ -407,6 +411,7 @@
             <div class="nav-item" onclick="switchView('courses', event)">🏁 Course Analysis</div>
             <div class="nav-item" onclick="switchView('trainers', event)">👥 Trainer Analysis</div>
             <div class="nav-item" onclick="switchView('jockeys', event)">🏇 Jockey Analysis</div>
+            <div class="nav-item" onclick="switchView('horses', event)">🐎 Horse Analysis</div>
             <div class="nav-item" onclick="switchView('predictor', event)">🔮 Race Predictor</div>
         </div>
     </nav>
@@ -863,7 +868,7 @@
                                         <h4 class="period-title">Last 1 Month</h4>
                                         <span class="period-icon">📅</span>
                                     </div>
-                                    <div class="performance-metrics">
+                                    <div class="performance-metrics jockey">
                                         <div class="metric-item">
                                             <div class="metric-label">Win Rate</div>
                                             <div class="metric-value win-rate" id="jockey-performance1MonthWinRate">0%</div>
@@ -884,7 +889,7 @@
                                         <h4 class="period-title">Last 3 Months</h4>
                                         <span class="period-icon">📅</span>
                                     </div>
-                                    <div class="performance-metrics">
+                                    <div class="performance-metrics jockey">
                                         <div class="metric-item">
                                             <div class="metric-label">Win Rate</div>
                                             <div class="metric-value win-rate" id="jockey-performance3MonthsWinRate">0%</div>
@@ -905,7 +910,7 @@
                                         <h4 class="period-title">Last 12 Months</h4>
                                         <span class="period-icon">📅</span>
                                     </div>
-                                    <div class="performance-metrics">
+                                    <div class="performance-metrics jockey">
                                         <div class="metric-item">
                                             <div class="metric-label">Win Rate</div>
                                             <div class="metric-value win-rate" id="jockey-performance12MonthsWinRate">0%</div>
@@ -952,6 +957,105 @@
                             </div>
                             <div id="jockey-horseDetails" style="max-height: 400px; overflow-y: auto;">
                                 <p>Select filters above to see race details.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Horse Analysis View -->
+        <div class="view-container" id="horses-view">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🐎 Horse Analysis</h2>
+                    <button onclick="updateHorseAnalysis()">🔄 Refresh Analysis</button>
+                </div>
+                <div class="card-body">
+                    <!-- Horse Filters -->
+                    <div class="filters">
+                        <div class="filters-grid">
+                            <div class="filter-box">
+                                <div class="filter-title">🌱 Surfaces</div>
+                                <select id="horseSurfaceFilter" multiple size="3" onchange="updateHorseAnalysis()">
+                                    <option value="Grass">Grass</option>
+                                    <option value="Dirt">Dirt</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏁 Courses</div>
+                                <select id="horseCourseFilter" multiple size="5" onchange="updateHorseAnalysis()">
+                                    <option value="all" selected>All Courses</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🎂 Horse Age</div>
+                                <select id="horseAgeFilter" multiple size="4" onchange="updateHorseAnalysis()">
+                                    <option value="2">2 Year Olds</option>
+                                    <option value="3">3 Year Olds</option>
+                                    <option value="4+">4+ Year Olds</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Date From</div>
+                                <input type="date" id="horseFromDate" onchange="updateHorseAnalysis()">
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Date To</div>
+                                <input type="date" id="horseToDate" onchange="updateHorseAnalysis()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Horse Selection -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>🐴 Select Horse</h3>
+                        </div>
+                        <div class="card-body">
+                            <input type="text" id="horseSearchInput" placeholder="Search horse..." oninput="filterHorseOptions()" style="margin-bottom: 1rem;">
+                            <select id="horseSelect" onchange="updateHorseDetails()" size="10">
+                                <!-- Options will be populated here -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Main Horse Info -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>🐴 Horse Information</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="horseMainInfo">
+                                <p>Select a horse to see details.</p>
+                            </div>
+                            <div style="margin-top: 1rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Comment:</label>
+                                <textarea id="horseComment" rows="4" onblur="saveHorseComment()"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Stats -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>📊 Detailed Ratings</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="horseDetailedStats">
+                                <p>Select a horse to see detailed ratings.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Race History -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🏁 Race History</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="horseRaceHistory" class="scrollable">
+                                <p>Select a horse to see race history.</p>
                             </div>
                         </div>
                     </div>
@@ -1036,6 +1140,9 @@
             } else if (view === 'jockeys') {
                 populateJockeyFilters();
                 updateJockeyAnalysis();
+            } else if (view === 'horses') {
+                populateHorseFilters();
+                updateHorseAnalysis();
             }
         }
 
@@ -2502,6 +2609,255 @@
             
             return new Date(year, month, day);
         }
+
+        // Horse Analysis Functions
+        function populateHorseFilters() {
+            const courses = new Set();
+            
+            racingData.forEach(row => {
+                if (row.Course && row.Course.trim()) {
+                    let courseName = row.Course.trim();
+                    
+                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
+                        const surface = (row.Surface || '').toLowerCase();
+                        const track = (row.Track || '').toLowerCase();
+                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
+                        
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') || 
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            courseName += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            courseName += ' (Grass)';
+                        }
+                    }
+                    
+                    courses.add(courseName);
+                }
+            });
+            
+            const courseFilter = document.getElementById('horseCourseFilter');
+            courseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
+                Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+        }
+
+        function getHorseFilteredRaces(horseName) {
+            const surfaceValues = getSelectedValues('horseSurfaceFilter');
+            const courseValues = getSelectedValues('horseCourseFilter');
+            const ageValues = getSelectedValues('horseAgeFilter');
+            const fromDate = document.getElementById('horseFromDate').value;
+            const toDate = document.getElementById('horseToDate').value;
+
+            return racingData.filter(race => {
+                if (race.Horse !== horseName) return false;
+
+                if (surfaceValues.length > 0) {
+                    const raceSurface = (race.Surface || '').toLowerCase();
+                    let isGrass = raceSurface.includes('grass') || raceSurface.includes('turf') || raceSurface.includes('græs');
+                    let isDirt = raceSurface.includes('dirt') || raceSurface.includes('sand');
+                    if (surfaceValues.includes('Grass') && !isGrass) return false;
+                    if (surfaceValues.includes('Dirt') && !isDirt) return false;
+                }
+
+                if (!courseValues.includes('all')) {
+                    let raceCourse = race.Course || '';
+                    
+                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                        const surface = (race.Surface || '').toLowerCase();
+                        const track = (race.Track || '').toLowerCase();
+                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+                        
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') || 
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            raceCourse += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            raceCourse += ' (Grass)';
+                        }
+                    }
+                    
+                    const matchesCourse = courseValues.some(course => 
+                        raceCourse === course || race.Course === course ||
+                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
+                    );
+                    if (!matchesCourse) return false;
+                }
+
+                if (ageValues.length > 0) {
+                    const age = parseInt(race.Age) || 0;
+                    const ageGroup = age === 2 ? '2' : age === 3 ? '3' : age >= 4 ? '4+' : '';
+                    if (!ageValues.includes(ageGroup)) return false;
+                }
+
+                if (fromDate || toDate) {
+                    const raceDate = parseRaceDate(race.Date);
+                    if (!raceDate) return false;
+                    if (fromDate && raceDate < new Date(fromDate)) return false;
+                    if (toDate && raceDate > new Date(toDate)) return false;
+                }
+
+                return true;
+            });
+        }
+
+        function updateHorseAnalysis() {
+            // Populate horse select if not done
+            if (document.getElementById('horseSelect').innerHTML === '') {
+                const horses = new Set();
+                racingData.forEach(row => {
+                    if (row.Horse && row.Horse.trim()) horses.add(row.Horse.trim());
+                });
+                const horseSelect = document.getElementById('horseSelect');
+                horseSelect.innerHTML = Array.from(horses).sort().map(horse => `<option value="${horse}">${horse}</option>`).join('');
+            }
+
+            // Update selected horse if any
+            updateHorseDetails();
+        }
+
+        function filterHorseOptions() {
+            const search = document.getElementById('horseSearchInput').value.toLowerCase();
+            const select = document.getElementById('horseSelect');
+            const options = select.options;
+            for (let option of options) {
+                option.style.display = option.text.toLowerCase().includes(search) ? '' : 'none';
+            }
+        }
+
+        function updateHorseDetails() {
+            const horseSelect = document.getElementById('horseSelect');
+            const selectedHorse = horseSelect.value;
+            if (!selectedHorse) {
+                document.getElementById('horseMainInfo').innerHTML = '<p>Select a horse to see details.</p>';
+                document.getElementById('horseDetailedStats').innerHTML = '<p>Select a horse to see detailed ratings.</p>';
+                document.getElementById('horseRaceHistory').innerHTML = '<p>Select a horse to see race history.</p>';
+                document.getElementById('horseComment').value = '';
+                return;
+            }
+
+            const horseRaces = racingData.filter(r => r.Horse === selectedHorse);
+            if (horseRaces.length === 0) {
+                document.getElementById('horseMainInfo').innerHTML = '<p>No data for this horse.</p>';
+                return;
+            }
+
+            // Main Info
+            const firstRace = horseRaces[0];
+            const sire = firstRace.Sire || 'N/A';
+            const dam = firstRace.Dam || firstRace.Filly || 'N/A';
+            const trainer = firstRace.Trainer || 'N/A';
+
+            // Siblings
+            const siblings = [];
+            racingData.forEach(r => {
+                if (r.Dam === dam && r.Horse !== selectedHorse && r.Horse) {
+                    siblings.push({horse: r.Horse, sire: r.Sire || 'N/A'});
+                }
+            });
+
+            let mainHtml = '<table>';
+            mainHtml += '<tr><td><strong>Sire:</strong></td><td>' + sire + '</td></tr>';
+            mainHtml += '<tr><td><strong>Dam:</strong></td><td>' + dam + '</td></tr>';
+            mainHtml += '<tr><td><strong>Trainer:</strong></td><td>' + trainer + '</td></tr>';
+            mainHtml += '<tr><td><strong>Siblings:</strong></td><td>';
+            if (siblings.length > 0) {
+                mainHtml += siblings.map(s => s.horse + ' (Sire: ' + s.sire + ')').join('<br>');
+            } else {
+                mainHtml += 'None found';
+            }
+            mainHtml += '</td></tr>';
+            mainHtml += '</table>';
+
+            document.getElementById('horseMainInfo').innerHTML = mainHtml;
+
+            // Load comment
+            document.getElementById('horseComment').value = localStorage.getItem('horseComment_' + selectedHorse) || '';
+
+            // Detailed Stats
+            const filteredRaces = getHorseFilteredRaces(selectedHorse);
+            const validRankings = filteredRaces.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            const numRaces = validRankings.length;
+            const avgRating = numRaces > 0 ? (validRankings.reduce((a, b) => a + b, 0) / numRaces).toFixed(2) : 'N/A';
+            const bestRating = numRaces > 0 ? Math.min(...validRankings) : 'N/A';
+
+            const sprintRaces = filteredRaces.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist >= 900 && dist <= 1400;
+            });
+            const sprintRankings = sprintRaces.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            const numSprint = sprintRankings.length;
+            const avgSprint = numSprint > 0 ? (sprintRankings.reduce((a, b) => a + b, 0) / numSprint).toFixed(2) : 'N/A';
+            const bestSprint = numSprint > 0 ? Math.min(...sprintRankings) : 'N/A';
+
+            const middleRaces = filteredRaces.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist >= 1401 && dist <= 1800;
+            });
+            const middleRankings = middleRaces.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            const numMiddle = middleRankings.length;
+            const avgMiddle = numMiddle > 0 ? (middleRankings.reduce((a, b) => a + b, 0) / numMiddle).toFixed(2) : 'N/A';
+            const bestMiddle = numMiddle > 0 ? Math.min(...middleRankings) : 'N/A';
+
+            const stayRaces = filteredRaces.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist >= 1801;
+            });
+            const stayRankings = stayRaces.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            const numStay = stayRankings.length;
+            const avgStay = numStay > 0 ? (stayRankings.reduce((a, b) => a + b, 0) / numStay).toFixed(2) : 'N/A';
+            const bestStay = numStay > 0 ? Math.min(...stayRankings) : 'N/A';
+
+            let statsHtml = '<table>';
+            statsHtml += '<tr><td><strong>Average Rating:</strong></td><td>' + avgRating + ' (based on ' + numRaces + ' races)</td></tr>';
+            statsHtml += '<tr><td><strong>Best Rating:</strong></td><td>' + bestRating + '</td></tr>';
+            statsHtml += '<tr><td><strong>Average Rating Sprint:</strong></td><td>' + avgSprint + ' (based on ' + numSprint + ' races)</td></tr>';
+            statsHtml += '<tr><td><strong>Best Rating Sprint:</strong></td><td>' + bestSprint + '</td></tr>';
+            statsHtml += '<tr><td><strong>Average Rating Middle Distance:</strong></td><td>' + avgMiddle + ' (based on ' + numMiddle + ' races)</td></tr>';
+            statsHtml += '<tr><td><strong>Best Rating Middle Distance:</strong></td><td>' + bestMiddle + '</td></tr>';
+            statsHtml += '<tr><td><strong>Average Rating Stay Distance:</strong></td><td>' + avgStay + ' (based on ' + numStay + ' races)</td></tr>';
+            statsHtml += '<tr><td><strong>Best Rating Stay Distance:</strong></td><td>' + bestStay + '</td></tr>';
+            statsHtml += '</table>';
+
+            document.getElementById('horseDetailedStats').innerHTML = statsHtml;
+
+            // Race History
+            let historyHtml = '<table style="font-size: 0.85rem; width: 100%;">';
+            historyHtml += '<thead><tr>';
+            historyHtml += '<th>Date</th><th>Course</th><th>Surface</th><th>Class</th><th>Place</th>';
+            historyHtml += '<th>Field</th><th>Ranking</th><th>Age</th><th>Comment</th>';
+            historyHtml += '</tr></thead><tbody>';
+            
+            filteredRaces.forEach(race => {
+                const surface = race.Surface || 'N/A';
+                const placeColor = race.Place === '1' || race.Place === 1 ? '#22c55e' : '#64748b';
+                
+                historyHtml += '<tr>';
+                historyHtml += '<td>' + (race.Date || 'N/A') + '</td>';
+                historyHtml += '<td>' + (race.Course || 'N/A') + '</td>';
+                historyHtml += '<td>' + surface + '</td>';
+                historyHtml += '<td>' + (race.Class || 'N/A') + '</td>';
+                historyHtml += `<td style="color:${placeColor}; font-weight: 600">${race.Place || 'N/A'}</td>`;
+                historyHtml += '<td>' + (race.Field || 'N/A') + '</td>';
+                historyHtml += '<td>' + (race.Ranking || 'N/A') + '</td>';
+                historyHtml += '<td>' + (race.Age || 'N/A') + '</td>';
+                historyHtml += '<td>' + (race.Comment || '') + '</td>';
+                historyHtml += '</tr>';
+            });
+            
+            historyHtml += '</tbody></table>';
+            
+            document.getElementById('horseRaceHistory').innerHTML = historyHtml;
+        }
+
+        function saveHorseComment() {
+            const horseSelect = document.getElementById('horseSelect');
+            const selectedHorse = horseSelect.value;
+            const comment = document.getElementById('horseComment').value;
+            if (selectedHorse) {
+                localStorage.setItem('horseComment_' + selectedHorse, comment);
+            }
+        }
     </script>
 </body>
 </html>
+```
