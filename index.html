@@ -1,4 +1,3 @@
-```html:disable-run
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1388,7 +1387,7 @@
             const postStats = {};
            
             data.forEach(race => {
-                const post = parseInt(race.Startspor) || parseInt(race['Post Position'] ) || 0;
+                const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
                 if (post > 0 && post <= 20) {
                     if (!postStats[post]) postStats[post] = {wins: 0, runs: 0};
                     postStats[post].runs++;
@@ -2570,5 +2569,25 @@
             const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
             const jockeyRaces = racingData.filter(r => r.Jockey === jockey);
             const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(
-```
+            const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
+            document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
+        }
+        function clearNextRaceRow(rowNum) {
+            ['last5', 'winsRaces', 'avgRanking', 'avgOdds', 'oddsVsWin', 'comment', 'trainerPct', 'jockeyPct'].forEach(id => {
+                document.getElementById(`${id}-${rowNum}`).textContent = '';
+            });
+        }
+        // Filter functions for select
+        function filterTrainerSelect() {
+            const filter = document.getElementById('trainerSearch').value.toLowerCase();
+            const select = document.getElementById('trainerAnalysisFilter');
+            Array.from(select.options).forEach(option => {
+                if (option.value === 'all') return;
+                const text = option.text.toLowerCase();
+                option.style.display = text.includes(filter) ? '' : 'none';
+            });
+            if (filter) {
+                const firstMatching = Array.from(select.options).find(option => option.style.display !== 'none' && option.value !== 'all');
+                if (firstMatching) {
+                    firstMatching.selected = true;
+                    select.scrollTop = firstMatching
