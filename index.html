@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2415,10 +2414,10 @@
                 historyHtml += '<td>' + (race.Class || 'N/A') + '</td>';
                 historyHtml += `<td style="color:${placeColor}; font-weight: 600">${race.Place || 'N/A'}</td>`;
                 historyHtml += '<td>' + (race.Field || 'N/A') + '</td>';
-                historyHtml += '<td>' + (race.Ranking || 'N/A') + '</td>';
-                historyHtml += '<td>' + (race.Age || 'N/A') + '</td>';
-                historyHtml += '<td>' + (race.Comment || '') + '</td>';
-                historyHtml += '</tr>';
+                html += '<td>' + (race.Ranking || 'N/A') + '</td>';
+                html += '<td>' + (race.Age || 'N/A') + '</td>';
+                html += '<td>' + (race.Comment || '') + '</td>';
+                html += '</tr>';
             });
            
             historyHtml += '</tbody></table>';
@@ -2615,4 +2614,3 @@
     </script>
 </body>
 </html>
-```
