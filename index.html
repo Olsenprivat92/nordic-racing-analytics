@@ -464,14 +464,6 @@
                                     <option value="all" selected>All Distances</option>
                                 </select>
                             </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📆 From Date</div>
-                                <input type="date" id="courseFromDate" onchange="updateCourseAnalysis()">
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📆 To Date</div>
-                                <input type="date" id="courseToDate" onchange="updateCourseAnalysis()">
-                            </div>
                         </div>
                     </div>
                     <div class="analysis-grid">
@@ -492,7 +484,6 @@
                                 <button class="show-all-btn" onclick="toggleJockeyView()">Show All</button>
                             </h3>
                             <div style="margin-bottom: 0.5rem; font-size: 12px;">
-                                Min Races: <input type="number" id="minRacesJockey" value="3" min="1" style="width: 60px; padding: 2px;" onchange="updateTopJockeys(getFilteredData())">
                                 Sort by:
                                 <select id="jockeySortBy" onchange="updateTopJockeys(getFilteredData())" style="font-size: 12px; padding: 2px; width: auto; margin: 0;">
                                     <option value="wins">Wins</option>
@@ -510,7 +501,6 @@
                                 <button class="show-all-btn" onclick="toggleTrainerView()">Show All</button>
                             </h3>
                             <div style="margin-bottom: 0.5rem; font-size: 12px;">
-                                Min Races: <input type="number" id="minRacesTrainer" value="3" min="1" style="width: 60px; padding: 2px;" onchange="updateTopTrainers(getFilteredData())">
                                 Sort by:
                                 <select id="trainerSortBy" onchange="updateTopTrainers(getFilteredData())" style="font-size: 12px; padding: 2px; width: auto; margin: 0;">
                                     <option value="wins">Wins</option>
@@ -562,8 +552,6 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">👥 Trainers</div>
-                                <input list="trainerList" id="trainerSearch" placeholder="Search trainers..." onchange="updateTrainerAnalysis()">
-                                <datalist id="trainerList"></datalist>
                                 <select id="trainerAnalysisFilter" multiple size="5" onchange="updateTrainerAnalysis()">
                                     <option value="all" selected>All Trainers</option>
                                 </select>
@@ -726,8 +714,6 @@
                         <div class="card-body">
                             <div style="margin-bottom: 1rem;">
                                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter Horses:</label>
-                                <input list="trainerHorseList" id="trainerHorseSearch" placeholder="Search horses..." onchange="trainerFilterHorseTable()">
-                                <datalist id="trainerHorseList"></datalist>
                                 <select id="trainer-horseFilter" multiple size="5" onchange="trainerFilterHorseTable()"></select>
                             </div>
                             <div id="trainer-horseDetails" style="max-height: 400px; overflow-y: auto;">
@@ -901,8 +887,6 @@
                         <div class="card-body">
                             <div style="margin-bottom: 1rem;">
                                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter Horses:</label>
-                                <input list="jockeyHorseList" id="jockeyHorseSearch" placeholder="Search horses..." onchange="jockeyFilterHorseTable()">
-                                <datalist id="jockeyHorseList"></datalist>
                                 <select id="jockey-horseFilter" multiple size="5" onchange="jockeyFilterHorseTable()"></select>
                             </div>
                             <div id="jockey-horseDetails" style="max-height: 400px; overflow-y: auto;">
@@ -1092,7 +1076,6 @@
                     console.log('Data loaded:', racingData.length, 'races');
                     populateFilters();
                     populateBreedingData();
-                    populateTrainerList();
                     updateDashboard();
                     document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
                     document.getElementById('syncStatus').style.background = '#22c55e';
@@ -1105,14 +1088,13 @@
                 document.getElementById('syncStatus').style.background = '#dc2626';
             }
         }
-        function populateTrainerList() {
-            const trainers = new Set();
+        function populateBreedingData() {
+            sires = new Set();
+            dams = new Set();
             racingData.forEach(row => {
-                const trainer = row.Trainer || row.Owner;
-                if (trainer && trainer.trim()) trainers.add(trainer.trim());
+                if (row.Sire && row.Sire.trim()) sires.add(row.Sire.trim());
+                if (row.Dam && row.Dam.trim()) dams.add(row.Dam.trim());
             });
-            const trainerList = document.getElementById('trainerList');
-            trainerList.innerHTML = Array.from(trainers).sort().map(trainer => `<option value="${trainer}"></option>`).join('');
         }
         async function loadFavoriteTrends() {
             try {
@@ -1277,7 +1259,6 @@
         }
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);
-            if (!select) return [];
             const values = Array.from(select.selectedOptions).map(option => option.value);
             return values.includes('all') ? ['all'] : values;
         }
@@ -1287,8 +1268,6 @@
             const classValues = getSelectedValues('classFilter');
             const fieldValues = getSelectedValues('fieldFilter');
             const distanceValues = getSelectedValues('distanceFilter');
-            const fromDate = document.getElementById('courseFromDate') ? document.getElementById('courseFromDate').value : '';
-            const toDate = document.getElementById('courseToDate') ? document.getElementById('courseToDate').value : '';
             return racingData.filter(race => {
                 if (!courseValues.includes('all')) {
                     let raceCourse = race.Course || '';
@@ -1327,9 +1306,6 @@
                 if (!distanceValues.includes('all')) {
                     if (!distanceValues.includes(race.Distance)) return false;
                 }
-                const raceDate = parseRaceDate(race.Date);
-                if (fromDate && raceDate < new Date(fromDate)) return false;
-                if (toDate && raceDate > new Date(toDate)) return false;
                 return true;
             });
         }
@@ -1451,7 +1427,6 @@
             document.getElementById('winningTimes').innerHTML = html || '<p>No timing data available</p>';
         }
         function updateTopJockeys(data) {
-            const minRaces = parseInt(document.getElementById('minRacesJockey').value) || 3;
             const jockeyStats = {};
            
             data.forEach(race => {
@@ -1472,7 +1447,7 @@
             });
            
             let jockeyArray = Object.values(jockeyStats)
-                .filter(stats => showAllJockeys || stats.runs >= minRaces)
+                .filter(stats => showAllJockeys || stats.runs >= 3)
                 .map(stats => ({
                     name: stats.name,
                     wins: stats.wins,
@@ -1513,7 +1488,6 @@
             document.getElementById('topJockeys').innerHTML = html || '<p>No jockey data available</p>';
         }
         function updateTopTrainers(data) {
-            const minRaces = parseInt(document.getElementById('minRacesTrainer').value) || 3;
             const trainerStats = {};
            
             data.forEach(race => {
@@ -1534,7 +1508,7 @@
             });
            
             let trainerArray = Object.values(trainerStats)
-                .filter(stats => showAllTrainers || stats.runs >= minRaces)
+                .filter(stats => showAllTrainers || stats.runs >= 3)
                 .map(stats => ({
                     name: stats.name,
                     wins: stats.wins,
@@ -1672,16 +1646,13 @@
                     html += '<table style="font-size: 0.875rem;">';
                     html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
                     courseData.forEach(item => {
-                        const top25Color = item.Top25 > 50 ? '#22c55e' : item.Top25 > 30 ? '#000000' : '#ef4444';
-                        const range26_50Color = '#000000'; // black
-                        const range51_75Color = '#000000'; // black
-                        const range76_100Color = '#000000'; // black
+                        const top25Color = item.Top25 > 50 ? '#22c55e' : item.Top25 > 40 ? '#f59e0b' : '#ef4444';
                         html += '<tr>';
                         html += `<td>${item.Class}</td>`;
                         html += `<td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>`;
-                        html += `<td style="color:${range26_50Color}">${item.Range26_50.toFixed(1)}%</td>`;
-                        html += `<td style="color:${range51_75Color}">${item.Range51_75.toFixed(1)}%</td>`;
-                        html += `<td style="color:${range76_100Color}">${item.Range76_100.toFixed(1)}%</td>`;
+                        html += `<td>${item.Range26_50.toFixed(1)}%</td>`;
+                        html += `<td>${item.Range51_75.toFixed(1)}%</td>`;
+                        html += `<td>${item.Range76_100.toFixed(1)}%</td>`;
                         html += `<td>${item.Total}</td>`;
                         html += '</tr>';
                     });
@@ -1791,8 +1762,7 @@
                 Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
         }
         function getTrainerFilteredData() {
-            const trainerSearch = document.getElementById('trainerSearch').value;
-            const trainerValues = trainerSearch ? [trainerSearch] : getSelectedValues('trainerAnalysisFilter');
+            const trainerValues = getSelectedValues('trainerAnalysisFilter');
             const courseValues = getSelectedValues('trainerCourseFilter');
             const monthValues = getSelectedValues('trainerMonthFilter');
             const classValues = getSelectedValues('trainerClassFilter');
@@ -1878,7 +1848,7 @@
             html += '</table>';
            
             document.getElementById('trainerBasicStats').innerHTML = html;
-            // Update detailed metrics with rankings
+            // Update detailed metrics with percentiles
             updateTrainerDetailedMetrics();
             // Update performance periods
             updateTrainerPerformancePeriods();
@@ -1894,104 +1864,51 @@
                 return;
             }
            
-            // Calculate rankings for the current selection
-            const rankings = calculateRankings(metrics, 'trainer');
+            // Calculate percentiles for the current selection
+            const percentiles = calculatePercentiles(metrics, 'trainer');
            
             let html = '<table style="font-size: 0.9rem;">';
-            html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Ranking</th></tr>';
+            html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Percentile</th></tr>';
            
-            const getRankingBadge = (ranking, total) => {
-                if (ranking === 'N/A') return '<span style="color: #94a3b8;">N/A</span>';
-                return `<span style="background: #e5e7eb; color: #0f172a; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">${ranking}/${total}</span>`;
+            // Helper function to get percentile color
+            const getPercentileColor = (percentile, inverse = false) => {
+                if (percentile === 'N/A') return '#94a3b8';
+                const p = parseFloat(percentile);
+                if (inverse) {
+                    return p >= 75 ? '#22c55e' : p >= 50 ? '#f59e0b' : p >= 25 ? '#fb923c' : '#ef4444';
+                } else {
+                    return p >= 75 ? '#22c55e' : p >= 50 ? '#f59e0b' : p >= 25 ? '#fb923c' : '#ef4444';
+                }
             };
            
-            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgRanking, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgRanking2YO, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgRankingJump2YO, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgRankingSprinter, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgRankingMiddle, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgRankingStayer, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + getRankingBadge(rankings.winPercentage, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgOdds, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + getRankingBadge(rankings.oddsVsWinFormula, rankings.total) + '</td></tr>';
+            // Helper function to format percentile badge
+            const formatPercentile = (percentile, inverse = false) => {
+                if (percentile === 'N/A') return '<span style="color: #94a3b8;">N/A</span>';
+                const color = getPercentileColor(percentile, inverse);
+                return `<span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">${percentile}%</span>`;
+            };
+           
+            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking, true) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRanking2YO, true) + '</td></tr>';
+            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingJump2YO, true) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingSprinter, true) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingMiddle, true) + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgRankingStayer, true) + '</td></tr>';
+            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + formatPercentile(percentiles.winPercentage, false) + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgOdds, true) + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + formatPercentile(percentiles.oddsVsWinFormula, false) + '</td></tr>';
             html += '</table>';
            
-            // Add legend for ranking
+            // Add legend for percentile colors
             html += '<div style="margin-top: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 6px; font-size: 0.8rem;">';
-            html += '<strong>Ranking Legend:</strong> Lower number is better. Minimum 10 races to qualify.';
+            html += '<strong>Percentile Legend:</strong> ';
+            html += '<span style="background: #22c55e; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">75-100</span>';
+            html += '<span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">50-74</span>';
+            html += '<span style="background: #fb923c; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">25-49</span>';
+            html += '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">0-24</span>';
             html += '</div>';
            
             document.getElementById('trainerDetailedMetrics').innerHTML = html;
-        }
-        function calculateRankings(currentMetrics, type) {
-            const allCombinations = {};
-           
-            // Group races by type (trainer or jockey)
-            racingData.forEach(race => {
-                const key = type === 'trainer' ? (race.Trainer || race.Owner || '') : (race.Jockey || '');
-                if (key.trim()) {
-                    if (!allCombinations[key]) {
-                        allCombinations[key] = [];
-                    }
-                    allCombinations[key].push(race);
-                }
-            });
-           
-            // Calculate metrics for all with min 10 races
-            const allMetrics = [];
-            Object.keys(allCombinations).forEach(key => {
-                const races = allCombinations[key];
-                if (races.length >= 10) {
-                    const metrics = calculateDetailedMetrics(races, type);
-                    if (metrics) {
-                        allMetrics.push({key, metrics});
-                    }
-                }
-            });
-           
-            const total = allMetrics.length;
-            const rankings = { total };
-           
-            const calculateRank = (value, allValues, inverse = false) => {
-                if (!value || value === 'N/A' || allValues.length === 0) return 'N/A';
-               
-                const numValue = parseFloat(value);
-                if (isNaN(numValue)) return 'N/A';
-               
-                const sorted = allValues.sort((a, b) => inverse ? a - b : b - a);
-                const rank = sorted.findIndex(v => v === numValue) + 1;
-               
-                return rank.toString();
-            };
-           
-            const allAvgRanking = allMetrics.map(m => parseFloat(m.metrics.avgRanking)).filter(v => !isNaN(v));
-            rankings.avgRanking = calculateRank(currentMetrics.avgRanking, allAvgRanking, false); // lower better, sort asc
-           
-            const allAvgRanking2YO = allMetrics.map(m => parseFloat(m.metrics.avgRanking2YO)).filter(v => !isNaN(v));
-            rankings.avgRanking2YO = calculateRank(currentMetrics.avgRanking2YO, allAvgRanking2YO, false);
-           
-            const allAvgRankingJump2YO = allMetrics.map(m => parseFloat(m.metrics.avgRankingJump2YO)).filter(v => !isNaN(v));
-            rankings.avgRankingJump2YO = calculateRank(currentMetrics.avgRankingJump2YO, allAvgRankingJump2YO, false);
-           
-            const allAvgRankingSprinter = allMetrics.map(m => parseFloat(m.metrics.avgRankingSprinter)).filter(v => !isNaN(v));
-            rankings.avgRankingSprinter = calculateRank(currentMetrics.avgRankingSprinter, allAvgRankingSprinter, false);
-           
-            const allAvgRankingMiddle = allMetrics.map(m => parseFloat(m.metrics.avgRankingMiddle)).filter(v => !isNaN(v));
-            rankings.avgRankingMiddle = calculateRank(currentMetrics.avgRankingMiddle, allAvgRankingMiddle, false);
-           
-            const allAvgRankingStayer = allMetrics.map(m => parseFloat(m.metrics.avgRankingStayer)).filter(v => !isNaN(v));
-            rankings.avgRankingStayer = calculateRank(currentMetrics.avgRankingStayer, allAvgRankingStayer, false);
-           
-            const allWinPercentage = allMetrics.map(m => parseFloat(m.metrics.winPercentage)).filter(v => !isNaN(v));
-            rankings.winPercentage = calculateRank(currentMetrics.winPercentage, allWinPercentage, true); // higher better, sort desc
-           
-            const allAvgOdds = allMetrics.map(m => parseFloat(m.metrics.avgOdds)).filter(v => !isNaN(v));
-            rankings.avgOdds = calculateRank(currentMetrics.avgOdds, allAvgOdds, false); // lower better
-           
-            const allOddsVsWinFormula = allMetrics.map(m => parseFloat(m.metrics.oddsVsWinFormula)).filter(v => !isNaN(v));
-            rankings.oddsVsWinFormula = calculateRank(currentMetrics.oddsVsWinFormula, allOddsVsWinFormula, true); // higher better
-           
-            return rankings;
         }
         // For jockeys, similar functions
         function populateJockeyFilters() {
@@ -2144,24 +2061,39 @@
                 return;
             }
            
-            // Calculate rankings for the current selection
-            const rankings = calculateRankings(metrics, 'jockey');
+            // Calculate percentiles for the current selection
+            const percentiles = calculatePercentiles(metrics, 'jockey');
            
             let html = '<table style="font-size: 0.9rem;">';
-            html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Ranking</th></tr>';
+            html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Percentile</th></tr>';
            
-            const getRankingBadge = (ranking, total) => {
-                if (ranking === 'N/A') return '<span style="color: #94a3b8;">N/A</span>';
-                return `<span style="background: #e5e7eb; color: #0f172a; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">${ranking}/${total}</span>`;
+            const getPercentileColor = (percentile, inverse = false) => {
+                if (percentile === 'N/A') return '#94a3b8';
+                const p = parseFloat(percentile);
+                if (inverse) {
+                    return p >= 75 ? '#22c55e' : p >= 50 ? '#f59e0b' : p >= 25 ? '#fb923c' : '#ef4444';
+                } else {
+                    return p >= 75 ? '#22c55e' : p >= 50 ? '#f59e0b' : p >= 25 ? '#fb923c' : '#ef4444';
+                }
             };
            
-            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + getRankingBadge(rankings.winPercentage, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td><td>' + getRankingBadge(rankings.avgOdds, rankings.total) + '</td></tr>';
-            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + getRankingBadge(rankings.oddsVsWinFormula, rankings.total) + '</td></tr>';
+            const formatPercentile = (percentile, inverse = false) => {
+                if (percentile === 'N/A') return '<span style="color: #94a3b8;">N/A</span>';
+                const color = getPercentileColor(percentile, inverse);
+                return `<span style="background: ${color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">${percentile}%</span>`;
+            };
+           
+            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + formatPercentile(percentiles.winPercentage, false) + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td><td>' + formatPercentile(percentiles.avgOdds, true) + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + formatPercentile(percentiles.oddsVsWinFormula, false) + '</td></tr>';
             html += '</table>';
            
             html += '<div style="margin-top: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 6px; font-size: 0.8rem;">';
-            html += '<strong>Ranking Legend:</strong> Lower number is better. Minimum 10 races to qualify.';
+            html += '<strong>Percentile Legend:</strong> ';
+            html += '<span style="background: #22c55e; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">75-100</span>';
+            html += '<span style="background: #f59e0b; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">50-74</span>';
+            html += '<span style="background: #fb923c; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">25-49</span>';
+            html += '<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; margin: 0 4px;">0-24</span>';
             html += '</div>';
            
             document.getElementById('jockeyDetailedMetrics').innerHTML = html;
@@ -2173,6 +2105,8 @@
             const metrics = {
                 avgRanking: 0,
                 avgRanking2YO: 0,
+                avgRanking3YO: 0,
+                avgRanking4Plus: 0,
                 avgRankingJump2YO: 0,
                 avgRankingSprinter: 0,
                 avgRankingMiddle: 0,
@@ -2193,6 +2127,20 @@
             const twoYOValidRankings = twoYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
             if (twoYOValidRankings.length > 0) {
                 metrics.avgRanking2YO = (twoYOValidRankings.reduce((a, b) => a + b, 0) / twoYOValidRankings.length).toFixed(2);
+            }
+           
+            // Calculate average ranking for 3-year-olds
+            const threeYearOlds = data.filter(r => parseInt(r.Age) === 3);
+            const threeYOValidRankings = threeYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            if (threeYOValidRankings.length > 0) {
+                metrics.avgRanking3YO = (threeYOValidRankings.reduce((a, b) => a + b, 0) / threeYOValidRankings.length).toFixed(2);
+            }
+           
+            // Calculate average ranking for 4+ year olds
+            const fourPlusYearOlds = data.filter(r => parseInt(r.Age) >= 4);
+            const fourPlusValidRankings = fourPlusYearOlds.map(r => parseFloat(r.Ranking)).filter(r => !isNaN(r) && r > 0);
+            if (fourPlusValidRankings.length > 0) {
+                metrics.avgRanking4Plus = (fourPlusValidRankings.reduce((a, b) => a + b, 0) / fourPlusValidRankings.length).toFixed(2);
             }
            
             // Calculate ranking jump for 2-year-olds (first start to second start)
@@ -2223,17 +2171,16 @@
                 metrics.avgRankingJump2YO = (rankingJumps.reduce((a, b) => a + b, 0) / rankingJumps.length).toFixed(2);
             }
            
-            // Distance categories, exclude 2yo
-            const adultData = data.filter(r => parseInt(r.Age) > 2);
-            const sprinters = adultData.filter(r => {
+            // Distance categories
+            const sprinters = data.filter(r => {
                 const dist = parseInt(r.Distance);
                 return dist >= 900 && dist <= 1400;
             });
-            const middle = adultData.filter(r => {
+            const middle = data.filter(r => {
                 const dist = parseInt(r.Distance);
                 return dist >= 1401 && dist <= 1800;
             });
-            const stayers = adultData.filter(r => {
+            const stayers = data.filter(r => {
                 const dist = parseInt(r.Distance);
                 return dist >= 1801;
             });
@@ -2268,8 +2215,8 @@
            
             return metrics;
         }
-        // Generalized calculatePercentiles -> rankings
-        function calculateRankings(currentMetrics, type) {
+        // Generalized calculatePercentiles
+        function calculatePercentiles(currentMetrics, type) {
             const allCombinations = {};
            
             // Group races by type (trainer or jockey)
@@ -2283,52 +2230,93 @@
                 }
             });
            
-            // Calculate metrics for all with min 10 races
+            // Calculate metrics for all
             const allMetrics = [];
             Object.keys(allCombinations).forEach(key => {
                 const races = allCombinations[key];
-                if (races.length >= 10) {
+                if (races.length >= 3) {
                     const metrics = calculateDetailedMetrics(races, type);
                     if (metrics) {
-                        allMetrics.push({key, metrics});
+                        allMetrics.push(metrics);
                     }
                 }
             });
            
-            const total = allMetrics.length;
-            const rankings = { total };
+            // Calculate percentiles for each metric
+            const percentiles = {};
            
-            const calculateRank = (value, allValues, inverse = false) => {
+            const calculatePercentile = (value, allValues, inverse = false) => {
                 if (!value || value === 'N/A' || allValues.length === 0) return 'N/A';
                
                 const numValue = parseFloat(value);
                 if (isNaN(numValue)) return 'N/A';
                
-                let sorted = allValues.slice().sort((a, b) => inverse ? b - a : a - b);
-                const rank = sorted.findIndex(v => v === numValue) + 1;
+                const sortedValues = allValues.sort((a, b) => inverse ? b - a : a - b);
+                const position = sortedValues.findIndex(v => inverse ? v <= numValue : v >= numValue);
                
-                return rank.toString();
+                if (position === -1) {
+                    return inverse ? '0' : '100';
+                }
+               
+                const percentile = ((sortedValues.length - position) / sortedValues.length) * 100;
+                return Math.round(percentile).toString();
             };
            
-            rankings.avgRanking = calculateRank(currentMetrics.avgRanking, allMetrics.map(m => parseFloat(m.metrics.avgRanking)).filter(v => !isNaN(v)), false); // lower better
+            percentiles.avgRanking = calculatePercentile(
+                currentMetrics.avgRanking,
+                allMetrics.map(m => parseFloat(m.avgRanking)).filter(v => !isNaN(v)),
+                true
+            );
            
-            rankings.avgRanking2YO = calculateRank(currentMetrics.avgRanking2YO, allMetrics.map(m => parseFloat(m.metrics.avgRanking2YO)).filter(v => !isNaN(v)), false);
+            percentiles.avgRanking2YO = calculatePercentile(
+                currentMetrics.avgRanking2YO,
+                allMetrics.map(m => parseFloat(m.avgRanking2YO)).filter(v => !isNaN(v)),
+                true
+            );
            
-            rankings.avgRankingJump2YO = calculateRank(currentMetrics.avgRankingJump2YO, allMetrics.map(m => parseFloat(m.metrics.avgRankingJump2YO)).filter(v => !isNaN(v)), false);
+            percentiles.avgRankingJump2YO = calculatePercentile(
+                currentMetrics.avgRankingJump2YO,
+                allMetrics.map(m => parseFloat(m.avgRankingJump2YO)).filter(v => !isNaN(v)),
+                true
+            );
            
-            rankings.avgRankingSprinter = calculateRank(currentMetrics.avgRankingSprinter, allMetrics.map(m => parseFloat(m.metrics.avgRankingSprinter)).filter(v => !isNaN(v)), false);
+            percentiles.avgRankingSprinter = calculatePercentile(
+                currentMetrics.avgRankingSprinter,
+                allMetrics.map(m => parseFloat(m.avgRankingSprinter)).filter(v => !isNaN(v)),
+                true
+            );
            
-            rankings.avgRankingMiddle = calculateRank(currentMetrics.avgRankingMiddle, allMetrics.map(m => parseFloat(m.metrics.avgRankingMiddle)).filter(v => !isNaN(v)), false);
+            percentiles.avgRankingMiddle = calculatePercentile(
+                currentMetrics.avgRankingMiddle,
+                allMetrics.map(m => parseFloat(m.avgRankingMiddle)).filter(v => !isNaN(v)),
+                true
+            );
            
-            rankings.avgRankingStayer = calculateRank(currentMetrics.avgRankingStayer, allMetrics.map(m => parseFloat(m.metrics.avgRankingStayer)).filter(v => !isNaN(v)), false);
+            percentiles.avgRankingStayer = calculatePercentile(
+                currentMetrics.avgRankingStayer,
+                allMetrics.map(m => parseFloat(m.avgRankingStayer)).filter(v => !isNaN(v)),
+                true
+            );
            
-            rankings.winPercentage = calculateRank(currentMetrics.winPercentage, allMetrics.map(m => parseFloat(m.metrics.winPercentage)).filter(v => !isNaN(v)), true); // higher better
+            percentiles.winPercentage = calculatePercentile(
+                currentMetrics.winPercentage,
+                allMetrics.map(m => parseFloat(m.winPercentage)).filter(v => !isNaN(v)),
+                false
+            );
            
-            rankings.avgOdds = calculateRank(currentMetrics.avgOdds, allMetrics.map(m => parseFloat(m.metrics.avgOdds)).filter(v => !isNaN(v)), false); // lower better
+            percentiles.oddsVsWinFormula = calculatePercentile(
+                currentMetrics.oddsVsWinFormula,
+                allMetrics.map(m => parseFloat(m.oddsVsWinFormula)).filter(v => !isNaN(v)),
+                false
+            );
            
-            rankings.oddsVsWinFormula = calculateRank(currentMetrics.oddsVsWinFormula, allMetrics.map(m => parseFloat(m.metrics.oddsVsWinFormula)).filter(v => !isNaN(v)), true); // higher better
+            percentiles.avgOdds = calculatePercentile(
+                currentMetrics.avgOdds,
+                allMetrics.map(m => parseFloat(m.avgOdds)).filter(v => !isNaN(v)),
+                true
+            );
            
-            return rankings;
+            return percentiles;
         }
         // Generalized updatePerformancePeriods
         function updatePerformancePeriods(prefix, filteredData, analysisDateId) {
@@ -2428,13 +2416,11 @@
             html += '</tbody></table>';
            
             document.getElementById(prefix + '-horseDetails').innerHTML = html;
-            // Populate horse filter dropdown and datalist
+            // Populate horse filter dropdown
             const uniqueHorsesSet = new Set(data.map(race => race.Horse).filter(h => h && h.trim()));
             const uniqueHorses = Array.from(uniqueHorsesSet).sort();
             const horseFilter = document.getElementById(prefix + '-horseFilter');
             horseFilter.innerHTML = uniqueHorses.map(horse => `<option value="${horse}">${horse}</option>`).join('');
-            const horseList = document.getElementById(prefix + 'HorseList');
-            horseList.innerHTML = uniqueHorses.map(horse => `<option value="${horse}"></option>`).join('');
         }
         function updateTrainerHorseTable(data) {
             updateHorseTable(data, 'trainer');
@@ -2444,8 +2430,7 @@
         }
         // Generalized filterHorseTable
         function filterHorseTable(prefix) {
-            const horseSearch = document.getElementById(prefix + 'HorseSearch').value;
-            const selectedHorses = horseSearch ? [horseSearch] : getSelectedValues(prefix + '-horseFilter');
+            const selectedHorses = getSelectedValues(prefix + '-horseFilter');
             const table = document.querySelector('#' + prefix + '-horseDetails table');
             if (!table) return;
            
