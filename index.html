@@ -1981,7 +1981,8 @@
             let ranks = {};
             if (isSingleTrainer) {
                 const allMetrics = getAllTrainerMetrics();
-                ranks = calculateRanks(metrics, allMetrics);
+                const trainerName = trainerValues[0];
+                ranks = calculateRanks(metrics, allMetrics, trainerName);
             } else {
                 ranks = {
                     avgRanking: null, avgRankingTotal: 0,
@@ -2030,7 +2031,7 @@
                 case 'avgOdds':
                     return 'countOdds';
                 case 'avgRankingJump2YO':
-                    return 'specialJump';
+                    return 'countJump2YO';
                 default:
                     return 'countAll';
             }
@@ -2038,45 +2039,48 @@
         function isLowerBetter(metric) {
             return !['winPercentage', 'oddsVsWinFormula', 'avgRankingJump2YO'].includes(metric);
         }
-        function calculateRanks(currentMetrics, allMetrics) {
+        function calculateRanks(currentMetrics, allMetrics, trainerName) {
             const ranks = {};
             const keys = ['avgRanking', 'avgRanking2YO', 'avgRankingJump2YO', 'avgRankingSprinter', 'avgRankingMiddle', 'avgRankingStayer', 'winPercentage', 'avgOdds', 'oddsVsWinFormula'];
         
             keys.forEach(key => {
                 const countKey = getCountKeyForMetric(key);
-                let qualifies = false;
-                if (key === 'avgRankingJump2YO') {
-                    qualifies = currentMetrics.count2YO >= 10 && currentMetrics.countNon2YO >= 10;
-                } else {
-                    qualifies = currentMetrics[countKey] >= 10;
-                }
-                if (!qualifies) {
-                    ranks[key] = null;
-                    ranks[key + 'Total'] = 0;
-                    return;
-                }
-                const filteredMetrics = allMetrics.filter(m => {
+                const filtered = allMetrics.filter(m => {
                     if (key === 'avgRankingJump2YO') {
-                        return m.count2YO >= 10 && m.countNon2YO >= 10;
+                        return m.countJump2YO >=10 && m[key] !== 'N/A';
                     } else {
-                        return m[countKey] >= 10;
+                        return m[countKey] >=10 && m[key] !== 'N/A';
                     }
                 });
-                const allValues = filteredMetrics.map(m => parseFloat(m[key])).filter(v => !isNaN(v));
-                ranks[key] = calculateRank(currentMetrics[key], allValues, isLowerBetter(key));
-                ranks[key + 'Total'] = filteredMetrics.length;
+                ranks[key + 'Total'] = filtered.length;
+
+                if (currentMetrics[key] === 'N/A') {
+                    ranks[key] = null;
+                    return;
+                }
+
+                const lowerBetter = isLowerBetter(key);
+                filtered.sort((a, b) => {
+                    const va = parseFloat(a[key]);
+                    const vb = parseFloat(b[key]);
+                    return lowerBetter ? va - vb : vb - va;
+                });
+
+                let rank = 1;
+                let previousValue = null;
+                for (let i = 0; i < filtered.length; i++) {
+                    const currentValue = parseFloat(filtered[i][key]);
+                    if (i > 0 && currentValue !== previousValue) {
+                        rank = i + 1;
+                    }
+                    if (filtered[i].name === trainerName) {
+                        ranks[key] = rank;
+                        break;
+                    }
+                    previousValue = currentValue;
+                }
             });
-        
-            function calculateRank(value, allValues, lowerBetter = true) {
-                if (!value || value === 'N/A' || allValues.length === 0) return null;
-            
-                const numValue = parseFloat(value);
-                if (isNaN(numValue)) return null;
-            
-                const countBetter = allValues.filter(v => lowerBetter ? v < numValue : v > numValue).length;
-                return 1 + countBetter;
-            }
-        
+
             return ranks;
         }
         function updateTrainerTopMetrics() {
@@ -2115,7 +2119,7 @@
             const countKey = getCountKeyForMetric(metric);
             let filtered = allMetrics.filter(m => {
                 if (metric === 'avgRankingJump2YO') {
-                    return m.count2YO >= minRaces && m.countNon2YO >= minRaces && m[metric] !== 'N/A';
+                    return m.countJump2YO >= minRaces && m[metric] !== 'N/A';
                 } else {
                     return m[countKey] >= minRaces && m[metric] !== 'N/A';
                 }
@@ -2130,7 +2134,7 @@
             sorted.slice(0, displayLimit).forEach((m, index) => {
                 let racesCount;
                 if (metric === 'avgRankingJump2YO') {
-                    racesCount = m.count2YO + '/' + m.countNon2YO;
+                    racesCount = m.countJump2YO;
                 } else {
                     racesCount = m[countKey];
                 }
@@ -2296,11 +2300,28 @@
             const twoYORankings = twoYO.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
             metrics.avgRanking2YO = twoYORankings.length > 0 ? (twoYORankings.reduce((a, b) => a + b, 0) / twoYORankings.length).toFixed(2) : 'N/A';
         
-            const non2YO = races.filter(r => parseInt(r.Age) > 2);
-            metrics.countNon2YO = non2YO.length;
-            const non2YORankings = non2YO.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-            const avgNon2YO = non2YORankings.length > 0 ? (non2YORankings.reduce((a, b) => a + b, 0) / non2YORankings.length).toFixed(2) : 'N/A';
-            metrics.avgRankingJump2YO = (metrics.avgRanking2YO !== 'N/A' && avgNon2YO !== 'N/A') ? (parseFloat(metrics.avgRanking2YO) - parseFloat(avgNon2YO)).toFixed(2) : 'N/A';
+            // For avgRankingJump2YO - new definition
+            const horseJumps = {};
+            twoYO.forEach(race => {
+                const horse = race.Horse;
+                if (!horseJumps[horse]) horseJumps[horse] = [];
+                horseJumps[horse].push(race);
+            });
+        
+            const jumps = [];
+            Object.keys(horseJumps).forEach(horse => {
+                const horseRaces = horseJumps[horse].sort((a, b) => parseRaceDate(a.Date) - parseRaceDate(b.Date));
+                if (horseRaces.length >= 2) {
+                    const ranking1 = parseFloat(horseRaces[0].Ranking);
+                    const ranking2 = parseFloat(horseRaces[1].Ranking);
+                    if (!isNaN(ranking1) && !isNaN(ranking2) && ranking1 > 0 && ranking2 > 0) {
+                        jumps.push(ranking1 - ranking2); // positive if improved (lower ranking better)
+                    }
+                }
+            });
+        
+            metrics.avgRankingJump2YO = jumps.length > 0 ? (jumps.reduce((a, b) => a + b, 0) / jumps.length).toFixed(2) : 'N/A';
+            metrics.countJump2YO = jumps.length;
         
             const sprinterRaces = races.filter(r => {
                 const dist = parseInt(r.Distance);
