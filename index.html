@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -570,6 +569,7 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">👥 Trainers</div>
+                                <input type="text" id="trainerSearch" placeholder="Search trainers..." onkeyup="filterSelectOptions('trainerAnalysisFilter', this.value)">
                                 <select id="trainerAnalysisFilter" multiple size="5" onchange="updateTrainerAnalysis()">
                                     <option value="all" selected>All Trainers</option>
                                 </select>
@@ -732,6 +732,7 @@
                         <div class="card-body">
                             <div style="margin-bottom: 1rem;">
                                 <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Filter Horses:</label>
+                                <input type="text" id="trainerHorseSearch" placeholder="Search horses..." onkeyup="filterSelectOptions('trainer-horseFilter', this.value)">
                                 <select id="trainer-horseFilter" multiple size="5" onchange="trainerFilterHorseTable()"></select>
                             </div>
                             <div id="trainer-horseDetails" style="max-height: 400px; overflow-y: auto;">
@@ -2931,7 +2932,19 @@
                 document.getElementById(`${id}-${rowNum}`).textContent = '';
             });
         }
+        function filterSelectOptions(selectId, searchTerm) {
+            const select = document.getElementById(selectId);
+            const options = Array.from(select.options);
+            searchTerm = searchTerm.toLowerCase();
+            options.forEach(option => {
+                if (option.value === 'all') {
+                    option.style.display = '';
+                    return;
+                }
+                const text = option.text.toLowerCase();
+                option.style.display = text.startsWith(searchTerm) ? '' : 'none';
+            });
+        }
     </script>
 </body>
 </html>
-```
