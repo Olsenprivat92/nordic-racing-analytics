@@ -1951,9 +1951,15 @@
                 return;
             }
         
-            // Calculate ranks for the current selection
-            const allMetrics = getAllTrainerMetrics();
-            const ranks = calculateRanks(metrics, allMetrics);
+            const trainerValues = getSelectedValues('trainerAnalysisFilter');
+            const isSingleTrainer = !trainerValues.includes('all') && trainerValues.length === 1;
+            let ranks = {};
+            if (isSingleTrainer && filtered.length >= 10) {
+                const allMetrics = getAllTrainerMetrics();
+                ranks = calculateRanks(metrics, allMetrics);
+            } else {
+                ranks = { avgRanking: null, avgRanking2YO: null, avgRankingJump2YO: null, avgRankingSprinter: null, avgRankingMiddle: null, avgRankingStayer: null, winPercentage: null, avgOdds: null, oddsVsWinFormula: null, total: 0 };
+            }
         
             let html = '<table style="font-size: 0.9rem;">';
             html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Rank</th></tr>';
@@ -1977,7 +1983,7 @@
             const metricsList = ['avgRanking', 'avgRanking2YO', 'avgRankingJump2YO', 'avgRankingSprinter', 'avgRankingMiddle', 'avgRankingStayer', 'winPercentage', 'avgOdds', 'oddsVsWinFormula'];
             let gridHtml = '';
             metricsList.forEach(metric => {
-                const title = metric.replace('avg', 'Avg ').replace('Ranking', ' Ranking');
+                const title = metric.replace('avg', 'Avg ').replace('Ranking', ' Ranking').replace(/([A-Z])/g, ' $1').trim();
                 gridHtml += `<div class="analysis-box">
                     <h3>Top by ${title}
                         <button class="show-all-btn" onclick="toggleTopMetric('${metric}')">Show All</button>
@@ -2190,6 +2196,65 @@
             const year = 2000 + parseInt(parts[2]); // Convert YY to YYYY
         
             return new Date(year, month, day);
+        }
+        function calculateDetailedMetrics(races, type = null) {
+            if (races.length === 0) return null;
+        
+            const metrics = {};
+        
+            // avgRanking
+            const validRankings = races.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+            metrics.avgRanking = validRankings.length > 0 ? (validRankings.reduce((a, b) => a + b, 0) / validRankings.length).toFixed(2) : 'N/A';
+        
+            // avgRanking2YO
+            const twoYO = races.filter(r => parseInt(r.Age) === 2);
+            const twoYORankings = twoYO.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+            metrics.avgRanking2YO = twoYORankings.length > 0 ? (twoYORankings.reduce((a, b) => a + b, 0) / twoYORankings.length).toFixed(2) : 'N/A';
+        
+            // avgRankingNon2YO for jump
+            const non2YO = races.filter(r => parseInt(r.Age) > 2);
+            const non2YORankings = non2YO.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+            const avgNon2YO = non2YORankings.length > 0 ? (non2YORankings.reduce((a, b) => a + b, 0) / non2YORankings.length).toFixed(2) : 'N/A';
+            metrics.avgRankingJump2YO = (metrics.avgRanking2YO !== 'N/A' && avgNon2YO !== 'N/A') ? (parseFloat(metrics.avgRanking2YO) - parseFloat(avgNon2YO)).toFixed(2) : 'N/A';
+        
+            // avgRankingSprinter
+            const sprinterRaces = races.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist >= 900 && dist <= 1400;
+            });
+            const sprinterRankings = sprinterRaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+            metrics.avgRankingSprinter = sprinterRankings.length > 0 ? (sprinterRankings.reduce((a, b) => a + b, 0) / sprinterRankings.length).toFixed(2) : 'N/A';
+        
+            // avgRankingMiddle
+            const middleRaces = races.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist > 1400 && dist <= 1800;
+            });
+            const middleRankings = middleRaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+            metrics.avgRankingMiddle = middleRankings.length > 0 ? (middleRankings.reduce((a, b) => a + b, 0) / middleRankings.length).toFixed(2) : 'N/A';
+        
+            // avgRankingStayer
+            const stayerRaces = races.filter(r => {
+                const dist = parseInt(r.Distance);
+                return dist > 1800;
+            });
+            const stayerRankings = stayerRaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+            metrics.avgRankingStayer = stayerRankings.length > 0 ? (stayerRankings.reduce((a, b) => a + b, 0) / stayerRankings.length).toFixed(2) : 'N/A';
+        
+            // winPercentage
+            const wins = races.filter(r => r.Place === '1' || r.Place === 1).length;
+            metrics.winPercentage = races.length > 0 ? ((wins / races.length) * 100).toFixed(1) : '0.0';
+        
+            // avgOdds (average winning odds)
+            const winningOdds = races.filter(r => r.Place === '1' || r.Place === 1).map(r => parseFloat(r.Odds)).filter(v => !isNaN(v));
+            metrics.avgOdds = winningOdds.length > 0 ? (winningOdds.reduce((a, b) => a + b, 0) / winningOdds.length).toFixed(2) : 'N/A';
+        
+            // oddsVsWinFormula
+            const allOdds = races.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
+            const expectedWins = allOdds.reduce((sum, o) => sum + (1 / o), 0);
+            metrics.oddsVsWinFormula = expectedWins > 0 ? ((wins / expectedWins) * 100).toFixed(1) : 'N/A';
+        
+            return metrics;
         }
         // Breeding Analysis Functions
         function updateBreedingFilters() {
