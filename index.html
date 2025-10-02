@@ -1999,15 +1999,15 @@
             let html = '<table style="font-size: 0.9rem;">';
             html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Rank</th></tr>';
         
-            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + ' (based on ' + metrics.countAll + ' races)</td><td>' + (ranks.avgRanking ? ranks.avgRanking + ' out of ' + ranks.avgRankingTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + ' (based on ' + metrics.count2YO + ' races)</td><td>' + (ranks.avgRanking2YO ? ranks.avgRanking2YO + ' out of ' + ranks.avgRanking2YOTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + ' (based on ' + metrics.count2YO + ' 2YO / ' + metrics.countNon2YO + ' non-2YO races)</td><td>' + (ranks.avgRankingJump2YO ? ranks.avgRankingJump2YO + ' out of ' + ranks.avgRankingJump2YOTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + ' (based on ' + metrics.countSprinter + ' races)</td><td>' + (ranks.avgRankingSprinter ? ranks.avgRankingSprinter + ' out of ' + ranks.avgRankingSprinterTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + ' (based on ' + metrics.countMiddle + ' races)</td><td>' + (ranks.avgRankingMiddle ? ranks.avgRankingMiddle + ' out of ' + ranks.avgRankingMiddleTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + ' (based on ' + metrics.countStayer + ' races)</td><td>' + (ranks.avgRankingStayer ? ranks.avgRankingStayer + ' out of ' + ranks.avgRankingStayerTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '% (based on ' + metrics.countAll + ' races)</td><td>' + (ranks.winPercentage ? ranks.winPercentage + ' out of ' + ranks.winPercentageTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + ' (based on ' + metrics.countOdds + ' races)</td><td>' + (ranks.avgOdds ? ranks.avgOdds + ' out of ' + ranks.avgOddsTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '% (based on ' + metrics.countAll + ' races)</td><td>' + (ranks.oddsVsWinFormula ? ranks.oddsVsWinFormula + ' out of ' + ranks.oddsVsWinFormulaTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (All):</strong></td><td>' + (metrics.avgRanking || 'N/A') + '</td><td>' + (ranks.avgRanking ? ranks.avgRanking + ' out of ' + ranks.avgRankingTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (2YO):</strong></td><td>' + (metrics.avgRanking2YO || 'N/A') + '</td><td>' + (ranks.avgRanking2YO ? ranks.avgRanking2YO + ' out of ' + ranks.avgRanking2YOTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>2YO Ranking Jump:</strong></td><td>' + (metrics.avgRankingJump2YO || 'N/A') + '</td><td>' + (ranks.avgRankingJump2YO ? ranks.avgRankingJump2YO + ' out of ' + ranks.avgRankingJump2YOTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Sprint):</strong></td><td>' + (metrics.avgRankingSprinter || 'N/A') + '</td><td>' + (ranks.avgRankingSprinter ? ranks.avgRankingSprinter + ' out of ' + ranks.avgRankingSprinterTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Middle):</strong></td><td>' + (metrics.avgRankingMiddle || 'N/A') + '</td><td>' + (ranks.avgRankingMiddle ? ranks.avgRankingMiddle + ' out of ' + ranks.avgRankingMiddleTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Ranking (Stay):</strong></td><td>' + (metrics.avgRankingStayer || 'N/A') + '</td><td>' + (ranks.avgRankingStayer ? ranks.avgRankingStayer + ' out of ' + ranks.avgRankingStayerTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPercentage || 'N/A') + '%</td><td>' + (ranks.winPercentage ? ranks.winPercentage + ' out of ' + ranks.winPercentageTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOdds || 'N/A') + '</td><td>' + (ranks.avgOdds ? ranks.avgOdds + ' out of ' + ranks.avgOddsTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + (ranks.oddsVsWinFormula ? ranks.oddsVsWinFormula + ' out of ' + ranks.oddsVsWinFormulaTotal : 'N/A') + '</td></tr>';
             html += '</table>';
             html += '<div class="requirements-box">Rankings based on trainers with at least 10 races in the category.</div>';
         
@@ -2044,6 +2044,17 @@
         
             keys.forEach(key => {
                 const countKey = getCountKeyForMetric(key);
+                let qualifies = false;
+                if (key === 'avgRankingJump2YO') {
+                    qualifies = currentMetrics.count2YO >= 10 && currentMetrics.countNon2YO >= 10;
+                } else {
+                    qualifies = currentMetrics[countKey] >= 10;
+                }
+                if (!qualifies) {
+                    ranks[key] = null;
+                    ranks[key + 'Total'] = 0;
+                    return;
+                }
                 const filteredMetrics = allMetrics.filter(m => {
                     if (key === 'avgRankingJump2YO') {
                         return m.count2YO >= 10 && m.countNon2YO >= 10;
