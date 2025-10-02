@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -463,6 +464,19 @@
                                 <select id="distanceFilter" multiple size="5" onchange="updateCourseAnalysis()">
                                     <option value="all" selected>All Distances</option>
                                 </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Date Range</div>
+                                <div style="display: flex; gap: 1rem;">
+                                    <div>
+                                        <label>From</label>
+                                        <input type="date" id="courseFromDate" onchange="updateCourseAnalysis()">
+                                    </div>
+                                    <div>
+                                        <label>To</label>
+                                        <input type="date" id="courseToDate" onchange="updateCourseAnalysis()">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1272,6 +1286,8 @@
             const classValues = getSelectedValues('classFilter');
             const fieldValues = getSelectedValues('fieldFilter');
             const distanceValues = getSelectedValues('distanceFilter');
+            const fromDate = document.getElementById('courseFromDate').value;
+            const toDate = document.getElementById('courseToDate').value;
             return racingData.filter(race => {
                 if (!courseValues.includes('all')) {
                     let raceCourse = race.Course || '';
@@ -1309,6 +1325,12 @@
                 }
                 if (!distanceValues.includes('all')) {
                     if (!distanceValues.includes(race.Distance)) return false;
+                }
+                if (fromDate || toDate) {
+                    const raceDate = parseRaceDate(race.Date);
+                    if (!raceDate) return false;
+                    if (fromDate && raceDate < new Date(fromDate)) return false;
+                    if (toDate && raceDate > new Date(toDate)) return false;
                 }
                 return true;
             });
@@ -1660,13 +1682,16 @@
                     html += '<table style="font-size: 0.875rem;">';
                     html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
                     courseData.forEach(item => {
-                        const top25Color = item.Top25 > 50 ? '#22c55e' : item.Top25 > 40 ? '#f59e0b' : '#ef4444';
+                        const top25Color = item.Top25 < 40 ? '#ef4444' : item.Top25 <= 60 ? '#0f172a' : '#22c55e';
+                        const range2650Color = item.Range26_50 < 20 ? '#ef4444' : item.Range26_50 <= 35 ? '#0f172a' : '#22c55e';
+                        const range5175Color = item.Range51_75 < 10 ? '#ef4444' : item.Range51_75 <= 20 ? '#0f172a' : '#22c55e';
+                        const range76100Color = item.Range76_100 < 5 ? '#ef4444' : item.Range76_100 <= 13 ? '#0f172a' : '#22c55e';
                         html += '<tr>';
                         html += `<td>${item.Class}</td>`;
                         html += `<td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>`;
-                        html += `<td>${item.Range26_50.toFixed(1)}%</td>`;
-                        html += `<td>${item.Range51_75.toFixed(1)}%</td>`;
-                        html += `<td>${item.Range76_100.toFixed(1)}%</td>`;
+                        html += `<td style="color:${range2650Color}; font-weight:600">${item.Range26_50.toFixed(1)}%</td>`;
+                        html += `<td style="color:${range5175Color}; font-weight:600">${item.Range51_75.toFixed(1)}%</td>`;
+                        html += `<td style="color:${range76100Color}; font-weight:600">${item.Range76_100.toFixed(1)}%</td>`;
                         html += `<td>${item.Total}</td>`;
                         html += '</tr>';
                     });
@@ -2909,3 +2934,4 @@
     </script>
 </body>
 </html>
+```
