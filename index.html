@@ -935,6 +935,33 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Top Jockeys by Metric -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>🏆 Top Jockeys by Metric</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="filters" style="margin-bottom: 1rem; background: none; box-shadow: none; padding: 0;">
+                                <div class="filters-grid">
+                                    <div class="filter-box">
+                                        <div class="filter-title">Min Races</div>
+                                        <input type="number" id="topJockeyMinRaces" value="10" min="1" onchange="updateJockeyTopMetrics()" style="box-shadow: none;">
+                                    </div>
+                                    <div class="filter-box">
+                                        <div class="filter-title">Surface</div>
+                                        <select id="topJockeySurfaceFilter" multiple size="3" onchange="updateJockeyTopMetrics()">
+                                            <option value="all" selected>All Surfaces</option>
+                                            <option value="Grass">Grass</option>
+                                            <option value="Dirt">Dirt</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="analysis-grid" id="topJockeyMetricsGrid">
+                                <!-- Top metrics boxes will be added here -->
+                            </div>
+                        </div>
+                    </div>
                     <!-- Horse Performance Details -->
                     <div class="card" style="margin-top: 2rem;">
                         <div class="card-header">
@@ -2066,8 +2093,7 @@
                 if (isNaN(numValue)) return null;
             
                 const countBetter = allValues.filter(v => lowerBetter ? v < numValue : v > numValue).length;
-                const countEqual = allValues.filter(v => v === numValue).length - 1; // subtract self if present
-                return 1 + countBetter + countEqual / 2; // average rank for ties
+                return 1 + countBetter;
             }
         
             return ranks;
@@ -2083,27 +2109,27 @@
                 title = title.charAt(0).toUpperCase() + title.slice(1);
                 gridHtml += `<div class="analysis-box">
                     <h3>Top by ${title}
-                        <button class="show-all-btn" onclick="toggleTopMetric('${metric}')">Show All</button>
+                        <button class="show-all-btn" onclick="toggleTopMetric('${metric}', 'trainer') ">Show All</button>
                     </h3>
-                    <div id="top${metric}" class="scrollable"></div>
+                    <div id="topTrainer${metric}" class="scrollable"></div>
                 </div>`;
             });
             document.getElementById('topMetricsGrid').innerHTML = gridHtml;
         
             metricsList.forEach(metric => {
-                updateTopMetric(metric, allMetrics, minRaces);
+                updateTopMetric(metric, allMetrics, minRaces, 'trainer', 'topTrainer');
             });
         }
-        function toggleTopMetric(metric) {
-            showAllMetrics[metric] = !showAllMetrics[metric];
-            const minRaces = parseInt(document.getElementById('topTrainerMinRaces').value) || 10;
-            const surfaceValues = getSelectedValues('topTrainerSurfaceFilter');
-            const allMetrics = getAllTrainerMetrics(surfaceValues);
-            updateTopMetric(metric, allMetrics, minRaces);
-            const btn = document.querySelector(`#top${metric}`).parentNode.querySelector('.show-all-btn');
-            btn.textContent = showAllMetrics[metric] ? 'Show Top 5' : 'Show All';
+        function toggleTopMetric(metric, prefix) {
+            showAllMetrics[prefix + metric] = !showAllMetrics[prefix + metric];
+            const minRaces = parseInt(document.getElementById(`top${prefix.charAt(0).toUpperCase() + prefix.slice(1)}MinRaces`).value) || 10;
+            const surfaceValues = getSelectedValues(`top${prefix.charAt(0).toUpperCase() + prefix.slice(1)}SurfaceFilter`);
+            const allMetrics = prefix === 'trainer' ? getAllTrainerMetrics(surfaceValues) : getAllJockeyMetrics(surfaceValues);
+            updateTopMetric(metric, allMetrics, minRaces, prefix, 'top' + prefix.charAt(0).toUpperCase() + prefix.slice(1));
+            const btn = document.querySelector(`#top${prefix.charAt(0).toUpperCase() + prefix.slice(1)}${metric}`).parentNode.querySelector('.show-all-btn');
+            btn.textContent = showAllMetrics[prefix + metric] ? 'Show Top 5' : 'Show All';
         }
-        function updateTopMetric(metric, allMetrics, minRaces) {
+        function updateTopMetric(metric, allMetrics, minRaces, prefix, idPrefix) {
             const lowerBetter = isLowerBetter(metric);
             const countKey = getCountKeyForMetric(metric);
             let filtered = allMetrics.filter(m => {
@@ -2118,7 +2144,7 @@
                 const vb = parseFloat(b[metric]) || (lowerBetter ? Infinity : -Infinity);
                 return lowerBetter ? va - vb : vb - va;
             });
-            const displayLimit = showAllMetrics[metric] ? sorted.length : 5;
+            const displayLimit = showAllMetrics[prefix + metric] ? sorted.length : 5;
             let html = '<table><tr><th>Rank</th><th>Name</th><th>Value</th><th>Races</th></tr>';
             sorted.slice(0, displayLimit).forEach((m, index) => {
                 let racesCount;
@@ -2130,7 +2156,7 @@
                 html += '<tr><td>' + (index + 1) + '</td><td>' + m.name + '</td><td>' + (m[metric] || 'N/A') + '</td><td>' + racesCount + '</td></tr>';
             });
             html += '</table>';
-            document.getElementById(`top${metric}`).innerHTML = html;
+            document.getElementById(`${idPrefix}${metric}`).innerHTML = html;
         }
         // Generalized updatePerformancePeriods
         function updatePerformancePeriods(prefix, filteredData, analysisDateId) {
