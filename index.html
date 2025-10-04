@@ -1130,6 +1130,7 @@
            
                 if (racingData.length > 0) {
                     console.log('Data loaded:', racingData.length, 'races');
+                    console.log('Column headers:', Object.keys(racingData[0]));
                     populateFilters();
                     populateBreedingData();
                     updateDashboard();
