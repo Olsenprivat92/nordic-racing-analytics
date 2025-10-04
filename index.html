@@ -792,6 +792,7 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">🏇 Jockeys</div>
+                                <input type="text" id="jockeySearch" placeholder="Search jockeys..." onkeyup="filterSelectOptions('jockeyAnalysisFilter', this.value)">
                                 <select id="jockeyAnalysisFilter" multiple size="5" onchange="updateJockeyAnalysis()">
                                     <option value="all" selected>All Jockeys</option>
                                 </select>
@@ -1099,10 +1100,8 @@
                 updateCourseAnalysis();
                 loadFavoriteTrends();
             } else if (view === 'trainers') {
-                populateTrainerFilters();
                 updateTrainerAnalysis();
             } else if (view === 'jockeys') {
-                populateJockeyFilters();
                 updateJockeyAnalysis();
             } else if (view === 'horses') {
                 populateHorseFilters();
@@ -1133,6 +1132,8 @@
                     console.log('Column headers:', Object.keys(racingData[0]));
                     populateFilters();
                     populateBreedingData();
+                    populateTrainerFilters();
+                    populateJockeyFilters();
                     updateDashboard();
                     document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
                     document.getElementById('syncStatus').style.background = '#22c55e';
@@ -3033,4 +3034,3 @@
     </script>
 </body>
 </html>
-```
