@@ -2026,7 +2026,7 @@
                     avgPlaceJump2YO: null, avgPlaceJump2YOTotal: 0,
                     avgPlaceSprinter: null, avgPlaceSprinterTotal: 0,
                     avgPlaceMiddle: null, avgPlaceMiddleTotal: 0,
-                    avgPlaceStayer: null, avgPlaceStayerTotal: 0,
+                    avgPlaceStay: null, avgPlaceStayTotal: 0,
                     winPctAll: null, winPctAllTotal: 0,
                     avgOddsAll: null, avgOddsAllTotal: 0,
                     oddsVsWinFormula: null, oddsVsWinFormulaTotal: 0
@@ -2041,10 +2041,10 @@
             html += '<tr><td><strong>2YO Place Jump:</strong></td><td>' + (metrics.avgPlaceJump2YO || 'N/A') + '</td><td>' + (ranks.avgPlaceJump2YO ? ranks.avgPlaceJump2YO + ' out of ' + ranks.avgPlaceJump2YOTotal : 'N/A') + '</td></tr>';
             html += '<tr><td><strong>Avg Place (Sprint):</strong></td><td>' + (metrics.avgPlaceSprinter || 'N/A') + '</td><td>' + (ranks.avgPlaceSprinter ? ranks.avgPlaceSprinter + ' out of ' + ranks.avgPlaceSprinterTotal : 'N/A') + '</td></tr>';
             html += '<tr><td><strong>Avg Place (Middle):</strong></td><td>' + (metrics.avgPlaceMiddle || 'N/A') + '</td><td>' + (ranks.avgPlaceMiddle ? ranks.avgPlaceMiddle + ' out of ' + ranks.avgPlaceMiddleTotal : 'N/A') + '</td></tr>';
-            html += '<tr><td><strong>Avg Place (Stay):</strong></td><td>' + (metrics.avgPlaceStay || 'N/A') + '</td><td>' + (ranks.avgPlaceStayer ? ranks.avgPlaceStayer + ' out of ' + ranks.avgPlaceStayerTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place (Stay):</strong></td><td>' + (metrics.avgPlaceStay || 'N/A') + '</td><td>' + (ranks.avgPlaceStay ? ranks.avgPlaceStay + ' out of ' + ranks.avgPlaceStayTotal : 'N/A') + '</td></tr>';
             html += '<tr><td><strong>Win %:</strong></td><td>' + (metrics.winPctAll || 'N/A') + '%</td><td>' + (ranks.winPctAll ? ranks.winPctAll + ' out of ' + ranks.winPctAllTotal : 'N/A') + '</td></tr>';
             html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOddsAll || 'N/A') + '</td><td>' + (ranks.avgOddsAll ? ranks.avgOddsAll + ' out of ' + ranks.avgOddsAllTotal : 'N/A') + '</td></tr>';
-            html += '<tr><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + (ranks.oddsVsWinFormula ? ranks.oddsVsWinFormula + ' out of ' + ranks.oddsVsWinFormulaTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + (ranks.oddsVsWinFormula ? ranks.oddsVsWinFormula + ' out of ' + ranks.oddsVsWinFormulaTotal : 'N/A') + '</td></tr>';
             html += '</table>';
             html += '<div class="requirements-box">Rankings based on trainers with at least 10 races in the category.</div>';
       
@@ -2059,31 +2059,23 @@
                 case 'avgPlace2YO':
                     return 'count2YO';
                 case 'avgPlaceSprinter':
+                case 'winPctSprint':
+                case 'avgOddsSprint':
                     return 'countSprint';
                 case 'avgPlaceMiddle':
+                case 'winPctMiddle':
+                case 'avgOddsMiddle':
                     return 'countMiddle';
                 case 'avgPlaceStay':
+                case 'winPctStay':
+                case 'avgOddsStay':
                     return 'countStay';
                 case 'avgPlaceShort':
+                case 'winPctShort':
+                case 'avgOddsShort':
                     return 'countShort';
                 case 'avgOddsAll':
                     return 'countOddsAll';
-                case 'avgOddsSprint':
-                    return 'countOddsSprint';
-                case 'avgOddsMiddle':
-                    return 'countOddsMiddle';
-                case 'avgOddsStay':
-                    return 'countOddsStay';
-                case 'avgOddsShort':
-                    return 'countOddsShort';
-                case 'winPctSprint':
-                    return 'countSprint';
-                case 'winPctMiddle':
-                    return 'countMiddle';
-                case 'winPctStay':
-                    return 'countStay';
-                case 'winPctShort':
-                    return 'countShort';
                 case 'avgPlaceJump2YO':
                     return 'countJump2YO';
                 default:
@@ -2101,19 +2093,19 @@
         }
         function calculateRanks(currentMetrics, allMetrics, trainerName) {
             const ranks = {};
-            const keys = ['avgPlaceAll', 'avgPlace2YO', 'avgPlaceJump2YO', 'avgPlaceSprinter', 'avgPlaceMiddle', 'avgPlaceStay', 'winPctAll', 'avgOddsAll', 'oddsVsWinFormula'];
+            const keys = ['avgPlaceAll', 'avgPlace2YO', 'avgPlaceJump2YO', 'avgPlaceSprinter', 'avgPlaceMiddle', 'avgPlaceStay', 'avgPlaceShort', 'winPctAll', 'winPctSprint', 'winPctMiddle', 'winPctStay', 'winPctShort', 'avgOddsAll', 'avgOddsSprint', 'avgOddsMiddle', 'avgOddsStay', 'avgOddsShort', 'oddsVsWinFormula'];
       
             keys.forEach(key => {
                 const countKey = getCountKeyForMetric(key);
                 const filtered = allMetrics.filter(m => {
                     if (key === 'avgPlaceJump2YO') {
-                        return m.countJump2YO >=10 && m[key] !== 'N/A';
+                        return m.countJump2YO >=10 && m[key] !== 'N/A' && !isNaN(parseFloat(m[key]));
                     } else {
-                        return m[countKey] >=10 && m[key] !== 'N/A';
+                        return m[countKey] >=10 && m[key] !== 'N/A' && !isNaN(parseFloat(m[key]));
                     }
                 });
                 ranks[key + 'Total'] = filtered.length;
-                if (currentMetrics[key] === 'N/A') {
+                if (currentMetrics[key] === 'N/A' || isNaN(parseFloat(currentMetrics[key]))) {
                     ranks[key] = null;
                     return;
                 }
@@ -2135,6 +2127,9 @@
                         break;
                     }
                     previousValue = currentValue;
+                }
+                if (ranks[key] === undefined) {
+                    ranks[key] = null;
                 }
             });
             return ranks;
@@ -2430,7 +2425,7 @@
                         const place1 = parseFloat(horseRaces[0].Place);
                         const place2 = parseFloat(horseRaces[1].Place);
                         if (!isNaN(place1) && !isNaN(place2) && place1 > 0 && place2 > 0) {
-                            jumps.push(place1 - place2);
+                            jumps.push(place1 - place2); // positive if improved (lower place better? Wait, lower place is better, so if place2 < place1, jump positive for improvement
                         }
                     }
                 });
@@ -3156,7 +3151,7 @@
         function updateTopJockeyMetric(metric, allMetrics, minRaces) {
             const lowerBetter = isLowerBetter(metric);
             const countKey = getCountKeyForMetric(metric);
-            let filtered = allMetrics.filter(m => m[countKey] >= minRaces && m[metric] !== 'N/A');
+            let filtered = allMetrics.filter(m => m[countKey] >= minRaces && m[metric] !== 'N/A' && !isNaN(parseFloat(m[metric])));
             let sorted = filtered.sort((a, b) => {
                 const va = parseFloat(a[metric]) || (lowerBetter ? Infinity : -Infinity);
                 const vb = parseFloat(b[metric]) || (lowerBetter ? Infinity : -Infinity);
