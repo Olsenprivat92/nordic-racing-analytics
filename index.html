@@ -997,9 +997,11 @@
                     <div class="filters">
                         <div class="filters-grid">
                             <div class="filter-box">
-                                <div class="filter-title">🐎 Horse</div>
-                                <input list="horseList" id="horseInput" placeholder="Select horse" onchange="updateHorseDetails(this.value)">
-                                <datalist id="horseList"></datalist>
+                                <div class="filter-title">🐎 Horses</div>
+                                <input type="text" id="horseSearch" placeholder="Search horses..." onkeyup="filterSelectOptions('horseFilter', this.value)">
+                                <select id="horseFilter" size="5" onchange="updateHorseDetails(this.value)">
+                                    <option value="" selected>Select Horse</option>
+                                </select>
                             </div>
                             <div class="filter-box">
                                 <div class="filter-title">🌱 Surface</div>
@@ -1064,7 +1066,7 @@
                     <div class="stats-grid" id="horseMainCharacteristics">
                         <!-- Populated dynamically -->
                     </div>
-                    <!-- Main Info (Sire, Dam, etc.) -->
+                    <!-- Main Info (Sire, Filly, etc.) -->
                     <div class="card" style="margin-top: 2rem;">
                         <div class="card-header">
                             <h3>Main Info</h3>
@@ -1098,7 +1100,7 @@
                         </div>
                         <div class="card-body">
                             <div id="horsePerformanceDetails" style="max-height: 400px; overflow-y: auto;">
-                                <p>Select a horse to see race details.</p>
+                                <p>Select a horse to see performance details.</p>
                             </div>
                         </div>
                     </div>
@@ -1285,6 +1287,7 @@
                     populateBreedingData();
                     populateTrainerFilters();
                     populateJockeyFilters();
+                    populateHorseSelect();
                     updateDashboard();
                     document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
                     document.getElementById('syncStatus').style.background = '#22c55e';
@@ -1296,6 +1299,15 @@
                 document.getElementById('syncStatus').textContent = 'Error';
                 document.getElementById('syncStatus').style.background = '#dc2626';
             }
+        }
+        function populateHorseSelect() {
+            const horses = new Set();
+            racingData.forEach(row => {
+                if (row.Horse && row.Horse.trim()) horses.add(row.Horse.trim());
+            });
+            const horseFilter = document.getElementById('horseFilter');
+            horseFilter.innerHTML = '<option value="" selected>Select Horse</option>' +
+                Array.from(horses).sort().map(horse => `<option value="${horse}">${horse}</option>`).join('');
         }
         function populateBreedingData() {
             sires = new Set();
@@ -2206,27 +2218,6 @@
                     return 'countOddsAll';
                 case 'avgPlaceJump2YO':
                     return 'countJump2YO';
-                case 'winPct':
-                case 'avgRatingAll':
-                case 'bestRatingAll':
-                    return 'countAll';
-                case 'avgRatingAdult':
-                case 'bestRatingAdult':
-                    return 'countAdult';
-                case 'avgRating2YO':
-                case 'bestRating2YO':
-                    return 'count2YO';
-                case 'avgRatingSprint':
-                case 'bestRatingSprint':
-                    return 'countSprintAdult';
-                case 'avgRatingMiddle':
-                case 'bestRatingMiddle':
-                    return 'countMiddleAdult';
-                case 'avgRatingStay':
-                case 'bestRatingStay':
-                    return 'countStayAdult';
-                case 'avgOdds':
-                    return 'countAll';
                 default:
                     return 'countAll';
             }
@@ -2238,14 +2229,11 @@
             if (metric.startsWith('winPct') || metric === 'oddsVsWinFormula' || metric === 'avgPlaceJump2YO') {
                 return false;
             }
-            if (metric.startsWith('avgRating') || metric.startsWith('bestRating')) {
-                return false; // higher better for ratings
-            }
             return true;
         }
         function calculateRanks(currentMetrics, allMetrics, trainerName) {
             const ranks = {};
-            const keys = ['avgPlaceAll', 'avgPlace2YO', 'avgPlaceJump2YO', 'avgPlaceSprint', 'avgPlaceMiddle', 'avgPlaceStay', 'avgPlaceShort', 'winPctAll', 'winPctSprint', 'winPctMiddle', 'winPctStay', 'winPctShort', 'avgOddsAll', 'avgOddsSprint', 'avgOddsMiddle', 'avgOddsStay', 'avgOddsShort', 'oddsVsWinFormula', 'winPct', 'avgRatingAll', 'bestRatingAll', 'avgRatingAdult', 'bestRatingAdult', 'avgRating2YO', 'bestRating2YO', 'avgRatingSprint', 'bestRatingSprint', 'avgRatingMiddle', 'bestRatingMiddle', 'avgRatingStay', 'bestRatingStay', 'avgOdds'];
+            const keys = ['avgPlaceAll', 'avgPlace2YO', 'avgPlaceJump2YO', 'avgPlaceSprint', 'avgPlaceMiddle', 'avgPlaceStay', 'avgPlaceShort', 'winPctAll', 'winPctSprint', 'winPctMiddle', 'winPctStay', 'winPctShort', 'avgOddsAll', 'avgOddsSprint', 'avgOddsMiddle', 'avgOddsStay', 'avgOddsShort', 'oddsVsWinFormula'];
     
             keys.forEach(key => {
                 const countKey = getCountKeyForMetric(key);
@@ -2418,7 +2406,7 @@
     
             let html = '<table style="font-size: 0.85rem; width: 100%;">';
             html += '<thead><tr>';
-            html += '<th>Date</th><th>Horse</th><th>Course</th><th>Surface</th><th>Class</th><th>Place</th>';
+            html += '<th>Date</th><th>Horse</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th>';
             html += '<th>Field</th><th>Ranking</th><th>Age</th><th>Comment</th>';
             html += '</tr></thead><tbody>';
     
@@ -2432,6 +2420,7 @@
                 html += '<td>' + horse + '</td>';
                 html += '<td>' + (race.Course || 'N/A') + '</td>';
                 html += '<td>' + surface + '</td>';
+                html += '<td>' + (race.Distance || 'N/A') + '</td>';
                 html += '<td>' + (race.Class || 'N/A') + '</td>';
                 html += `<td style="color:${placeColor}; font-weight: 600">${race.Place || 'N/A'}</td>`;
                 html += '<td>' + (race.Field || 'N/A') + '</td>';
@@ -2827,7 +2816,7 @@
             });
         }
         function updateHorseAnalysis() {
-            updateHorseDetails(document.getElementById('horseInput').value);
+            updateHorseDetails(document.getElementById('horseFilter').value);
         }
         function updateHorseDetails(selectedHorse) {
             if (!selectedHorse) {
@@ -2869,11 +2858,11 @@
             charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.breeder + '</div><div class="stat-label">Breeder</div></div>';
             charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.yearBorn + '</div><div class="stat-label">Year Born</div></div>';
             charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.avgOdds + '</div><div class="stat-label">Average Odds <br><small>Rank: ' + (ranks.avgOdds ? ranks.avgOdds + '/' + ranks.avgOddsTotal : 'N/A') + '</small></div></div>';
-            charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.bestRatingAdult + ' / ' + metrics.avgRatingAdult + ' (' + metrics.countAdult + ')</div><div class="stat-label">Best / Avg Rating <br><small>Rank: ' + (ranks.avgRatingAdult ? ranks.avgRatingAdult + '/' + ranks.avgRatingAdultTotal : 'N/A') + '</small></div></div>';
-            charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.bestRatingSprint + ' / ' + metrics.avgRatingSprint + ' (' + metrics.countSprintAdult + ')</div><div class="stat-label">Best / Avg Sprint <br><small>Rank: ' + (ranks.avgRatingSprint ? ranks.avgRatingSprint + '/' + ranks.avgRatingSprintTotal : 'N/A') + '</small></div></div>';
-            charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.bestRatingMiddle + ' / ' + metrics.avgRatingMiddle + ' (' + metrics.countMiddleAdult + ')</div><div class="stat-label">Best / Avg Middle <br><small>Rank: ' + (ranks.avgRatingMiddle ? ranks.avgRatingMiddle + '/' + ranks.avgRatingMiddleTotal : 'N/A') + '</small></div></div>';
-            charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.bestRatingStay + ' / ' + metrics.avgRatingStay + ' (' + metrics.countStayAdult + ')</div><div class="stat-label">Best / Avg Stay <br><small>Rank: ' + (ranks.avgRatingStay ? ranks.avgRatingStay + '/' + ranks.avgRatingStayTotal : 'N/A') + '</small></div></div>';
-            charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.bestRating2YO + ' / ' + metrics.avgRating2YO + ' (' + metrics.count2YO + ')</div><div class="stat-label">Best / Avg 2YO <br><small>Rank: ' + (ranks.avgRating2YO ? ranks.avgRating2YO + '/' + ranks.avgRating2YOTotal : 'N/A') + '</small></div></div>';
+            charHtml += '<div class="stat-card"><div class="stat-value"><span style="font-weight: bold; color: #1e40af;">' + metrics.bestRatingAdult + '</span> / ' + metrics.avgRatingAdult + ' (' + metrics.countAdult + ')</div><div class="stat-label">Best / Avg Rating <br><small>Rank: ' + (ranks.avgRatingAdult ? ranks.avgRatingAdult + '/' + ranks.avgRatingAdultTotal : 'N/A') + '</small></div></div>';
+            charHtml += '<div class="stat-card"><div class="stat-value"><span style="font-weight: bold; color: #1e40af;">' + metrics.bestRatingSprint + '</span> / ' + metrics.avgRatingSprint + ' (' + metrics.countSprintAdult + ')</div><div class="stat-label">Best / Avg Sprint <br><small>Rank: ' + (ranks.avgRatingSprint ? ranks.avgRatingSprint + '/' + ranks.avgRatingSprintTotal : 'N/A') + '</small></div></div>';
+            charHtml += '<div class="stat-card"><div class="stat-value"><span style="font-weight: bold; color: #1e40af;">' + metrics.bestRatingMiddle + '</span> / ' + metrics.avgRatingMiddle + ' (' + metrics.countMiddleAdult + ')</div><div class="stat-label">Best / Avg Middle <br><small>Rank: ' + (ranks.avgRatingMiddle ? ranks.avgRatingMiddle + '/' + ranks.avgRatingMiddleTotal : 'N/A') + '</small></div></div>';
+            charHtml += '<div class="stat-card"><div class="stat-value"><span style="font-weight: bold; color: #1e40af;">' + metrics.bestRatingStay + '</span> / ' + metrics.avgRatingStay + ' (' + metrics.countStayAdult + ')</div><div class="stat-label">Best / Avg Stay <br><small>Rank: ' + (ranks.avgRatingStay ? ranks.avgRatingStay + '/' + ranks.avgRatingStayTotal : 'N/A') + '</small></div></div>';
+            charHtml += '<div class="stat-card"><div class="stat-value"><span style="font-weight: bold; color: #1e40af;">' + metrics.bestRating2YO + '</span> / ' + metrics.avgRating2YO + ' (' + metrics.count2YO + ')</div><div class="stat-label">Best / Avg 2YO <br><small>Rank: ' + (ranks.avgRating2YO ? ranks.avgRating2YO + '/' + ranks.avgRating2YOTotal : 'N/A') + '</small></div></div>';
             document.getElementById('horseMainCharacteristics').innerHTML = charHtml;
     
             // Main Info
@@ -2881,7 +2870,7 @@
             const dam = latestRace.Dam || 'N/A';
             let mainHtml = '<table>';
             mainHtml += '<tr><td><strong>Sire:</strong></td><td>' + sire + '</td></tr>';
-            mainHtml += '<tr><td><strong>Dam:</strong></td><td>' + dam + '</td></tr>';
+            mainHtml += '<tr><td><strong>Filly:</strong></td><td>' + dam + '</td></tr>';
             mainHtml += '</table>';
             document.getElementById('horseMainInfo').innerHTML = mainHtml;
     
@@ -2906,13 +2895,14 @@
     
             // Performance Details
             let performanceHtml = '<table style="font-size: 0.85rem; width: 100%;">';
-            performanceHtml += '<thead><tr><th>Date</th><th>Course</th><th>Surface</th><th>Class</th><th>Place</th><th>Field</th><th>Ranking</th><th>Age</th><th>Comment</th></tr></thead><tbody>';
+            performanceHtml += '<thead><tr><th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th><th>Field</th><th>Ranking</th><th>Age</th><th>Comment</th></tr></thead><tbody>';
             sortedRaces.forEach(race => {
                 const placeColor = race.Place === '1' || race.Place === 1 ? '#22c55e' : '#64748b';
                 performanceHtml += '<tr>';
                 performanceHtml += '<td>' + (race.Date || 'N/A') + '</td>';
                 performanceHtml += '<td>' + (race.Course || 'N/A') + '</td>';
                 performanceHtml += '<td>' + (race.Surface || 'N/A') + '</td>';
+                performanceHtml += '<td>' + (race.Distance || 'N/A') + '</td>';
                 performanceHtml += '<td>' + (race.Class || 'N/A') + '</td>';
                 performanceHtml += '<td style="color:' + placeColor + '; font-weight: 600">' + (race.Place || 'N/A') + '</td>';
                 performanceHtml += '<td>' + (race.Field || 'N/A') + '</td>';
@@ -2925,7 +2915,7 @@
             document.getElementById('horsePerformanceDetails').innerHTML = performanceHtml;
         }
         function saveHorseComment() {
-            const selectedHorse = document.getElementById('horseInput').value;
+            const selectedHorse = document.getElementById('horseFilter').value;
             const comment = document.getElementById('horseComment').value;
             if (selectedHorse) {
                 localStorage.setItem('horseComment_' + selectedHorse, comment);
@@ -3111,7 +3101,7 @@
             const options = Array.from(select.options);
             searchTerm = searchTerm.toLowerCase();
             options.forEach(option => {
-                if (option.value === 'all') {
+                if (option.value === 'all' || option.value === '') {
                     option.style.display = '';
                     return;
                 }
@@ -3119,7 +3109,7 @@
                 option.style.display = text.startsWith(searchTerm) ? '' : 'none';
             });
             // Scroll to the first visible option
-            const firstVisible = options.find(opt => opt.style.display !== 'none' && opt.value !== 'all');
+            const firstVisible = options.find(opt => opt.style.display !== 'none' && opt.value !== 'all' && opt.value !== '');
             if (firstVisible) {
                 firstVisible.scrollIntoView({block: 'nearest'});
             }
