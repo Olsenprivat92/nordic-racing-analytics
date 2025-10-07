@@ -1314,7 +1314,7 @@
             dams = new Set();
             racingData.forEach(row => {
                 if (row.Sire && row.Sire.trim()) sires.add(row.Sire.trim());
-                if (row.Dam && row.Dam.trim()) dams.add(row.Dam.trim());
+                if (row.Filly && row.Filly.trim()) dams.add(row.Filly.trim());
             });
         }
         async function loadFavoriteTrends() {
@@ -2677,7 +2677,7 @@
             }
             const offspringSet = new Set();
             racingData.forEach(row => {
-                if ((type === 'sire' && row.Sire === name) || (type === 'dam' && row.Dam === name)) {
+                if ((type === 'sire' && row.Sire === name) || (type === 'dam' && row.Filly === name)) {
                     if (row.Horse) offspringSet.add(row.Horse);
                 }
             });
@@ -2867,17 +2867,17 @@
     
             // Main Info
             const sire = latestRace.Sire || 'N/A';
-            const dam = latestRace.Dam || 'N/A';
+            const filly = latestRace.Filly || 'N/A';
             let mainHtml = '<table>';
             mainHtml += '<tr><td><strong>Sire:</strong></td><td>' + sire + '</td></tr>';
-            mainHtml += '<tr><td><strong>Filly:</strong></td><td>' + dam + '</td></tr>';
+            mainHtml += '<tr><td><strong>Filly:</strong></td><td>' + filly + '</td></tr>';
             mainHtml += '</table>';
             document.getElementById('horseMainInfo').innerHTML = mainHtml;
     
             // Siblings
             const siblings = [];
             racingData.forEach(r => {
-                if (r.Dam === dam && r.Horse !== selectedHorse && !siblings.includes(r.Horse)) {
+                if (r.Filly === filly && r.Horse !== selectedHorse && !siblings.includes(r.Horse)) {
                     siblings.push(r.Horse);
                 }
             });
