@@ -1,4 +1,4 @@
-```html
+```html:disable-run
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1266,12 +1266,14 @@
                                 <div class="filter-title">📏 Distance</div>
                                 <select id="notesDistance" onchange="loadScenarioNote()">
                                     <option value="">Select Distance</option>
+                                    <option value="all">All Distances</option>
                                 </select>
                             </div>
                             <div class="filter-box">
                                 <div class="filter-title">🏆 Class</div>
                                 <select id="notesClass" onchange="loadScenarioNote()">
                                     <option value="">Select Class</option>
+                                    <option value="all">All Classes</option>
                                     <option value="Ældre Vinder">Ældre Vinder</option>
                                     <option value="3 Års Maiden">3 Års Maiden</option>
                                     <option value="3 Års Vinder">3 Års Vinder</option>
@@ -1334,8 +1336,6 @@
             </div>
         </div>
     </div>
-    <datalist id="horseList"></datalist>
-    <datalist id="jockeyList"></datalist>
     <script>
         let racingData = [];
         let favoriteTrendsData = [];
@@ -1381,10 +1381,9 @@
                 populateNextRaceView();
                 populateNextRaceFilters();
                 updateNextRaceAnalysis();
+                if (favoriteTrendsData.length === 0) loadFavoriteTrends();
             } else if (view === 'notes') {
                 populateNotesFilters();
-            } else if (view === 'predictor') {
-                // Nothing yet
             }
         }
         async function loadData() {
@@ -1409,6 +1408,7 @@
                     populateJockeyFilters();
                     populateHorseSelect();
                     updateDashboard();
+                    loadFavoriteTrends();
                     document.getElementById('syncStatus').textContent = racingData.length + ' races loaded';
                     document.getElementById('syncStatus').style.background = '#22c55e';
                 } else {
@@ -1606,166 +1606,6 @@
             const horseCourseFilter = document.getElementById('horseCourseFilter');
             horseCourseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
                 Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
-        }
-        function populateNextRaceFilters() {
-            const courses = new Set();
-            const distances = new Set();
-
-            racingData.forEach(row => {
-                if (row.Course && row.Course.trim()) {
-                    let courseName = row.Course.trim();
-                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
-                        const surface = (row.Surface || '').toLowerCase();
-                        const track = (row.Track || '').toLowerCase();
-                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            courseName += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            courseName += ' (Grass)';
-                        }
-                    }
-                    courses.add(courseName);
-                }
-                if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
-            });
-
-            const nextRaceCourse = document.getElementById('nextRaceCourse');
-            nextRaceCourse.innerHTML = '<option value="">Select Course</option>' +
-                Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
-
-            const nextRaceDistance = document.getElementById('nextRaceDistance');
-            nextRaceDistance.innerHTML = '<option value="">Select Distance</option>' +
-                Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
-        }
-        function populateNotesFilters() {
-            const courses = new Set();
-            const distances = new Set();
-
-            racingData.forEach(row => {
-                if (row.Course && row.Course.trim()) {
-                    let courseName = row.Course.trim();
-                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
-                        const surface = (row.Surface || '').toLowerCase();
-                        const track = (row.Track || '').toLowerCase();
-                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            courseName += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            courseName += ' (Grass)';
-                        }
-                    }
-                    courses.add(courseName);
-                }
-                if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
-            });
-
-            const notesCourse = document.getElementById('notesCourse');
-            notesCourse.innerHTML = '<option value="">Select Course</option>' +
-                Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
-
-            const notesDistance = document.getElementById('notesDistance');
-            notesDistance.innerHTML = '<option value="">Select Distance</option>' +
-                Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
-        }
-        function updateNextRaceScenario() {
-            const course = document.getElementById('nextRaceCourse').value;
-            const distance = document.getElementById('nextRaceDistance').value;
-            const raceClass = document.getElementById('nextRaceClass').value;
-
-            if (!course || !distance || !raceClass) {
-                document.getElementById('nextRaceNotes').innerHTML = '<p>Select all fields to see notes.</p>';
-                document.getElementById('nextRacePostPosition').innerHTML = '<p>Select course and distance to see analysis.</p>';
-                document.getElementById('nextRaceFavoritePerformance').innerHTML = '<p>Select course and class to see analysis.</p>';
-                return;
-            }
-
-            // Load notes
-            const noteKey = `note_${course}_${distance}_${raceClass}`;
-            const note = localStorage.getItem(noteKey) || 'No notes available.';
-            document.getElementById('nextRaceNotes').innerHTML = `<p>${note}</p>`;
-
-            // Post position analysis
-            const filteredData = racingData.filter(race => {
-                let raceCourse = race.Course || '';
-                if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
-                    const surface = (race.Surface || '').toLowerCase();
-                    const track = (race.Track || '').toLowerCase();
-                    const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
-                    if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                        track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                        raceCourse += ' (Dirt)';
-                    } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                               track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                        raceCourse += ' (Grass)';
-                    }
-                }
-                return raceCourse === course && race.Distance === distance;
-            });
-            updatePostPositions(filteredData, 'nextRacePostPosition');
-
-            // Favorite performance
-            updateFavoritePerformance(course, raceClass);
-        }
-        function updateFavoritePerformance(course, raceClass) {
-            if (favoriteTrendsData.length === 0) {
-                document.getElementById('nextRaceFavoritePerformance').innerHTML = '<p>Loading favorite trends data...</p>';
-                return;
-            }
-            let html = '';
-            const filteredTrends = favoriteTrendsData.filter(item => {
-                return (item.Course === course || item.OriginalCourse === course.replace(' (Dirt)', '').replace(' (Grass)', '')) &&
-                       item.Class === raceClass;
-            });
-            if (filteredTrends.length === 0) {
-                html += '<p>No favorite performance data available for this combination.</p>';
-            } else {
-                html += '<table><tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
-                filteredTrends.forEach(item => {
-                    const top25Color = item.Top25 < 40 ? '#ef4444' : item.Top25 <= 60 ? '#0f172a' : '#22c55e';
-                    const range2650Color = item.Range26_50 < 20 ? '#ef4444' : item.Range26_50 <= 35 ? '#0f172a' : '#22c55e';
-                    const range5175Color = item.Range51_75 < 10 ? '#ef4444' : item.Range51_75 <= 20 ? '#0f172a' : '#22c55e';
-                    const range76100Color = item.Range76_100 < 5 ? '#ef4444' : item.Range76_100 <= 13 ? '#0f172a' : '#22c55e';
-                    html += '<tr>';
-                    html += `<td>${item.Class}</td>`;
-                    html += `<td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>`;
-                    html += `<td style="color:${range2650Color}; font-weight:600">${item.Range26_50.toFixed(1)}%</td>`;
-                    html += `<td style="color:${range5175Color}; font-weight:600">${item.Range51_75.toFixed(1)}%</td>`;
-                    html += `<td style="color:${range76100Color}; font-weight:600">${item.Range76_100.toFixed(1)}%</td>`;
-                    html += `<td>${item.Total}</td>`;
-                    html += '</tr>';
-                });
-                html += '</table>';
-            }
-            document.getElementById('nextRaceFavoritePerformance').innerHTML = html;
-        }
-        function loadScenarioNote() {
-            const course = document.getElementById('notesCourse').value;
-            const distance = document.getElementById('notesDistance').value;
-            const raceClass = document.getElementById('notesClass').value;
-            if (!course || !distance || !raceClass) {
-                document.getElementById('notesTextarea').value = '';
-                return;
-            }
-            const noteKey = `note_${course}_${distance}_${raceClass}`;
-            const note = localStorage.getItem(noteKey) || '';
-            document.getElementById('notesTextarea').value = note;
-        }
-        function saveScenarioNote() {
-            const course = document.getElementById('notesCourse').value;
-            const distance = document.getElementById('notesDistance').value;
-            const raceClass = document.getElementById('notesClass').value;
-            const note = document.getElementById('notesTextarea').value;
-            if (!course || !distance || !raceClass) {
-                alert('Please select course, distance, and class.');
-                return;
-            }
-            const noteKey = `note_${course}_${distance}_${raceClass}`;
-            localStorage.setItem(noteKey, note);
-            alert('Note saved!');
         }
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);
@@ -3303,7 +3143,6 @@
                 'Klampenborg': 'KL',
                 'Odense': 'OD',
                 'Aarhus': 'AR',
-                'Aalborg': 'AL',
                 'Aalborg': 'AL',
                 'Jægersro': 'JÆ',
                 'Gøteborg': 'GG',
