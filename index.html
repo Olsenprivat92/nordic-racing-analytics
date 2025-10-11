@@ -329,14 +329,27 @@
             color: #8b5cf6;
         }
         .small-table {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             border-collapse: collapse;
             width: 100%;
         }
-        .small-table td {
-            padding: 2px 4px;
+        .small-table th, .small-table td {
+            padding: 2px;
             border: 1px solid rgba(0,0,0,0.1);
             text-align: center;
+        }
+        #nextRaceTable th:nth-child(2), #nextRaceTable td:nth-child(2) {
+            width: 400px;
+        }
+        .horse-jockey-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .horse-jockey-container input {
+            width: 50%;
+            padding: 6px;
+            font-size: 0.85rem;
         }
         @media (max-width: 768px) {
             .analysis-grid, .filters-grid, .performance-period-grid {
@@ -1144,6 +1157,29 @@
         </div>
         <!-- Next Race View -->
         <div class="view-container" id="next-race-view">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <select id="raceDaySelect" onchange="switchNextRaceView()">
+                    <option value="1">Race Day 1</option>
+                    <option value="2">Race Day 2</option>
+                    <option value="3">Race Day 3</option>
+                    <option value="4">Race Day 4</option>
+                    <option value="5">Race Day 5</option>
+                </select>
+                <select id="raceSelect" onchange="switchNextRaceView()">
+                    <option value="1">Race 1</option>
+                    <option value="2">Race 2</option>
+                    <option value="3">Race 3</option>
+                    <option value="4">Race 4</option>
+                    <option value="5">Race 5</option>
+                    <option value="6">Race 6</option>
+                    <option value="7">Race 7</option>
+                    <option value="8">Race 8</option>
+                    <option value="9">Race 9</option>
+                    <option value="10">Race 10</option>
+                    <option value="11">Race 11</option>
+                    <option value="12">Race 12</option>
+                </select>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">🏇 Next Race Analysis</h2>
@@ -1154,19 +1190,19 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">🏁 Course</div>
-                                <select id="nextRaceCourse" onchange="updateNextRaceScenario()">
+                                <select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
                                     <option value="">Select Course</option>
                                 </select>
                             </div>
                             <div class="filter-box">
                                 <div class="filter-title">📏 Distance</div>
-                                <select id="nextRaceDistance" onchange="updateNextRaceScenario()">
+                                <select id="nextRaceDistance" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
                                     <option value="">Select Distance</option>
                                 </select>
                             </div>
                             <div class="filter-box">
                                 <div class="filter-title">🏆 Class</div>
-                                <select id="nextRaceClass" onchange="updateNextRaceScenario()">
+                                <select id="nextRaceClass" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
                                     <option value="">Select Class</option>
                                     <option value="Ældre Vinder">Ældre Vinder</option>
                                     <option value="3 Års Maiden">3 Års Maiden</option>
@@ -1181,6 +1217,10 @@
                                     <option value="Ældre Maiden">Ældre Maiden</option>
                                     <option value="Max Hcp">Max Hcp</option>
                                 </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Date</div>
+                                <input type="date" id="nextRaceDate" value="2025-10-11" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
                             </div>
                         </div>
                     </div>
@@ -1213,12 +1253,21 @@
                         </div>
                     </div>
                     <!-- Global Filter for Last 5 Races -->
-                    <div class="filter-box" style="margin-bottom: 2rem;">
+                    <div class="filter-box" style="margin-bottom: 1rem;">
                         <div class="filter-title">🌱 Filter Last 5 Races by Surface</div>
                         <select id="nextRaceSurfaceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
                             <option value="all" selected>All Surfaces</option>
                             <option value="Grass">Grass</option>
                             <option value="Dirt">Dirt</option>
+                        </select>
+                    </div>
+                    <div class="filter-box" style="margin-bottom: 2rem;">
+                        <div class="filter-title">📏 Filter Last 5 Races by Distance</div>
+                        <select id="nextRaceDistanceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
+                            <option value="all" selected>All Distances</option>
+                            <option value="Sprint">Sprint</option>
+                            <option value="Middle">Middle</option>
+                            <option value="Stay">Stay</option>
                         </select>
                     </div>
                     <!-- Horse and Jockey Inputs -->
@@ -1231,14 +1280,12 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Horse</th>
-                                        <th>Jockey</th>
-                                        <th>Last 5 Races</th>
-                                        <th>Wins/Races</th>
+                                        <th>Horse / Jockey / Last 5 Races</th>
                                         <th>Avg Ranking</th>
-                                        <th>Avg Odds</th>
-                                        <th>Odds vs Win</th>
                                         <th>Comment</th>
+                                        <th>Wins/Races</th>
+                                        <th>Win%</th>
+                                        <th>1 Avg Trainer</th>
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
                                         <th>Class</th>
@@ -1257,14 +1304,15 @@
                         </div>
                         <div class="card-body">
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                                <div><label>A:</label> <input type="text" style="width: 100%;"></div>
-                                <div><label>B:</label> <input type="text" style="width: 100%;"></div>
-                                <div><label>C:</label> <input type="text" style="width: 100%;"></div>
-                                <div><label>D:</label> <input type="text" style="width: 100%;"></div>
-                                <div><label>E:</label> <input type="text" style="width: 100%;"></div>
+                                <div><label>A:</label> <input type="text" id="predictionA" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>B:</label> <input type="text" id="predictionB" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>C:</label> <input type="text" id="predictionC" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>D:</label> <input type="text" id="predictionD" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>E:</label> <input type="text" id="predictionE" style="width: 100%;" onchange="savePrediction()"></div>
                             </div>
                         </div>
                     </div>
+                    <button style="margin-top: 2rem;" onclick="clearNextRaceData()">Clear Info</button>
                 </div>
             </div>
         </div>
@@ -1367,6 +1415,7 @@
         let sires = new Set();
         let dams = new Set();
         let showAllMetrics = {};
+        let nextRaceData;
         const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=0&single=true&output=csv';
         const FAVORITES_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTvMVuVB0xdAbPxg9fvRHnHLZiGm0gHh4ygYSin-2lACKqhzmXtEZb78AxIru1gJl2WnD6-XfFqCoUX/pub?gid=964028900&single=true&output=csv';
         document.addEventListener('DOMContentLoaded', function() {
@@ -1401,8 +1450,10 @@
                 updateBreedingFilters();
                 updateBreedingAnalysis();
             } else if (view === 'next-race') {
+                initNextRaceData();
                 populateNextRaceView();
                 populateNextRaceFilters();
+                switchNextRaceView();
                 updateNextRaceAnalysis();
             } else if (view === 'notes') {
                 populateNotesFilters();
@@ -1802,6 +1853,7 @@
         }
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);
+            if (!select) return [];
             const values = Array.from(select.selectedOptions).map(option => option.value);
             return values.includes('all') ? ['all'] : values;
         }
@@ -3268,6 +3320,95 @@
             return allMetrics;
         }
         // Next Race Functions
+        function initNextRaceData() {
+            nextRaceData = JSON.parse(localStorage.getItem('nextRaceData')) || {
+                days: Array.from({length: 5}, () => ({
+                    races: Array.from({length: 12}, () => ({
+                        course: '',
+                        distance: '',
+                        class: '',
+                        date: '2025-10-11',
+                        horses: Array.from({length: 15}, () => ({
+                            horse: '',
+                            jockey: '',
+                            class: '',
+                            withweight: ''
+                        })),
+                        prediction: {
+                            a: '',
+                            b: '',
+                            c: '',
+                            d: '',
+                            e: ''
+                        }
+                    }))
+                }))
+            };
+        }
+        function saveNextRaceData() {
+            localStorage.setItem('nextRaceData', JSON.stringify(nextRaceData));
+        }
+        function switchNextRaceView() {
+            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+            const race = parseInt(document.getElementById('raceSelect').value) - 1;
+            const currentRace = nextRaceData.days[day].races[race];
+            document.getElementById('nextRaceCourse').value = currentRace.course;
+            document.getElementById('nextRaceDistance').value = currentRace.distance;
+            document.getElementById('nextRaceClass').value = currentRace.class;
+            document.getElementById('nextRaceDate').value = currentRace.date;
+            for (let i = 1; i <= 15; i++) {
+                const horseData = currentRace.horses[i - 1];
+                document.getElementById(`horse-${i}`).value = horseData.horse;
+                document.getElementById(`jockey-${i}`).value = horseData.jockey;
+                document.getElementById(`class-${i}`).value = horseData.class;
+                document.getElementById(`withweight-${i}`).value = horseData.withweight;
+                updateNextRaceRow(i);
+            }
+            document.getElementById('predictionA').value = currentRace.prediction.a;
+            document.getElementById('predictionB').value = currentRace.prediction.b;
+            document.getElementById('predictionC').value = currentRace.prediction.c;
+            document.getElementById('predictionD').value = currentRace.prediction.d;
+            document.getElementById('predictionE').value = currentRace.prediction.e;
+            updateNextRaceScenario();
+        }
+        function saveNextRaceFilters() {
+            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+            const race = parseInt(document.getElementById('raceSelect').value) - 1;
+            const currentRace = nextRaceData.days[day].races[race];
+            currentRace.course = document.getElementById('nextRaceCourse').value;
+            currentRace.distance = document.getElementById('nextRaceDistance').value;
+            currentRace.class = document.getElementById('nextRaceClass').value;
+            currentRace.date = document.getElementById('nextRaceDate').value;
+            saveNextRaceData();
+        }
+        function saveHorseData(rowNum) {
+            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+            const race = parseInt(document.getElementById('raceSelect').value) - 1;
+            const currentRace = nextRaceData.days[day].races[race];
+            const horseData = currentRace.horses[rowNum - 1];
+            horseData.horse = document.getElementById(`horse-${rowNum}`).value;
+            horseData.jockey = document.getElementById(`jockey-${rowNum}`).value;
+            horseData.class = document.getElementById(`class-${rowNum}`).value;
+            horseData.withweight = document.getElementById(`withweight-${rowNum}`).value;
+            saveNextRaceData();
+        }
+        function savePrediction() {
+            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+            const race = parseInt(document.getElementById('raceSelect').value) - 1;
+            const currentRace = nextRaceData.days[day].races[race];
+            currentRace.prediction.a = document.getElementById('predictionA').value;
+            currentRace.prediction.b = document.getElementById('predictionB').value;
+            currentRace.prediction.c = document.getElementById('predictionC').value;
+            currentRace.prediction.d = document.getElementById('predictionD').value;
+            currentRace.prediction.e = document.getElementById('predictionE').value;
+            saveNextRaceData();
+        }
+        function clearNextRaceData() {
+            localStorage.removeItem('nextRaceData');
+            initNextRaceData();
+            switchNextRaceView();
+            alert('All next race info cleared');
+        }
         function populateNextRaceView() {
             const tbody = document.querySelector('#nextRaceTable tbody');
             tbody.innerHTML = '';
@@ -3275,35 +3416,24 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${i}</td>
-                    <td><input list="horseList" class="horse-input" id="horse-${i}" placeholder="Select horse" onchange="updateNextRaceRow(${i})"></td>
-                    <td><input list="jockeyList" class="jockey-input" id="jockey-${i}" placeholder="Select jockey" onchange="updateNextRaceRow(${i})"></td>
-                    <td id="last5-${i}"></td>
-                    <td id="winsRaces-${i}"></td>
+                    <td>
+                        <div class="horse-jockey-container">
+                            <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+                            <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+                        </div>
+                        <div id="last5-${i}"></div>
+                    </td>
                     <td id="avgRanking-${i}"></td>
-                    <td id="avgOdds-${i}"></td>
-                    <td id="oddsVsWin-${i}"></td>
                     <td id="comment-${i}"></td>
+                    <td id="winsRaces-${i}"></td>
+                    <td id="winPct-${i}"></td>
+                    <td id="oneAvgTrainer-${i}"></td>
                     <td id="trainerPct-${i}"></td>
                     <td id="jockeyPct-${i}"></td>
-                    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5"></td>
-                    <td><input type="text" class="small-input" id="withweight-${i}" placeholder="e.g. 4.5"></td>
+                    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
+                    <td><input type="text" class="small-input" id="withweight-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
                 `;
                 tbody.appendChild(row);
-            }
-            // Populate datalists if not done
-            if (document.getElementById('horseList').innerHTML === '') {
-                const horses = new Set();
-                racingData.forEach(row => {
-                    if (row.Horse && row.Horse.trim()) horses.add(row.Horse.trim());
-                });
-                document.getElementById('horseList').innerHTML = Array.from(horses).sort().map(horse => `<option value="${horse}">${horse}</option>`).join('');
-            }
-            if (document.getElementById('jockeyList').innerHTML === '') {
-                const jockeys = new Set();
-                racingData.forEach(row => {
-                    if (row.Jockey && row.Jockey.trim()) jockeys.add(row.Jockey.trim());
-                });
-                document.getElementById('jockeyList').innerHTML = Array.from(jockeys).sort().map(jockey => `<option value="${jockey}">${jockey}</option>`).join('');
             }
         }
         function updateNextRaceAnalysis() {
@@ -3321,6 +3451,9 @@
                 return;
             }
             const surfaceValues = getSelectedValues('nextRaceSurfaceFilter');
+            const distValues = getSelectedValues('nextRaceDistanceFilter');
+            const selectedCourse = document.getElementById('nextRaceCourse').value;
+            const selectedDate = document.getElementById('nextRaceDate').value || '2025-10-11';
             let horseRaces = racingData.filter(r => r.Horse === horseName);
             if (surfaceValues.length > 0 && !surfaceValues.includes('all')) {
                 horseRaces = horseRaces.filter(race => {
@@ -3330,10 +3463,21 @@
                     return (surfaceValues.includes('Grass') && isGrass) || (surfaceValues.includes('Dirt') && isDirt);
                 });
             }
+            if (distValues.length > 0 && !distValues.includes('all')) {
+                horseRaces = horseRaces.filter(race => {
+                    const dist = parseInt(race.Distance);
+                    return distValues.some(d => {
+                        if (d === 'Sprint') return dist >= 900 && dist <= 1400;
+                        if (d === 'Middle') return dist > 1400 && dist <= 1800;
+                        if (d === 'Stay') return dist > 1800;
+                    });
+                });
+            }
             horseRaces.sort((a, b) => parseRaceDate(b.Date) - parseRaceDate(a.Date));
             // Last 5 races
             const last5 = horseRaces.slice(0, 5);
             let last5Html = '<table class="small-table">';
+            last5Html += '<tr><th>Date</th><th>Course</th><th>Distance</th><th>Surface</th><th>Class</th><th>Place</th><th>Field</th><th>Jockey</th><th>Comment</th></tr>';
             const courseAbbrev = {
                 'Klampenborg': 'KL',
                 'Odense': 'OD',
@@ -3372,7 +3516,6 @@
                 last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
                 last5Html += '<td>' + (race.Place || 'N/A') + '</td>';
                 last5Html += '<td>' + (race.Field || 'N/A') + '</td>';
-                last5Html += '<td>' + (race.Ranking || 'N/A') + '</td>';
                 last5Html += '<td>' + jockey + '</td>';
                 last5Html += '<td>' + (race.Comment || 'N/A') + '</td>';
                 last5Html += '</tr>';
@@ -3383,13 +3526,11 @@
             const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
             const races = horseRaces.length;
             document.getElementById(`winsRaces-${rowNum}`).textContent = wins + '/' + races;
+            // Win%
+            const metrics = calculateDetailedMetrics(horseRaces, 'horse');
+            document.getElementById(`winPct-${rowNum}`).textContent = metrics.winPct + '%';
             // Avg Ranking
-            const metrics = calculateDetailedMetrics(horseRaces);
             document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgPlaceAll;
-            // Avg Odds
-            document.getElementById(`avgOdds-${rowNum}`).textContent = metrics.avgOddsAll;
-            // Odds vs Win
-            document.getElementById(`oddsVsWin-${rowNum}`).textContent = metrics.oddsVsWinFormula + '%';
             // Comment
             document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
             // Trainer %
@@ -3398,15 +3539,58 @@
             const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
             const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
             document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+            // 1 Avg Trainer
+            let oneAvgTrainer = 'N/A';
+            if (trainer) {
+                const trainerFiltered = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
+                const analysisDate = new Date(selectedDate);
+                const cutoffDate = new Date(analysisDate);
+                cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+                const periodData = trainerFiltered.filter(race => {
+                    const raceDate = parseRaceDate(race.Date);
+                    return raceDate >= cutoffDate && raceDate <= analysisDate;
+                });
+                const percentages = [];
+                periodData.forEach(race => {
+                    const place = parseFloat(race.Place);
+                    const field = parseInt(race.Field);
+                    if (!isNaN(place) && !isNaN(field) && place > 0 && field > 0) {
+                        const percentage = ((field - place + 1) / field) * 100;
+                        percentages.push(percentage);
+                    }
+                });
+                if (percentages.length > 0) {
+                    oneAvgTrainer = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
+                }
+            }
+            document.getElementById(`oneAvgTrainer-${rowNum}`).textContent = oneAvgTrainer;
             // Jockey %
             const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
-            const jockeyRaces = racingData.filter(r => r.Jockey === jockey);
+            let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
+            if (selectedCourse) {
+                jockeyRaces = jockeyRaces.filter(race => {
+                    let raceCourse = race.Course || '';
+                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                        const surface = (race.Surface || '').toLowerCase();
+                        const track = (race.Track || '').toLowerCase();
+                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            raceCourse += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            raceCourse += ' (Grass)';
+                        }
+                    }
+                    return raceCourse === selectedCourse;
+                });
+            }
             const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
             const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
             document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
         }
         function clearNextRaceRow(rowNum) {
-            ['last5', 'winsRaces', 'avgRanking', 'avgOdds', 'oddsVsWin', 'comment', 'trainerPct', 'jockeyPct'].forEach(id => {
+            ['last5', 'winsRaces', 'winPct', 'avgRanking', 'comment', 'trainerPct', 'oneAvgTrainer', 'jockeyPct'].forEach(id => {
                 document.getElementById(`${id}-${rowNum}`).textContent = '';
             });
         }
