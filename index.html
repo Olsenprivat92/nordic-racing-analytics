@@ -1285,6 +1285,7 @@
                                         <th>Comment</th>
                                         <th>Wins/Races</th>
                                         <th>Win%</th>
+                                        <th>Trainer</th>
                                         <th>1 Avg Trainer</th>
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
@@ -1312,7 +1313,8 @@
                             </div>
                         </div>
                     </div>
-                    <button style="margin-top: 2rem;" onclick="clearNextRaceData()">Clear Info</button>
+                    <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
+                    <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
                 </div>
             </div>
         </div>
@@ -3403,11 +3405,34 @@
             currentRace.prediction.e = document.getElementById('predictionE').value;
             saveNextRaceData();
         }
-        function clearNextRaceData() {
-            localStorage.removeItem('nextRaceData');
-            initNextRaceData();
+        function clearCurrentRace() {
+            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+            const race = parseInt(document.getElementById('raceSelect').value) - 1;
+            nextRaceData.days[day].races[race] = {
+                course: '',
+                distance: '',
+                class: '',
+                date: '2025-10-11',
+                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+                prediction: { a: '', b: '', c: '', d: '', e: '' }
+            };
+            saveNextRaceData();
             switchNextRaceView();
-            alert('All next race info cleared');
+            alert('Current race cleared');
+        }
+        function clearCurrentRaceday() {
+            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+            nextRaceData.days[day].races = Array.from({length: 12}, () => ({
+                course: '',
+                distance: '',
+                class: '',
+                date: '2025-10-11',
+                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+                prediction: { a: '', b: '', c: '', d: '', e: '' }
+            }));
+            saveNextRaceData();
+            switchNextRaceView();
+            alert('Current raceday cleared');
         }
         function populateNextRaceView() {
             const tbody = document.querySelector('#nextRaceTable tbody');
@@ -3427,6 +3452,7 @@
                     <td id="comment-${i}"></td>
                     <td id="winsRaces-${i}"></td>
                     <td id="winPct-${i}"></td>
+                    <td id="trainer-${i}"></td>
                     <td id="oneAvgTrainer-${i}"></td>
                     <td id="trainerPct-${i}"></td>
                     <td id="jockeyPct-${i}"></td>
@@ -3477,7 +3503,7 @@
             // Last 5 races
             const last5 = horseRaces.slice(0, 5);
             let last5Html = '<table class="small-table">';
-            last5Html += '<tr><th>Date</th><th>Course</th><th>Distance</th><th>Surface</th><th>Class</th><th>Place</th><th>Field</th><th>Jockey</th><th>Comment</th></tr>';
+            last5Html += '<tr><th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Ranking</th><th>Place</th><th>Field</th><th>Class</th><th>Jockey</th><th>Comment</th></tr>';
             const courseAbbrev = {
                 'Klampenborg': 'KL',
                 'Odense': 'OD',
@@ -3511,11 +3537,12 @@
                 last5Html += '<tr>';
                 last5Html += '<td>' + (race.Date || 'N/A') + '</td>';
                 last5Html += '<td>' + course + '</td>';
-                last5Html += '<td>' + (race.Distance || 'N/A') + '</td>';
                 last5Html += '<td>' + surface + '</td>';
-                last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
+                last5Html += '<td>' + (race.Distance || 'N/A') + '</td>';
+                last5Html += '<td>' + (race.Ranking || 'N/A') + '</td>';
                 last5Html += '<td>' + (race.Place || 'N/A') + '</td>';
                 last5Html += '<td>' + (race.Field || 'N/A') + '</td>';
+                last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
                 last5Html += '<td>' + jockey + '</td>';
                 last5Html += '<td>' + (race.Comment || 'N/A') + '</td>';
                 last5Html += '</tr>';
@@ -3533,8 +3560,10 @@
             document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgPlaceAll;
             // Comment
             document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
+            // Trainer
+            const trainer = horseRaces[0] ? horseRaces[0].Trainer || horseRaces[0].Owner : 'N/A';
+            document.getElementById(`trainer-${rowNum}`).textContent = trainer;
             // Trainer %
-            const trainer = horseRaces[0] ? horseRaces[0].Trainer || horseRaces[0].Owner : '';
             const trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
             const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
             const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
@@ -3590,7 +3619,7 @@
             document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
         }
         function clearNextRaceRow(rowNum) {
-            ['last5', 'winsRaces', 'winPct', 'avgRanking', 'comment', 'trainerPct', 'oneAvgTrainer', 'jockeyPct'].forEach(id => {
+            ['last5', 'winsRaces', 'winPct', 'avgRanking', 'comment', 'trainer', 'trainerPct', 'oneAvgTrainer', 'jockeyPct'].forEach(id => {
                 document.getElementById(`${id}-${rowNum}`).textContent = '';
             });
         }
