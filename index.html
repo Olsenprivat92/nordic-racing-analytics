@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -371,16 +372,6 @@
             border-radius: 6px;
             font-size: 0.8rem;
             border: 1px solid #e2e8f0;
-        }
-        .bulk-input-container {
-            margin-bottom: 1rem;
-        }
-        .bulk-input-container textarea {
-            width: 100%;
-            height: 100px;
-            padding: 8px;
-            border: 1px solid #e5e7eb;
-            border-radius: 4px;
         }
     </style>
 </head>
@@ -1285,12 +1276,6 @@
                             <option value="Stay">Stay</option>
                         </select>
                     </div>
-                    <!-- Bulk Input -->
-                    <div class="bulk-input-container">
-                        <label>Bulk Entry for Current Race (Format: Horse Jockey Class Weight, one per line)</label>
-                        <textarea id="bulkInput" rows="10" placeholder="Horse1 Jockey1 Class1 Weight1\nHorse2 Jockey2 Class2 Weight2\n..."></textarea>
-                        <button onclick="parseBulkInput()">Load Bulk</button>
-                    </div>
                     <!-- Horse and Jockey Inputs -->
                     <div class="card" style="margin-bottom: 2rem;">
                         <div class="card-header">
@@ -1311,7 +1296,7 @@
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
                                         <th>Class</th>
-                                        <th>Weight</th>
+                                        <th>With Weight</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3368,7 +3353,7 @@
                             horse: '',
                             jockey: '',
                             class: '',
-                            weight: ''
+                            withweight: ''
                         })),
                         prediction: {
                             a: '',
@@ -3397,7 +3382,7 @@
                 document.getElementById(`horse-${i}`).value = horseData.horse;
                 document.getElementById(`jockey-${i}`).value = horseData.jockey;
                 document.getElementById(`class-${i}`).value = horseData.class;
-                document.getElementById(`weight-${i}`).value = horseData.weight;
+                document.getElementById(`withweight-${i}`).value = horseData.withweight;
                 updateNextRaceRow(i);
             }
             document.getElementById('predictionA').value = currentRace.prediction.a;
@@ -3425,7 +3410,7 @@
             horseData.horse = document.getElementById(`horse-${rowNum}`).value;
             horseData.jockey = document.getElementById(`jockey-${rowNum}`).value;
             horseData.class = document.getElementById(`class-${rowNum}`).value;
-            horseData.weight = document.getElementById(`weight-${rowNum}`).value;
+            horseData.withweight = document.getElementById(`withweight-${rowNum}`).value;
             saveNextRaceData();
         }
         function savePrediction() {
@@ -3447,7 +3432,7 @@
                 distance: '',
                 class: '',
                 date: '2025-10-11',
-                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', weight: '' })),
+                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
             };
             saveNextRaceData();
@@ -3461,7 +3446,7 @@
                 distance: '',
                 class: '',
                 date: '2025-10-11',
-                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', weight: '' })),
+                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
             }));
             saveNextRaceData();
@@ -3491,7 +3476,7 @@
                     <td id="trainerPct-${i}"></td>
                     <td id="jockeyPct-${i}"></td>
                     <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
-                    <td><input type="text" class="small-input" id="weight-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
+                    <td><input type="text" class="small-input" id="withweight-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -3500,24 +3485,6 @@
             for (let i = 1; i <= 15; i++) {
                 updateNextRaceRow(i);
             }
-        }
-        function parseBulkInput() {
-            const input = document.getElementById('bulkInput').value.trim();
-            if (!input) return;
-  
-            const lines = input.split('\n').filter(line => line.trim());
-            for (let i = 0; i < Math.min(lines.length, 15); i++) {
-                const parts = lines[i].trim().split(/\s+/);
-                if (parts.length >= 4) {
-                    document.getElementById(`horse-${i+1}`).value = parts[0];
-                    document.getElementById(`jockey-${i+1}`).value = parts[1];
-                    document.getElementById(`class-${i+1}`).value = parts[2];
-                    document.getElementById(`weight-${i+1}`).value = parts[3];
-                    updateNextRaceRow(i+1);
-                    saveHorseData(i+1);
-                }
-            }
-            alert('Bulk data loaded for current race');
         }
         function updateNextRaceRow(rowNum) {
             const horseInput = document.getElementById(`horse-${rowNum}`);
@@ -3924,4 +3891,91 @@
                     avgPlaceShort: null, avgPlaceShortTotal: 0,
                     winPctAll: null, winPctAllTotal: 0,
                     winPctSprint: null, winPctSprintTotal: 0,
-                    winPctMiddle: null, winPct
+                    winPctMiddle: null, winPctMiddleTotal: 0,
+                    winPctStay: null, winPctStayTotal: 0,
+                    winPctShort: null, winPctShortTotal: 0,
+                    avgOddsAll: null, avgOddsAllTotal: 0,
+                    avgOddsSprint: null, avgOddsSprintTotal: 0,
+                    avgOddsMiddle: null, avgOddsMiddleTotal: 0,
+                    avgOddsStay: null, avgOddsStayTotal: 0,
+                    avgOddsShort: null, avgOddsShortTotal: 0,
+                    avgPlace2YO: null, avgPlace2YOTotal: 0
+                };
+            }
+  
+            let html = '<table style="font-size: 0.9rem;">';
+            html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Rank</th></tr>';
+  
+            html += '<tr><td><strong>Avg Place:</strong></td><td>' + (metrics.avgPlaceAll || 'N/A') + '</td><td>' + (ranks.avgPlaceAll ? ranks.avgPlaceAll + ' out of ' + ranks.avgPlaceAllTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOddsAll || 'N/A') + '</td><td>' + (ranks.avgOddsAll ? ranks.avgOddsAll + ' out of ' + ranks.avgOddsAllTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % All:</strong></td><td>' + (metrics.winPctAll || 'N/A') + '%</td><td>' + (ranks.winPctAll ? ranks.winPctAll + ' out of ' + ranks.winPctAllTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place Sprint:</strong></td><td>' + (metrics.avgPlaceSprint || 'N/A') + '</td><td>' + (ranks.avgPlaceSprint ? ranks.avgPlaceSprint + ' out of ' + ranks.avgPlaceSprintTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds Sprint:</strong></td><td>' + (metrics.avgOddsSprint || 'N/A') + '</td><td>' + (ranks.avgOddsSprint ? ranks.avgOddsSprint + ' out of ' + ranks.avgOddsSprintTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % Sprint:</strong></td><td>' + (metrics.winPctSprint || 'N/A') + '%</td><td>' + (ranks.winPctSprint ? ranks.winPctSprint + ' out of ' + ranks.winPctSprintTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place Middle:</strong></td><td>' + (metrics.avgPlaceMiddle || 'N/A') + '</td><td>' + (ranks.avgPlaceMiddle ? ranks.avgPlaceMiddle + ' out of ' + ranks.avgPlaceMiddleTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds Middle:</strong></td><td>' + (metrics.avgOddsMiddle || 'N/A') + '</td><td>' + (ranks.avgOddsMiddle ? ranks.avgOddsMiddle + ' out of ' + ranks.avgOddsMiddleTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % Middle:</strong></td><td>' + (metrics.winPctMiddle || 'N/A') + '%</td><td>' + (ranks.winPctMiddle ? ranks.winPctMiddle + ' out of ' + ranks.winPctMiddleTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place Stay:</strong></td><td>' + (metrics.avgPlaceStay || 'N/A') + '</td><td>' + (ranks.avgPlaceStay ? ranks.avgPlaceStay + ' out of ' + ranks.avgPlaceStayTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds Stay:</strong></td><td>' + (metrics.avgOddsStay || 'N/A') + '</td><td>' + (ranks.avgOddsStay ? ranks.avgOddsStay + ' out of ' + ranks.avgOddsStayTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % Stay:</strong></td><td>' + (metrics.winPctStay || 'N/A') + '%</td><td>' + (ranks.winPctStay ? ranks.winPctStay + ' out of ' + ranks.winPctStayTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place Short Field:</strong></td><td>' + (metrics.avgPlaceShort || 'N/A') + '</td><td>' + (ranks.avgPlaceShort ? ranks.avgPlaceShort + ' out of ' + ranks.avgPlaceShortTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds Short Field:</strong></td><td>' + (metrics.avgOddsShort || 'N/A') + '</td><td>' + (ranks.avgOddsShort ? ranks.avgOddsShort + ' out of ' + ranks.avgOddsShortTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % Short Field:</strong></td><td>' + (metrics.winPctShort || 'N/A') + '%</td><td>' + (ranks.winPctShort ? ranks.winPctShort + ' out of ' + ranks.winPctShortTotal : 'N/A') + '</td></tr>';
+            html += '</table>';
+            html += '<div class="requirements-box">Rankings based on jockeys with at least 10 races in the category.</div>';
+  
+            document.getElementById('jockeyDetailedMetrics').innerHTML = html;
+        }
+        function updateJockeyTopMetrics() {
+            const minRaces = parseInt(document.getElementById('topJockeyMinRaces').value) || 10;
+            const surfaceValues = getSelectedValues('topJockeySurfaceFilter');
+            const courseValues = getSelectedValues('topJockeyCourseFilter');
+            const allMetrics = getAllJockeyMetrics(surfaceValues, courseValues);
+            const metricsList = ['avgPlaceAll', 'avgPlace2YO', 'avgPlaceSprint', 'avgPlaceMiddle', 'avgPlaceStay'];
+            let gridHtml = '';
+            metricsList.forEach(metric => {
+                let title = metric.replace('avgPlace', 'Avg Place ').replace('2YO', '2 YO').replace('Sprint', 'Sprint').replace('Middle', 'Middle').replace('Stay', 'Stay');
+                gridHtml += `<div class="analysis-box">
+                    <h3>Top by ${title}
+                        <button class="show-all-btn" onclick="toggleTopJockeyMetric('${metric}')">Show All</button>
+                    </h3>
+                    <div id="topJockey${metric}" class="scrollable"></div>
+                </div>`;
+            });
+            document.getElementById('topJockeyMetricsGrid').innerHTML = gridHtml;
+  
+            metricsList.forEach(metric => {
+                updateTopJockeyMetric(metric, allMetrics, minRaces);
+            });
+        }
+        function toggleTopJockeyMetric(metric) {
+            showAllMetrics[metric] = !showAllMetrics[metric];
+            const minRaces = parseInt(document.getElementById('topJockeyMinRaces').value) || 10;
+            const surfaceValues = getSelectedValues('topJockeySurfaceFilter');
+            const courseValues = getSelectedValues('topJockeyCourseFilter');
+            const allMetrics = getAllJockeyMetrics(surfaceValues, courseValues);
+            updateTopJockeyMetric(metric, allMetrics, minRaces);
+            const btn = document.querySelector(`#topJockey${metric}`).parentNode.querySelector('.show-all-btn');
+            btn.textContent = showAllMetrics[metric] ? 'Show Top 5' : 'Show All';
+        }
+        function updateTopJockeyMetric(metric, allMetrics, minRaces) {
+            const lowerBetter = isLowerBetter(metric);
+            const countKey = getCountKeyForMetric(metric);
+            let filtered = allMetrics.filter(m => m[countKey] >= minRaces && m[metric] !== 'N/A' && !isNaN(parseFloat(m[metric])));
+            let sorted = filtered.sort((a, b) => {
+                const va = parseFloat(a[metric]) || (lowerBetter ? Infinity : -Infinity);
+                const vb = parseFloat(b[metric]) || (lowerBetter ? Infinity : -Infinity);
+                return lowerBetter ? va - vb : vb - va;
+            });
+            const displayLimit = showAllMetrics[metric] ? sorted.length : 5;
+            let html = '<table><tr><th>Rank</th><th>Name</th><th>Value</th><th>Races</th></tr>';
+            sorted.slice(0, displayLimit).forEach((m, index) => {
+                html += '<tr><td>' + (index + 1) + '</td><td>' + m.name + '</td><td>' + (m[metric] || 'N/A') + '</td><td>' + m[countKey] + '</td></tr>';
+            });
+            html += '</table>';
+            document.getElementById(`topJockey${metric}`).innerHTML = html;
+        }
+    </script>
+</body>
+</html>
+```
