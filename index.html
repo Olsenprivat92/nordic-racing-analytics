@@ -1,4 +1,4 @@
-```html
+```html:disable-run
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1314,7 +1314,7 @@
                             <option value="norwegian">Norwegian</option>
                             <option value="swedish">Swedish</option>
                         </select>
-                        <input type="file" id="uploadStartlist" accept=".pdf" onchange="parseUploadedPdf(file)">
+                        <input type="file" id="uploadStartlist" accept=".pdf" onchange="parseUploadedPdf(this.files[0])">
                         <input type="text" id="startlistUrl" placeholder="Startlist URL">
                         <button onclick="loadStartlistFromUrl()">Load from URL</button>
                     </div>
@@ -3515,6 +3515,11 @@
                 tbody.appendChild(row);
             }
         }
+        function updateNextRaceAnalysis() {
+            for (let i = 1; i <= 15; i++) {
+                updateNextRaceRow(i);
+            }
+        }
         function updateNextRaceRow(rowNum) {
             const horseInput = document.getElementById(`horse-${rowNum}`);
             const jockeyInput = document.getElementById(`jockey-${rowNum}`);
@@ -3887,5 +3892,62 @@
             Object.keys(allCombinations).forEach(key => {
                 const races = allCombinations[key];
                 if (races.length > 0) {
-                   
+                    const metrics = calculateDetailedMetrics(races, 'jockey');
+                    if (metrics) {
+                        allMetrics.push({name: key, ...metrics});
+                    }
+                }
+            });
+            return allMetrics;
+        }
+        function updateJockeyDetailedMetrics() {
+            const filtered = getJockeyFilteredData();
+            const metrics = calculateDetailedMetrics(filtered, 'jockey');
+  
+            if (!metrics) {
+                document.getElementById('jockeyDetailedMetrics').innerHTML = '<p>No data available for detailed metrics</p>';
+                return;
+            }
+  
+            const jockeyValues = getSelectedValues('jockeyAnalysisFilter');
+            const isSingleJockey = !jockeyValues.includes('all') && jockeyValues.length === 1;
+            let ranks = {};
+            if (isSingleJockey) {
+                const allMetrics = getAllJockeyMetrics();
+                const jockeyName = jockeyValues[0];
+                ranks = calculateRanks(metrics, allMetrics, jockeyName);
+            } else {
+                ranks = {
+                    avgPlaceAll: null, avgPlaceAllTotal: 0,
+                    avgPlaceSprint: null, avgPlaceSprintTotal: 0,
+                    avgPlaceMiddle: null, avgPlaceMiddleTotal: 0,
+                    avgPlaceStay: null, avgPlaceStayTotal: 0,
+                    avgPlaceShort: null, avgPlaceShortTotal: 0,
+                    winPctAll: null, winPctAllTotal: 0,
+                    winPctSprint: null, winPctSprintTotal: 0,
+                    winPctMiddle: null, winPctMiddleTotal: 0,
+                    winPctStay: null, winPctStayTotal: 0,
+                    winPctShort: null, winPctShortTotal: 0,
+                    avgOddsAll: null, avgOddsAllTotal: 0,
+                    avgOddsSprint: null, avgOddsSprintTotal: 0,
+                    avgOddsMiddle: null, avgOddsMiddleTotal: 0,
+                    avgOddsStay: null, avgOddsStayTotal: 0,
+                    avgOddsShort: null, avgOddsShortTotal: 0,
+                    avgPlace2YO: null, avgPlace2YOTotal: 0
+                };
+            }
+  
+            let html = '<table style="font-size: 0.9rem;">';
+            html += '<tr><th style="text-align: left;">Metric</th><th>Value</th><th>Rank</th></tr>';
+  
+            html += '<tr><td><strong>Avg Place:</strong></td><td>' + (metrics.avgPlaceAll || 'N/A') + '</td><td>' + (ranks.avgPlaceAll ? ranks.avgPlaceAll + ' out of ' + ranks.avgPlaceAllTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds:</strong></td><td>' + (metrics.avgOddsAll || 'N/A') + '</td><td>' + (ranks.avgOddsAll ? ranks.avgOddsAll + ' out of ' + ranks.avgOddsAllTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % All:</strong></td><td>' + (metrics.winPctAll || 'N/A') + '%</td><td>' + (ranks.winPctAll ? ranks.winPctAll + ' out of ' + ranks.winPctAllTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place Sprint:</strong></td><td>' + (metrics.avgPlaceSprint || 'N/A') + '</td><td>' + (ranks.avgPlaceSprint ? ranks.avgPlaceSprint + ' out of ' + ranks.avgPlaceSprintTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds Sprint:</strong></td><td>' + (metrics.avgOddsSprint || 'N/A') + '</td><td>' + (ranks.avgOddsSprint ? ranks.avgOddsSprint + ' out of ' + ranks.avgOddsSprintTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % Sprint:</strong></td><td>' + (metrics.winPctSprint || 'N/A') + '%</td><td>' + (ranks.winPctSprint ? ranks.winPctSprint + ' out of ' + ranks.winPctSprintTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place Middle:</strong></td><td>' + (metrics.avgPlaceMiddle || 'N/A') + '</td><td>' + (ranks.avgPlaceMiddle ? ranks.avgPlaceMiddle + ' out of ' + ranks.avgPlaceMiddleTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Odds Middle:</strong></td><td>' + (metrics.avgOddsMiddle || 'N/A') + '</td><td>' + (ranks.avgOddsMiddle ? ranks.avgOddsMiddle + ' out of ' + ranks.avgOddsMiddleTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Win % Middle:</strong></td><td>' + (metrics.winPctMiddle || 'N/A') + '%</td><td>' + (ranks.winPctMiddle ? ranks.winPctMiddle + ' out of ' + ranks.winPctMiddleTotal : 'N/A') + '</td></tr>';
+            html += '<tr><td><strong>Avg Place
 ```
