@@ -3684,13 +3684,13 @@
 
             if (format === 'danish') {
                 raceRegex = /#### Løb (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)(?:\s*(\d+[\.,]?\d*)\s*kg)?/;
+                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+?)\s*(\d+[\.,]?\d*)\s*kg?/;
             } else if (format === 'norwegian') {
                 raceRegex = /\*\*Løp (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)(?:\s*(\d+[\.,]?\d*)\s*kg)?/;
+                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+?)\s*(\d+[\.,]?\d*)\s*kg?/;
             } else if (format === 'swedish') {
                 raceRegex = /Race (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)(?:\s*(\d+[\.,]?\d*)\s*kg)?/;
+                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+?)\s*(\d+[\.,]?\d*)\s*kg?/;
             }
 
             const races = [];
