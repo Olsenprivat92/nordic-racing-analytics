@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1846,7 +1845,7 @@
             }
             let html = '';
             const filteredTrends = favoriteTrendsData.filter(item => {
-                return (item.Course === course || item.OriginalCourse === course.replace(' (Dirt)', '').replace(' (Grass)', '')) &&
+                return (item.Course === course || item.OriginalCourse === course.replace(' (Dirt)', '').replace(' ( (Grass)', '')) &&
                        item.Class === raceClass;
             });
             if (filteredTrends.length === 0) {
@@ -3684,13 +3683,13 @@
 
             if (format === 'danish') {
                 raceRegex = /#### Løb (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+?)\s*(\d+[\.,]?\d*)\s*kg?/;
+                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
             } else if (format === 'norwegian') {
                 raceRegex = /\*\*Løp (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+?)\s*(\d+[\.,]?\d*)\s*kg?/;
+                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
             } else if (format === 'swedish') {
                 raceRegex = /Race (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+?)\s*(\d+[\.,]?\d*)\s*kg?/;
+                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
             }
 
             const races = [];
@@ -4078,4 +4077,3 @@
     </script>
 </body>
 </html>
-```
