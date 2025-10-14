@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -344,17 +345,21 @@
             color: green;
         }
         #nextRaceTable th:nth-child(2), #nextRaceTable td:nth-child(2) {
-            width: 400px;
+            width: 500px;
         }
         .horse-jockey-container {
             display: flex;
             gap: 0.5rem;
             margin-bottom: 0.5rem;
         }
-        .horse-jockey-container input {
-            width: 50%;
-            padding: 6px;
-            font-size: 0.85rem;
+        .horse-jockey-container input:first-child {
+            width: 40%;
+        }
+        .horse-jockey-container input:nth-child(2) {
+            width: 40%;
+        }
+        .horse-jockey-container input:nth-child(3) {
+            width: 20%;
         }
         @media (max-width: 768px) {
             .analysis-grid, .filters-grid, .performance-period-grid {
@@ -1306,7 +1311,7 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Horse / Jockey / Last 5 Races</th>
+                                        <th>Horse / Jockey / Weight / Last 5 Races</th>
                                         <th>Avg Ranking</th>
                                         <th>Comment</th>
                                         <th>Wins/Races</th>
@@ -1316,7 +1321,6 @@
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
                                         <th>Class</th>
-                                        <th>With Weight</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3484,6 +3488,7 @@
                         <div class="horse-jockey-container">
                             <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
                             <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+                            <input type="text" id="withweight-${i}" placeholder="Weight" onchange="saveHorseData(${i})">
                         </div>
                         <div id="last5-${i}"></div>
                     </td>
@@ -3496,7 +3501,6 @@
                     <td id="trainerPct-${i}"></td>
                     <td id="jockeyPct-${i}"></td>
                     <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
-                    <td><input type="text" class="small-input" id="withweight-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -3708,7 +3712,7 @@
                         const country = m[3] ? ` (${m[3]})` : '';
                         horse += country;
                         const jockey = m[4].trim();
-                        const weight = m[5] ? m[5].trim() : '';
+                        const weight = m[5] ? m[5].replace(',', '.') : '';
                         currentRace.push({horse, jockey, weight});
                     }
                 }
@@ -4074,3 +4078,4 @@
     </script>
 </body>
 </html>
+```
