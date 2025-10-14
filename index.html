@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1240,7 +1239,7 @@
                                     <option value="Class 3">Class 3</option>
                                     <option value="Class 4">Class 4</option>
                                     <option value="Class 5">Class 5</option>
-                                    <option value="Novisløb">Noviseløb</option>
+                                    <option value="Noviseløb">Noviseløb</option>
                                     <option value="Ældre Maiden">Ældre Maiden</option>
                                     <option value="Max Hcp">Max Hcp</option>
                                 </select>
@@ -2639,7 +2638,7 @@
         }
         function calculateRanks(currentMetrics, allMetrics, trainerName) {
             const ranks = {};
-            const keys = ['avgPlaceAll', 'avgPlace2YO', 'avgPlaceJump2YO', 'avgPlaceSprint', 'avgPlaceMiddle', 'avgPlaceStay', 'winPctAll', 'winPctSprint', 'winPctMiddle', 'winPctStay', 'avgOddsAll', 'avgOddsSprint', 'avgOddsMiddle', 'avgOddsStay', 'oddsVsWinFormula'];
+            const keys = ['avgPlaceAll', 'avgPlace2YO', 'avgPlaceJump2YO', 'avgPlaceSprint', 'avgPlaceMiddle', 'avgPlaceStay', 'winPctAll', 'avgOddsAll', 'oddsVsWinFormula'];
   
             keys.forEach(key => {
                 const countKey = getCountKeyForMetric(key);
@@ -3664,80 +3663,6 @@
                 document.getElementById(`${id}-${rowNum}`).textContent = '';
             });
         }
-        function parseAndFillStartList() {
-            const format = document.getElementById('startListFormat').value;
-            const text = document.getElementById('startListText').value.trim();
-            const raceNumInput = document.getElementById('startListRaceNum').value.trim();
-            const raceNum = raceNumInput ? parseInt(raceNumInput) : 1;
-
-            if (!text) {
-                alert('Please paste the start list text.');
-                return;
-            }
-
-            let raceBlocks;
-            let raceRegex;
-            let lineRegex;
-
-            if (format === 'danish') {
-                raceRegex = /#### Løb (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+)/;
-            } else if (format === 'norwegian') {
-                raceRegex = /\*\*Løp (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+)/;
-            } else if (format === 'swedish') {
-                raceRegex = /Race (\d+):/g; // Assume similar, but since insufficient, use same as danish
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*(.+)/;
-            }
-
-            const races = [];
-            let match;
-            let currentRace = [];
-            let lines = text.split('\n');
-            let currentRaceIndex = 0;
-
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.startsWith('#### Løb') || line.startsWith('**Løp') || line.startsWith('Race')) {
-                    races.push(currentRace);
-                    currentRace = [];
-                    currentRaceIndex++;
-                } else if (line.match(lineRegex)) {
-                    const m = line.match(lineRegex);
-                    if (m) {
-                        let horse = m[2].trim();
-                        const country = m[3] ? ` (${m[3]})` : '';
-                        horse += country;
-                        const jockey = m[4].trim();
-                        currentRace.push({horse, jockey});
-                    }
-                }
-            });
-            if (currentRace.length > 0) races.push(currentRace);
-            races.shift(); // remove empty first
-
-            if (races.length === 0) {
-                alert('No races found in the pasted text.');
-                return;
-            }
-
-            const selectedRace = races[raceNum - 1] || races[0];
-            if (!selectedRace) {
-                alert('Invalid race number.');
-                return;
-            }
-
-            selectedRace.forEach((entry, index) => {
-                const row = index + 1;
-                if (row > 15) return;
-                document.getElementById(`horse-${row}`).value = entry.horse;
-                document.getElementById(`jockey-${row}`).value = entry.jockey;
-                updateNextRaceRow(row);
-                saveHorseData(row);
-            });
-
-            alert(`Filled table with Race ${raceNum} (${selectedRace.length} entries)`);
-        }
         function filterSelectOptions(selectId, searchTerm) {
             const select = document.getElementById(selectId);
             const options = Array.from(select.options);
@@ -4073,4 +3998,3 @@
     </script>
 </body>
 </html>
-```
