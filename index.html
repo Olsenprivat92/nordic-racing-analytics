@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2872,17 +2873,28 @@
         function jockeyFilterHorseTable() {
             filterHorseTable('jockey');
         }
-        // Helper function to properly parse DD-MM-YY dates
+        // Helper function to properly parse DD-MM-YY or YYYY-MM-DD dates
         function parseRaceDate(dateString) {
             if (!dateString || !dateString.includes('-')) return null;
-  
+
             const parts = dateString.split('-');
             if (parts.length !== 3) return null;
-  
-            const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1; // Month is 0-indexed in JavaScript
-            const year = 2000 + parseInt(parts[2]); // Convert YY to YYYY
-  
+
+            let year, month, day;
+            if (parts[0].length === 4) {
+                // YYYY-MM-DD
+                year = parseInt(parts[0]);
+                month = parseInt(parts[1]) - 1;
+                day = parseInt(parts[2]);
+            } else {
+                // DD-MM-YY
+                day = parseInt(parts[0]);
+                month = parseInt(parts[1]) - 1;
+                year = 2000 + parseInt(parts[2]);
+            }
+
+            if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+
             return new Date(year, month, day);
         }
         function calculateDetailedMetrics(races, type = null) {
@@ -2899,6 +2911,10 @@
             metrics.countOddsAll = oddsAll.length;
             const winsAll = races.filter(r => r.Place === '1' || r.Place === 1).length;
             metrics.winPctAll = metrics.countAll > 0 ? ((winsAll / metrics.countAll) * 100).toFixed(1) : '0.0';
+
+            // Ranking average
+            const rankingsAll = races.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+            metrics.avgRankingAll = rankingsAll.length > 0 ? (rankingsAll.reduce((a, b) => a + b, 0) / rankingsAll.length).toFixed(2) : 'N/A';
   
             // Sprint
             const sprintRaces = races.filter(r => {
@@ -3600,7 +3616,7 @@
             const metrics = calculateDetailedMetrics(horseRaces, 'horse');
             document.getElementById(`winPct-${rowNum}`).textContent = metrics.winPct + '%';
             // Avg Ranking
-            document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgPlaceAll;
+            document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRankingAll || 'N/A';
             // Comment
             document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
             // Trainer
@@ -4077,3 +4093,4 @@
     </script>
 </body>
 </html>
+```
