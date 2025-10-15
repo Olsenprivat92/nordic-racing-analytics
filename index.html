@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2872,7 +2873,7 @@
         function jockeyFilterHorseTable() {
             filterHorseTable('jockey');
         }
-        // Helper function to properly parse DD-MM-YY or YYYY-MM-DD dates
+        // Helper function to properly parse DD-MM-YY dates
         function parseRaceDate(dateString) {
             if (!dateString || !dateString.includes('-')) return null;
   
@@ -3525,169 +3526,168 @@
             }
         }
         function updateNextRaceRow(rowNum) {
-            const horseInput = document.getElementById(`horse-${rowNum}`);
-            const jockeyInput = document.getElementById(`jockey-${rowNum}`);
-            const horseName = horseInput.value.trim();
-            const jockeyName = jockeyInput.value.trim();
-            if (!horseName) {
-                clearNextRaceRow(rowNum);
-                return;
-            }
-            const surfaceValues = getSelectedValues('nextRaceSurfaceFilter');
-            const distValues = getSelectedValues('nextRaceDistanceFilter');
-            const selectedCourse = document.getElementById('nextRaceCourse').value;
-            const selectedDate = document.getElementById('nextRaceDate').value || '2025-10-11';
-            let horseRaces = racingData.filter(r => r.Horse === horseName);
-            if (surfaceValues.length > 0 && !surfaceValues.includes('all')) {
-                horseRaces = horseRaces.filter(race => {
-                    const raceSurface = (race.Surface || '').toLowerCase();
-                    let isGrass = raceSurface.includes('grass') || raceSurface.includes('turf') || raceSurface.includes('græs');
-                    let isDirt = raceSurface.includes('dirt') || raceSurface.includes('sand');
-                    return (surfaceValues.includes('Grass') && isGrass) || (surfaceValues.includes('Dirt') && isDirt);
-                });
-            }
-            if (distValues.length > 0 && !distValues.includes('all')) {
-                horseRaces = horseRaces.filter(race => {
-                    const dist = parseInt(race.Distance);
-                    return distValues.some(d => {
-                        if (d === 'Sprint') return dist >= 900 && dist <= 1400;
-                        if (d === 'Middle') return dist > 1400 && dist <= 1800;
-                        if (d === 'Stay') return dist > 1800;
+            try {
+                const horseInput = document.getElementById(`horse-${rowNum}`);
+                const jockeyInput = document.getElementById(`jockey-${rowNum}`);
+                const horseName = horseInput.value.trim();
+                const jockeyName = jockeyInput.value.trim();
+                if (!horseName) {
+                    clearNextRaceRow(rowNum);
+                    return;
+                }
+                const surfaceValues = getSelectedValues('nextRaceSurfaceFilter');
+                const distValues = getSelectedValues('nextRaceDistanceFilter');
+                const selectedCourse = document.getElementById('nextRaceCourse').value;
+                const selectedDate = document.getElementById('nextRaceDate').value || '2025-10-11';
+                let horseRaces = racingData.filter(r => r.Horse === horseName);
+                if (surfaceValues.length > 0 && !surfaceValues.includes('all')) {
+                    horseRaces = horseRaces.filter(race => {
+                        const raceSurface = (race.Surface || '').toLowerCase();
+                        let isGrass = raceSurface.includes('grass') || raceSurface.includes('turf') || raceSurface.includes('græs');
+                        let isDirt = raceSurface.includes('dirt') || raceSurface.includes('sand');
+                        return (surfaceValues.includes('Grass') && isGrass) || (surfaceValues.includes('Dirt') && isDirt);
                     });
-                });
-            }
-            horseRaces = horseRaces.filter(r => r.Date && parseRaceDate(r.Date) !== null);
-            horseRaces.sort((a, b) => parseRaceDate(b.Date) - parseRaceDate(a.Date));
-            if (horseRaces.length === 0) {
-                document.getElementById(`last5-${rowNum}`).innerHTML = '';
-                document.getElementById(`winsRaces-${rowNum}`).textContent = '0/0';
-                document.getElementById(`winPct-${rowNum}`).textContent = '0.0%';
-                document.getElementById(`avgRanking-${rowNum}`).textContent = 'N/A';
-                document.getElementById(`comment-${rowNum}`).textContent = 'N/A';
-                document.getElementById(`trainer-${rowNum}`).textContent = 'N/A';
-                document.getElementById(`trainerPct-${rowNum}`).textContent = 'N/A';
-                document.getElementById(`oneAvgTrainer-${rowNum}`).textContent = 'N/A';
-                document.getElementById(`jockeyPct-${rowNum}`).textContent = 'N/A';
-                return;
-            }
-            // Last 5 races
-            const last5 = horseRaces.slice(0, 5);
-            let last5Html = '<table class="small-table">';
-            last5Html += '<tr><th>Date</th><th>Course-Surface</th><th>Class</th><th>Distance</th><th>Ranking</th><th>Place-Field</th><th>Jockey</th><th>Comment</th></tr>';
-            const courseAbbrev = {
-                'Klampenborg': 'KL',
-                'Odense': 'OD',
-                'Aarhus': 'AR',
-                'Aalborg': 'AL',
-                'Jægersro': 'JÆ',
-                'Gøteborg': 'GG',
-                'Bro Park': 'BP',
-                'Øvrevoll': 'ØV'
-            };
-            function abbreviateJockey(name) {
-                const parts = name.trim().split(/\s+/);
-                if (parts.length === 0) return 'N/A';
-                if (parts.length === 1) return parts[0];
-                const first = parts[0][0].toUpperCase() + '.';
-                const last = parts[parts.length - 1];
-                return first + ' ' + last;
-            }
-            last5.forEach(race => {
-                let course = race.Course || 'N/A';
-                course = courseAbbrev[course.trim()] || course;
-                let surface = race.Surface || 'N/A';
-                const surfaceLower = surface.toLowerCase();
-                if (surfaceLower.includes('græs') || surfaceLower.includes('grass') || surfaceLower.includes('turf')) {
-                    surface = 'GR';
-                } else if (surfaceLower.includes('dirt') || surfaceLower.includes('sand')) {
-                    surface = 'DT';
                 }
-                const courseSurface = course + '-' + surface;
-                const placeField = (race.Place || 'N/A') + '/' + (race.Field || 'N/A');
-                let jockey = race.Jockey || 'N/A';
-                jockey = abbreviateJockey(jockey);
-                const rowClass = (race.Place === '1' || race.Place === 1) ? 'winner' : '';
-                last5Html += '<tr class="' + rowClass + '">';
-                last5Html += '<td>' + (race.Date || 'N/A') + '</td>';
-                last5Html += '<td class="bold">' + courseSurface + '</td>';
-                last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
-                last5Html += '<td class="bold">' + (race.Distance || 'N/A') + '</td>';
-                last5Html += '<td class="bold">' + (race.Ranking || 'N/A') + '</td>';
-                last5Html += '<td>' + placeField + '</td>';
-                last5Html += '<td>' + jockey + '</td>';
-                last5Html += '<td class="bold">' + (race.Comment || 'N/A') + '</td>';
-                last5Html += '</tr>';
-            });
-            last5Html += '</table>';
-            document.getElementById(`last5-${rowNum}`).innerHTML = last5Html;
-            // Wins/Races
-            const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            const races = horseRaces.length;
-            document.getElementById(`winsRaces-${rowNum}`).textContent = wins + '/' + races;
-            // Win%
-            const metrics = calculateDetailedMetrics(horseRaces, 'horse');
-            document.getElementById(`winPct-${rowNum}`).textContent = metrics.winPct + '%';
-            // Avg Ranking
-            document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRankingAll || 'N/A';
-            // Comment
-            document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
-            // Trainer
-            const trainer = horseRaces[0] ? horseRaces[0].Trainer || horseRaces[0].Owner : 'N/A';
-            document.getElementById(`trainer-${rowNum}`).textContent = trainer;
-            // Trainer %
-            const trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
-            const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-            document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
-            // 1 Avg Trainer
-            let oneAvgTrainer = 'N/A';
-            if (trainer) {
-                const trainerFiltered = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
-                const analysisDate = new Date(selectedDate);
-                const cutoffDate = new Date(analysisDate);
-                cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-                const periodData = trainerFiltered.filter(race => {
-                    const raceDate = parseRaceDate(race.Date);
-                    return raceDate >= cutoffDate && raceDate <= analysisDate;
-                });
-                const percentages = [];
-                periodData.forEach(race => {
-                    const place = parseFloat(race.Place);
-                    const field = parseInt(race.Field);
-                    if (!isNaN(place) && !isNaN(field) && place > 0 && field > 0) {
-                        const percentage = ((field - place + 1) / field) * 100;
-                        percentages.push(percentage);
-                    }
-                });
-                if (percentages.length > 0) {
-                    oneAvgTrainer = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
+                if (distValues.length > 0 && !distValues.includes('all')) {
+                    horseRaces = horseRaces.filter(race => {
+                        const dist = parseInt(race.Distance);
+                        return distValues.some(d => {
+                            if (d === 'Sprint') return dist >= 900 && dist <= 1400;
+                            if (d === 'Middle') return dist > 1400 && dist <= 1800;
+                            if (d === 'Stay') return dist > 1800;
+                        });
+                    });
                 }
-            }
-            document.getElementById(`oneAvgTrainer-${rowNum}`).textContent = oneAvgTrainer;
-            // Jockey %
-            const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
-            let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
-            if (selectedCourse) {
-                jockeyRaces = jockeyRaces.filter(race => {
-                    let raceCourse = race.Course || '';
-                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
-                        const surface = (race.Surface || '').toLowerCase();
-                        const track = (race.Track || '').toLowerCase();
-                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            raceCourse += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            raceCourse += ' (Grass)';
+                horseRaces.sort((a, b) => {
+                    const dateA = parseRaceDate(a.Date) || new Date(0);
+                    const dateB = parseRaceDate(b.Date) || new Date(0);
+                    return dateB - dateA;
+                });
+                // Last 5 races
+                const last5 = horseRaces.slice(0, 5);
+                let last5Html = '<table class="small-table">';
+                last5Html += '<tr><th>Date</th><th>Course-Surface</th><th>Class</th><th>Distance</th><th>Ranking</th><th>Place-Field</th><th>Jockey</th><th>Comment</th></tr>';
+                const courseAbbrev = {
+                    'Klampenborg': 'KL',
+                    'Odense': 'OD',
+                    'Aarhus': 'AR',
+                    'Aalborg': 'AL',
+                    'Jægersro': 'JÆ',
+                    'Gøteborg': 'GG',
+                    'Bro Park': 'BP',
+                    'Øvrevoll': 'ØV'
+                };
+                function abbreviateJockey(name) {
+                    const parts = name.trim().split(/\s+/);
+                    if (parts.length === 0) return 'N/A';
+                    if (parts.length === 1) return parts[0];
+                    const first = parts[0][0].toUpperCase() + '.';
+                    const last = parts[parts.length - 1];
+                    return first + ' ' + last;
+                }
+                if (last5.length === 0) {
+                    last5Html += '<tr><td colspan="8">No races found</td></tr>';
+                } else {
+                    last5.forEach(race => {
+                        let course = race.Course || 'N/A';
+                        course = courseAbbrev[course.trim()] || course;
+                        let surface = race.Surface || 'N/A';
+                        const surfaceLower = surface.toLowerCase();
+                        if (surfaceLower.includes('græs') || surfaceLower.includes('grass') || surfaceLower.includes('turf')) {
+                            surface = 'GR';
+                        } else if (surfaceLower.includes('dirt') || surfaceLower.includes('sand')) {
+                            surface = 'DT';
                         }
+                        const courseSurface = course + '-' + surface;
+                        const placeField = (race.Place || 'N/A') + '/' + (race.Field || 'N/A');
+                        let jockey = race.Jockey || 'N/A';
+                        jockey = abbreviateJockey(jockey);
+                        const rowClass = (race.Place === '1' || race.Place === 1) ? 'winner' : '';
+                        last5Html += '<tr class="' + rowClass + '">';
+                        last5Html += '<td>' + (race.Date || 'N/A') + '</td>';
+                        last5Html += '<td class="bold">' + courseSurface + '</td>';
+                        last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
+                        last5Html += '<td class="bold">' + (race.Distance || 'N/A') + '</td>';
+                        last5Html += '<td class="bold">' + (race.Ranking || 'N/A') + '</td>';
+                        last5Html += '<td>' + placeField + '</td>';
+                        last5Html += '<td>' + jockey + '</td>';
+                        last5Html += '<td class="bold">' + (race.Comment || 'N/A') + '</td>';
+                        last5Html += '</tr>';
+                    });
+                }
+                last5Html += '</table>';
+                document.getElementById(`last5-${rowNum}`).innerHTML = last5Html;
+                // Wins/Races
+                const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+                const races = horseRaces.length;
+                document.getElementById(`winsRaces-${rowNum}`).textContent = wins + '/' + races;
+                // Win%
+                const metrics = calculateDetailedMetrics(horseRaces, 'horse');
+                document.getElementById(`winPct-${rowNum}`).textContent = metrics.winPct + '%';
+                // Avg Ranking
+                document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRankingAll || 'N/A';
+                // Comment
+                document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
+                // Trainer
+                const trainer = horseRaces[0] ? horseRaces[0].Trainer || horseRaces[0].Owner : 'N/A';
+                document.getElementById(`trainer-${rowNum}`).textContent = trainer;
+                // Trainer %
+                const trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
+                const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+                const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
+                document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+                // 1 Avg Trainer
+                let oneAvgTrainer = 'N/A';
+                if (trainer) {
+                    const trainerFiltered = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
+                    const analysisDate = new Date(selectedDate);
+                    const cutoffDate = new Date(analysisDate);
+                    cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+                    const periodData = trainerFiltered.filter(race => {
+                        const raceDate = parseRaceDate(race.Date);
+                        return raceDate >= cutoffDate && raceDate <= analysisDate;
+                    });
+                    const percentages = [];
+                    periodData.forEach(race => {
+                        const place = parseFloat(race.Place);
+                        const field = parseInt(race.Field);
+                        if (!isNaN(place) && !isNaN(field) && place > 0 && field > 0) {
+                            const percentage = ((field - place + 1) / field) * 100;
+                            percentages.push(percentage);
+                        }
+                    });
+                    if (percentages.length > 0) {
+                        oneAvgTrainer = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
                     }
-                    return raceCourse === selectedCourse;
-                });
+                }
+                document.getElementById(`oneAvgTrainer-${rowNum}`).textContent = oneAvgTrainer;
+                // Jockey %
+                const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
+                let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
+                if (selectedCourse) {
+                    jockeyRaces = jockeyRaces.filter(race => {
+                        let raceCourse = race.Course || '';
+                        if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                            const surface = (race.Surface || '').toLowerCase();
+                            const track = (race.Track || '').toLowerCase();
+                            const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+                            if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                                track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                                raceCourse += ' (Dirt)';
+                            } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                       track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                                raceCourse += ' (Grass)';
+                            }
+                        }
+                        return raceCourse === selectedCourse;
+                    });
+                }
+                const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+                const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
+                document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
+            } catch (e) {
+                console.error('Error updating row ' + rowNum + ': ' + e.message);
             }
-            const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-            document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
         }
         function clearNextRaceRow(rowNum) {
             ['last5', 'winsRaces', 'winPct', 'avgRanking', 'comment', 'trainer', 'trainerPct', 'oneAvgTrainer', 'jockeyPct'].forEach(id => {
@@ -3732,7 +3732,7 @@
                     races.push(currentRace);
                     currentRace = [];
                     currentRaceIndex++;
-                } else if (line.match(lineRegex)) {
+                } else if (line) { // skip empty lines
                     const m = line.match(lineRegex);
                     if (m) {
                         let horse = m[2].trim();
@@ -3741,6 +3741,8 @@
                         const jockey = m[4].trim();
                         const weight = m[5] ? m[5].replace(',', '.') : '';
                         currentRace.push({horse, jockey, weight});
+                    } else {
+                        console.log('Line not matched: ' + line);
                     }
                 }
             });
@@ -4105,3 +4107,4 @@
     </script>
 </body>
 </html>
+```
