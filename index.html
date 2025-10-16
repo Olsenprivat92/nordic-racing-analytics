@@ -1,4 +1,4 @@
-```html
+```html:disable-run
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2886,6 +2886,11 @@
                 year = parseInt(parts[0]);
                 month = parseInt(parts[1]) - 1;
                 day = parseInt(parts[2]);
+            } else if (parts[2].length === 4) {
+                // DD-MM-YYYY
+                day = parseInt(parts[0]);
+                month = parseInt(parts[1]) - 1;
+                year = parseInt(parts[2]);
             } else {
                 // DD-MM-YY
                 day = parseInt(parts[0]);
@@ -3388,19 +3393,8 @@
                         distance: '',
                         class: '',
                         date: '2025-10-11',
-                        horses: Array.from({length: 15}, () => ({
-                            horse: '',
-                            jockey: '',
-                            class: '',
-                            withweight: ''
-                        })),
-                        prediction: {
-                            a: '',
-                            b: '',
-                            c: '',
-                            d: '',
-                            e: ''
-                        }
+                        horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+                        prediction: { a: '', b: '', c: '', d: '', e: '' }
                     }))
                 }))
             };
@@ -3625,7 +3619,7 @@
                 const metrics = calculateDetailedMetrics(horseRaces, 'horse');
                 document.getElementById(`winPct-${rowNum}`).textContent = metrics.winPct + '%';
                 // Avg Ranking
-                document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRatingAll || 'N/A';
+                document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRankingAll || 'N/A';
                 // Comment
                 document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
                 // Trainer
