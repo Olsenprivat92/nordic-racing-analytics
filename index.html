@@ -3542,30 +3542,28 @@
                 // Last 5 races
                 const last5 = horseRaces.slice(0, 5);
                 let last5Html = '<table class="small-table">';
-                last5Html += '<tr><th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th><th>Field</th><th>Ranking</th><th>Comment</th></tr>';
+                last5Html += '<tr><th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th><th>Field</th><th>Ranking</th></tr>';
                 if (last5.length === 0) {
                     last5Html += '<tr><td colspan="8">No races found</td></tr>';
                 } else {
-last5.forEach(race => {
-                    let course = race.Course || 'N/A';
-                    let surface = race.Surface || 'N/A';
-                    const place = race.Place || 'N/A';
-                    const field = race.Field || 'N/A';
-                    const ranking = race.Ranking || 'N/A';
-                    const comment = race.Comment || '';               // column S
-                    const rowClass = (place === '1' || place === 1) ? 'winner' : '';
-                    last5Html += '<tr class="' + rowClass + '">';
-                    last5Html += '<td>' + (race.Date || 'N/A') + '</td>';
-                    last5Html += '<td class="bold">' + course + '</td>';
-                    last5Html += '<td class="bold">' + surface + '</td>';
-                    last5Html += '<td class="bold">' + (race.Distance || 'N/A') + '</td>';
-                    last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
-                    last5Html += '<td>' + place + '</td>';
-                    last5Html += '<td>' + field + '</td>';
-                    last5Html += '<td class="bold">' + ranking + '</td>';
-                    last5Html += '<td style="font-size:0.65rem; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + comment + '">' + comment + '</td>';
-                    last5Html += '</tr>';
-                });
+                    last5.forEach(race => {
+                        let course = race.Course || 'N/A';
+                        let surface = race.Surface || 'N/A';
+                        const place = race.Place || 'N/A';
+                        const field = race.Field || 'N/A';
+                        const rowClass = (place === '1' || place === 1) ? 'winner' : '';
+                        last5Html += '<tr class="' + rowClass + '">';
+                        last5Html += '<td>' + (race.Date || 'N/A') + '</td>';
+                        last5Html += '<td class="bold">' + course + '</td>';
+                        last5Html += '<td class="bold">' + surface + '</td>';
+                        last5Html += '<td class="bold">' + (race.Distance || 'N/A') + '</td>';
+                        last5Html += '<td>' + (race.Class || 'N/A') + '</td>';
+                        last5Html += '<td>' + place + '</td>';
+                        last5Html += '<td>' + field + '</td>';
+                        last5Html += '<td class="bold">' + (race.Ranking || 'N/A') + '</td>';
+                        last5Html += '</tr>';
+                    });
+                }
                 last5Html += '</table>';
                 document.getElementById(`last5-${rowNum}`).innerHTML = last5Html;
                 // Wins/Races
