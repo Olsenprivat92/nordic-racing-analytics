@@ -340,8 +340,16 @@
         .small-table td.bold {
             font-weight: bold;
         }
-        .small-table tr.winner {
+.small-table tr.winner {
             color: green;
+        }
+        .small-table td[title] {
+            cursor: help;
+            font-size: 0.65rem;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         #nextRaceTable th:nth-child(2), #nextRaceTable td:nth-child(2) {
             width: 500px;
@@ -3542,7 +3550,7 @@
                 // Last 5 races
                 const last5 = horseRaces.slice(0, 5);
                 let last5Html = '<table class="small-table">';
-                last5Html += '<tr><th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th><th>Field</th><th>Ranking</th></tr>';
+                last5Html += '<tr><th>Date</th><th>Course</th><th>Surface</th><th>Distance</th><th>Class</th><th>Place</th><th>Field</th><th>Ranking</th><th>Comment</th></tr>';
                 if (last5.length === 0) {
                     last5Html += '<tr><td colspan="8">No races found</td></tr>';
                 } else {
@@ -3561,6 +3569,7 @@
                         last5Html += '<td>' + place + '</td>';
                         last5Html += '<td>' + field + '</td>';
                         last5Html += '<td class="bold">' + (race.Ranking || 'N/A') + '</td>';
+                        last5Html += '<td title="' + (race.Comment || '') + '">' + (race.Comment || '') + '</td>';
                         last5Html += '</tr>';
                     });
                 }
