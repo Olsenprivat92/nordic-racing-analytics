@@ -3193,7 +3193,6 @@
             const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : 'N/A';
             const best = arr => arr.length ? Math.min(...arr).toFixed(1) : 'N/A';
             const winPct = (w, s) => s > 0 ? ((w/s)*100).toFixed(1) + '%' : '0.0%';
-
 const overviewStats = [
                 { label: 'Number of Offspring', value: offspringList.length },
                 { label: 'Starts', value: totalStarts },
@@ -3240,7 +3239,6 @@ const overviewStats = [
 
             document.getElementById('offspringTableBody').innerHTML = tableRows;
         }
-
         function filterOffspringTable() {
             const horseFilter = document.getElementById('offspringHorseFilter').value.toLowerCase().trim();
             const damFilter = document.getElementById('offspringDamFilter').value.toLowerCase().trim();
