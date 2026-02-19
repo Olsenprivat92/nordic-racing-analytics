@@ -2541,12 +2541,13 @@ function normalizeCourseName(course, surface = '', track = '', conditions = '') 
                         race.Track || '',
                         race.Conditions || race['Track Condition'] || ''
                     );
-                    const matchesCourse = courseValues.some(course =>
-                        normalized === course ||
-                        (race.Course || '') === course ||
-                        normalized.includes(course.replace(' (Dirt)', '').replace(' (Grass)', ''))
+
+                    const matchesCourse = courseValues.some(selected => 
+                        normalized === selected
                     );
+
                     if (!matchesCourse) return false;
+                }
                 }
                 if (!monthValues.includes('all')) {
                     const raceMonth = (race.Date || '').split('-')[1];
