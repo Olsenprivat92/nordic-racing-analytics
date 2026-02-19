@@ -1223,46 +1223,47 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-                <!-- Top 10 Sires Section -->
-        <div class="card" style="margin-top: 2rem;">
-            <div class="card-header">
-                <h3>Top 10 Sires</h3>
-            </div>
-            <div class="card-body">
-                <div style="margin-bottom: 1rem; max-width: 400px;">
-                    <label style="font-weight: 600; color: #1e40af; display: block; margin-bottom: 0.5rem;">Category (min 50 starts)</label>
-                    <select id="topSireCategory" onchange="updateTopSires()" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
-                        <option value="winPct">Win%</option>
-                        <option value="avgRankingAll">Avg Ranking overall</option>
-                        <option value="avgRankingSprint">Sprint Avg Ranking</option>
-                        <option value="avgRankingMiddle">Middle Distance Avg Ranking</option>
-                        <option value="avgRankingStay">Stay Avg Ranking</option>
-                        <option value="avgRanking2YO">2 Yo Avg Ranking</option>
-                        <option value="avgRankingDirt">Dirt Avg Ranking</option>
-                        <option value="avgRankingGrass">Grass Avg Ranking</option>
-                    </select>
-                </div>
+                    <!-- Top 10 Sires Section – only visible in Breeding Analysis -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>Top 10 Sires</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="margin-bottom: 1rem; max-width: 400px;">
+                                <label style="font-weight: 600; color: #1e40af; display: block; margin-bottom: 0.5rem;">Category (min 50 starts)</label>
+                                <select id="topSireCategory" onchange="updateTopSires()" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                                    <option value="winPct">Win%</option>
+                                    <option value="avgRankingAll">Avg Ranking overall</option>
+                                    <option value="avgRankingSprint">Sprint Avg Ranking</option>
+                                    <option value="avgRankingMiddle">Middle Distance Avg Ranking</option>
+                                    <option value="avgRankingStay">Stay Avg Ranking</option>
+                                    <option value="avgRanking2YO">2 Yo Avg Ranking</option>
+                                    <option value="avgRankingDirt">Dirt Avg Ranking</option>
+                                    <option value="avgRankingGrass">Grass Avg Ranking</option>
+                                </select>
+                            </div>
 
-                <div class="scrollable" style="max-height: 500px; overflow-y: auto;">
-                    <table style="width:100%; font-size: 0.95rem; border-collapse: collapse;">
-                        <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 1;">
-                            <tr>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Rank</th>
-                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Sire</th>
-                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">Starts</th>
-                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">Outcome</th>
-                            </tr>
-                        </thead>
-                        <tbody id="topSiresBody">
-                            <tr><td colspan="4" style="text-align:center; padding:20px;">Select a category</td></tr>
-                        </tbody>
-                    </table>
+                            <div class="scrollable" style="max-height: 500px; overflow-y: auto;">
+                                <table style="width:100%; font-size: 0.95rem; border-collapse: collapse;">
+                                    <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 1;">
+                                        <tr>
+                                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Rank</th>
+                                            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Sire</th>
+                                            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">Starts</th>
+                                            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">Outcome</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="topSiresBody">
+                                        <tr><td colspan="4" style="text-align:center; padding:20px;">Select a category</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+           
         <!-- Next Race View -->
         <div class="view-container" id="next-race-view">
             <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
