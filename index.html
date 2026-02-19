@@ -1707,26 +1707,6 @@
                     if (cells[3] === 'Surface:' && cells[4]) {
                         currentSurface = cells[4];
                     }
-function normalizeCourseName(course, surface = '', track = '', conditions = '') {
-    if (!course) return course || '';
-    let name = course.trim();
-
-    const lowerCourse = name.toLowerCase();
-    if (!lowerCourse.includes('bro park') && !lowerCourse.includes('øvrevoll')) {
-        return name;
-    }
-
-    const info = (surface + ' ' + track + ' ' + conditions).toLowerCase();
-
-    if (info.includes('dirt') || info.includes('sand')) {
-        return name + ' (Dirt)';
-    }
-    if (info.includes('græs') || info.includes('grass') || info.includes('turf')) {
-        return name + ' (Grass)';
-    }
-
-    return name;   // fallback
-}      
                 } else if (cells[0] &&
                           cells[0] !== 'Course:' &&
                           cells[0] !== '' &&
@@ -2535,17 +2515,26 @@ function normalizeCourseName(course, surface = '', track = '', conditions = '') 
                     if (!trainerValues.includes(trainer)) return false;
                 }
                 if (!courseValues.includes('all')) {
-                    const normalized = normalizeCourseName(
-                        race.Course || '',
-                        race.Surface || '',
-                        race.Track || '',
-                        race.Conditions || race['Track Condition'] || ''
+                    let raceCourse = race.Course || '';
+         
+                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                        const surface = (race.Surface || '').toLowerCase();
+                        const track = (race.Track || '').toLowerCase();
+                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+             
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            raceCourse += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            raceCourse += ' (Grass)';
+                        }
+                    }
+         
+                    const matchesCourse = courseValues.some(course =>
+                        raceCourse === course || race.Course === course ||
+                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
                     );
-
-                    const matchesCourse = courseValues.some(selected => 
-                        normalized === selected
-                    );
-
                     if (!matchesCourse) return false;
                 }
                 if (!monthValues.includes('all')) {
@@ -3457,16 +3446,22 @@ function calculateDetailedMetrics(races, type = null) {
                     if (!((surfaceValues.includes('Grass') && isGrass) || (surfaceValues.includes('Dirt') && isDirt))) return false;
                 }
                 if (!courseValues.includes('all')) {
-                    const normalized = normalizeCourseName(
-                        race.Course || '',
-                        race.Surface || '',
-                        race.Track || '',
-                        race.Conditions || race['Track Condition'] || ''
-                    );
+                    let raceCourse = race.Course || '';
+                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                        const surface = (race.Surface || '').toLowerCase();
+                        const track = (race.Track || '').toLowerCase();
+                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            raceCourse += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            raceCourse += ' (Grass)';
+                        }
+                    }
                     const matchesCourse = courseValues.some(course =>
-                        normalized === course ||
-                        (race.Course || '') === course ||
-                        normalized.includes(course.replace(' (Dirt)', '').replace(' (Grass)', ''))
+                        raceCourse === course || race.Course === course ||
+                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
                     );
                     if (!matchesCourse) return false;
                 }
@@ -4077,16 +4072,25 @@ function calculateDetailedMetrics(races, type = null) {
                     if (!jockeyValues.includes(jockey)) return false;
                 }
                 if (!courseValues.includes('all')) {
-                    const normalized = normalizeCourseName(
-                        race.Course || '',
-                        race.Surface || '',
-                        race.Track || '',
-                        race.Conditions || race['Track Condition'] || ''
-                    );
+                    let raceCourse = race.Course || '';
+         
+                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                        const surface = (race.Surface || '').toLowerCase();
+                        const track = (race.Track || '').toLowerCase();
+                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+             
+                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                            raceCourse += ' (Dirt)';
+                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                            raceCourse += ' (Grass)';
+                        }
+                    }
+         
                     const matchesCourse = courseValues.some(course =>
-                        normalized === course ||
-                        (race.Course || '') === course ||
-                        normalized.includes(course.replace(' (Dirt)', '').replace(' (Grass)', ''))
+                        raceCourse === course || race.Course === course ||
+                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
                     );
                     if (!matchesCourse) return false;
                 }
