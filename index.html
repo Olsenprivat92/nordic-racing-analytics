@@ -1226,6 +1226,43 @@
                 </div>
             </div>
         </div>
+                <!-- Top 10 Sires Section -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="card-header">
+                <h3>Top 10 Sires</h3>
+            </div>
+            <div class="card-body">
+                <div style="margin-bottom: 1rem; max-width: 400px;">
+                    <label style="font-weight: 600; color: #1e40af; display: block; margin-bottom: 0.5rem;">Category (min 50 starts)</label>
+                    <select id="topSireCategory" onchange="updateTopSires()" style="width: 100%; padding: 10px; border: 2px solid #e5e7eb; border-radius: 8px;">
+                        <option value="winPct">Win%</option>
+                        <option value="avgRankingAll">Avg Ranking overall</option>
+                        <option value="avgRankingSprint">Sprint Avg Ranking</option>
+                        <option value="avgRankingMiddle">Middle Distance Avg Ranking</option>
+                        <option value="avgRankingStay">Stay Avg Ranking</option>
+                        <option value="avgRanking2YO">2 Yo Avg Ranking</option>
+                        <option value="avgRankingDirt">Dirt Avg Ranking</option>
+                        <option value="avgRankingGrass">Grass Avg Ranking</option>
+                    </select>
+                </div>
+
+                <div class="scrollable" style="max-height: 500px; overflow-y: auto;">
+                    <table style="width:100%; font-size: 0.95rem; border-collapse: collapse;">
+                        <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Rank</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e2e8f0;">Sire</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">Starts</th>
+                                <th style="padding: 10px; text-align: center; border-bottom: 2px solid #e2e8f0;">Outcome</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topSiresBody">
+                            <tr><td colspan="4" style="text-align:center; padding:20px;">Select a category</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         <!-- Next Race View -->
         <div class="view-container" id="next-race-view">
             <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
@@ -1532,6 +1569,7 @@
             } else if (view === 'breeding') {
                 updateBreedingFilters();
                 updateBreedingAnalysis();
+                updateTopSires();  // Load Top 10 Sires
             } else if (view === 'next-race') {
                 initNextRaceData();
                 populateNextRaceView();
@@ -3277,6 +3315,87 @@
                 const show = (!horseFilter || horse.includes(horseFilter)) && (!damFilter || dam.includes(damFilter));
                 row.style.display = show ? '' : 'none';
             });
+        }
+                function updateTopSires() {
+            const category = document.getElementById('topSireCategory').value;
+            const minStarts = 50;
+
+            // Collect all sires and their races
+            const sireMap = new Map();
+            racingData.forEach(row => {
+                if (row.Sire && row.Horse) {
+                    const sire = row.Sire.trim();
+                    if (!sireMap.has(sire)) sireMap.set(sire, []);
+                    sireMap.get(sire).push(row);
+                }
+            });
+
+            const results = [];
+            sireMap.forEach((races, sire) => {
+                let filtered = races;
+
+                if (category === 'avgRankingSprint') {
+                    filtered = races.filter(r => {
+                        const d = parseInt(r.Distance) || 0;
+                        return d >= 900 && d <= 1400;
+                    });
+                } else if (category === 'avgRankingMiddle') {
+                    filtered = races.filter(r => {
+                        const d = parseInt(r.Distance) || 0;
+                        return d > 1400 && d <= 1800;
+                    });
+                } else if (category === 'avgRankingStay') {
+                    filtered = races.filter(r => {
+                        const d = parseInt(r.Distance) || 0;
+                        return d > 1800;
+                    });
+                } else if (category === 'avgRanking2YO') {
+                    filtered = races.filter(r => parseInt(r.Age) === 2);
+                } else if (category === 'avgRankingDirt') {
+                    filtered = races.filter(r => {
+                        const s = (r.Surface || '').toLowerCase();
+                        return s.includes('dirt') || s.includes('sand');
+                    });
+                } else if (category === 'avgRankingGrass') {
+                    filtered = races.filter(r => {
+                        const s = (r.Surface || '').toLowerCase();
+                        return s.includes('grass') || s.includes('turf') || s.includes('græs');
+                    });
+                } // winPct and avgRankingAll use all races
+
+                const starts = filtered.length;
+                if (starts < minStarts) return;
+
+                const wins = filtered.filter(r => r.Place === '1' || r.Place === 1).length;
+                const winPctVal = starts > 0 ? ((wins / starts) * 100).toFixed(1) : '0.0';
+
+                const ranks = filtered.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+                const avgRank = ranks.length ? ranks.reduce((a,b)=>a+b,0)/ranks.length : null;
+                const avgRankStr = avgRank ? avgRank.toFixed(1) : 'N/A';
+
+                results.push({
+                    sire,
+                    starts,
+                    winPct: winPctVal,
+                    winPctRaw: parseFloat(winPctVal),
+                    avgRankRaw: avgRank || 999999,  // high number = worse
+                    display: `${sire} - ${category === 'winPct' ? winPctVal + '%' : avgRankStr} - ${starts} Starts`
+                });
+            });
+
+            // Sort
+            if (category === 'winPct') {
+                results.sort((a, b) => b.winPctRaw - a.winPctRaw); // higher win% first
+            } else {
+                results.sort((a, b) => a.avgRankRaw - b.avgRankRaw); // lower avg rank first
+            }
+
+            let html = '';
+            results.slice(0, 10).forEach((item, i) => {
+                html += `<tr><td>${i+1}.</td><td>${item.display}</td></tr>`;
+            });
+
+            document.getElementById('topSiresBody').innerHTML = html || '<tr><td colspan="2">No sires with ≥50 starts in this category</td></tr>';
         }
         // Horse analysis Functions
         function populateHorseFilters() {
