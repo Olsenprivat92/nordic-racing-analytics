@@ -1991,7 +1991,7 @@
             const toDate = document.getElementById('courseToDate').value;
 
             return racingData.filter(race => {
-                // Course filter - now properly separates Bro Park / Øvrevoll Grass vs Dirt
+                // Course filter - now correctly separates Bro Park / Øvrevoll Grass vs Dirt
                 if (!courseValues.includes('all')) {
                     const normalized = normalizeCourseName(race.Course || '', race.Surface || '');
                     const matchesCourse = courseValues.some(selected => normalized === selected);
