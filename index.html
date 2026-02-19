@@ -1779,23 +1779,8 @@
  
             racingData.forEach(row => {
                 if (row.Course && row.Course.trim()) {
-                    let courseName = row.Course.trim();
-         
-                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
-                        const surface = (row.Surface || '').toLowerCase();
-                        const track = (row.Track || '').toLowerCase();
-                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
-             
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            courseName += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            courseName += ' (Grass)';
-                        }
-                    }
-         
-                    courses.add(courseName);
+                    const normalized = normalizeCourseName(row.Course, row.Surface || '');
+                    courses.add(normalized);
                 }
                 if (row.Class && row.Class.trim()) classes.add(row.Class.trim());
                 if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
@@ -2004,30 +1989,15 @@
             const distanceValues = getSelectedValues('distanceFilter');
             const fromDate = document.getElementById('courseFromDate').value;
             const toDate = document.getElementById('courseToDate').value;
+
             return racingData.filter(race => {
+                // Course filter - now properly separates Bro Park / Øvrevoll Grass vs Dirt
                 if (!courseValues.includes('all')) {
-                    let raceCourse = race.Course || '';
-         
-                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
-                        const surface = (race.Surface || '').toLowerCase();
-                        const track = (race.Track || '').toLowerCase();
-                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
-             
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            raceCourse += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            raceCourse += ' (Grass)';
-                        }
-                    }
-         
-                    const matchesCourse = courseValues.some(course =>
-                        raceCourse === course || race.Course === course ||
-                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
-                    );
+                    const normalized = normalizeCourseName(race.Course || '', race.Surface || '');
+                    const matchesCourse = courseValues.some(selected => normalized === selected);
                     if (!matchesCourse) return false;
                 }
+
                 if (!monthValues.includes('all')) {
                     const raceMonth = (race.Date || '').split('-')[1];
                     if (!monthValues.includes(raceMonth)) return false;
