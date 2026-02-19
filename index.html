@@ -3243,6 +3243,9 @@
             `;
 
             document.getElementById('breedingOverview').innerHTML = overviewHtml;
+            // Sort alphabetically by Horse name
+            offspringList.sort((a, b) => a.horse.localeCompare(b.horse));
+
             let tableRows = '';
             offspringList.forEach(off => {
                 const m = calculateDetailedMetrics(off.races, 'horse');
