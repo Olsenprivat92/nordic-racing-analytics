@@ -3194,27 +3194,55 @@
             const best = arr => arr.length ? Math.min(...arr).toFixed(1) : 'N/A';
             const winPct = (w, s) => s > 0 ? ((w/s)*100).toFixed(1) + '%' : '0.0%';
 
-            let overview = `
-                <div class="stat-card"><div class="stat-value">${offspringList.length}</div><div class="stat-label">Number of Offspring</div></div>
-                <div class="stat-card"><div class="stat-value">${avg(rankings.all)} / ${best(rankings.all)}</div><div class="stat-label">Overall Avg / Best Ranking</div></div>
+   // Clean, professional one-line stats
+            let overviewHtml = `
+                <div class="stat-card">
+                    <div class="stat-label">Number of Offspring</div>
+                    <div class="stat-value">${offspringList.length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Starts</div>
+                    <div class="stat-value">${totalStarts}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Win %</div>
+                    <div class="stat-value">${winPct(totalWins, totalStarts)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Avg Ranking (All)</div>
+                    <div class="stat-value">${avg(rankings.all)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Best Ranking (All)</div>
+                    <div class="stat-value">${best(rankings.all)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Sprint – Starts / Avg / Best</div>
+                    <div class="stat-value">${rankings.sprint.length} / ${avg(rankings.sprint)} / ${best(rankings.sprint)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Middle Distance – Starts / Avg / Best</div>
+                    <div class="stat-value">${rankings.middle.length} / ${avg(rankings.middle)} / ${best(rankings.middle)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Stay – Starts / Avg / Best</div>
+                    <div class="stat-value">${rankings.stay.length} / ${avg(rankings.stay)} / ${best(rankings.stay)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">2YO – Starts / Avg / Best</div>
+                    <div class="stat-value">${rankings.twoyo.length} / ${avg(rankings.twoyo)} / ${best(rankings.twoyo)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Dirt – Starts / Avg / Best</div>
+                    <div class="stat-value">${rankings.dirt.length} / ${avg(rankings.dirt)} / ${best(rankings.dirt)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Grass – Starts / Avg / Best</div>
+                    <div class="stat-value">${rankings.grass.length} / ${avg(rankings.grass)} / ${best(rankings.grass)}</div>
+                </div>
             `;
 
-            const cats = [
-                {label: 'Sprint', key: 'sprint'},
-                {label: 'Middle Distance', key: 'middle'},
-                {label: 'Stay', key: 'stay'},
-                {label: '2 Yo', key: 'twoyo'},
-                {label: 'Dirt', key: 'dirt'},
-                {label: 'Grass', key: 'grass'}
-            ];
-
-            cats.forEach(c => {
-                const r = rankings[c.key];
-                overview += `<div class="stat-card"><div class="stat-value">${r.length} starts / ${winPct(totalWins, totalStarts)}<br>${avg(r)} / ${best(r)}</div><div class="stat-label">${c.label}</div></div>`;
-            });
-
-            document.getElementById('breedingOverview').innerHTML = overview;
-
+            document.getElementById('breedingOverview').innerHTML = overviewHtml;
             let tableRows = '';
             offspringList.forEach(off => {
                 const m = calculateDetailedMetrics(off.races, 'horse');
