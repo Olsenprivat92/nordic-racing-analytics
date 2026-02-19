@@ -3109,9 +3109,6 @@
                 const ratingsSprint = sprintAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
                 metrics.avgRatingSprint = ratingsSprint.length > 0 ? (ratingsSprint.reduce((a, b) => a + b, 0) / ratingsSprint.length).toFixed(1) : 'N/A';
                 metrics.bestRatingSprint = ratingsSprint.length > 0 ? Math.min(...ratingsSprint) : 'N/A';
-
-                // Do the same for Middle, Stay, 2YO, Dirt, Grass if you want the weight filter everywhere
-                // (just add && weight <= maxWeight to each filter)
  
                 // Adult
                 const adultRaces = races.filter(r => parseInt(r.Age) > 2);
