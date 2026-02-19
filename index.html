@@ -2541,11 +2541,11 @@ function normalizeCourseName(course, surface = '', track = '', conditions = '') 
                         race.Track || '',
                         race.Conditions || race['Track Condition'] || ''
                     );
-
-                    const matchesCourse = courseValues.some(selected => {
-                        return normalized === selected;
-                    });
-
+                    const matchesCourse = courseValues.some(course =>
+                        normalized === course ||
+                        (race.Course || '') === course ||
+                        normalized.includes(course.replace(' (Dirt)', '').replace(' (Grass)', ''))
+                    );
                     if (!matchesCourse) return false;
                 }
                 if (!monthValues.includes('all')) {
@@ -3463,11 +3463,11 @@ function calculateDetailedMetrics(races, type = null) {
                         race.Track || '',
                         race.Conditions || race['Track Condition'] || ''
                     );
-
-                    const matchesCourse = courseValues.some(selected => {
-                        return normalized === selected;
-                    });
-
+                    const matchesCourse = courseValues.some(course =>
+                        normalized === course ||
+                        (race.Course || '') === course ||
+                        normalized.includes(course.replace(' (Dirt)', '').replace(' (Grass)', ''))
+                    );
                     if (!matchesCourse) return false;
                 }
                 if (!classValues.includes('all')) {
@@ -4083,11 +4083,11 @@ function calculateDetailedMetrics(races, type = null) {
                         race.Track || '',
                         race.Conditions || race['Track Condition'] || ''
                     );
-
-                    const matchesCourse = courseValues.some(selected => {
-                        return normalized === selected;
-                    });
-
+                    const matchesCourse = courseValues.some(course =>
+                        normalized === course ||
+                        (race.Course || '') === course ||
+                        normalized.includes(course.replace(' (Dirt)', '').replace(' (Grass)', ''))
+                    );
                     if (!matchesCourse) return false;
                 }
                 if (!monthValues.includes('all')) {
