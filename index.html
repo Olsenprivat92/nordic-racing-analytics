@@ -1766,21 +1766,31 @@
             racingData.forEach(row => {
                 if (row.Course && row.Course.trim()) {
                     let courseName = row.Course.trim();
-         
-                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
-                        const surface = (row.Surface || '').toLowerCase();
-                        const track = (row.Track || '').toLowerCase();
-                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
-             
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            courseName += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            courseName += ' (Grass)';
+
+                    // Normalize Bro Park & Øvrevoll into Grass/Dirt versions
+                    const lowerCourse = courseName.toLowerCase();
+                    if (lowerCourse.includes('bro park') || lowerCourse.includes('øvrevoll') || 
+                        lowerCourse.includes('brop') || lowerCourse.includes('ovrevoll')) {
+                        
+                        const surfaceStr = [
+                            row.Surface || '',
+                            row.Track || '',
+                            row.Conditions || '',
+                            row['Track Condition'] || ''
+                        ].join(' ').toLowerCase();
+
+                        if (surfaceStr.includes('dirt') || surfaceStr.includes('sand') || 
+                            surfaceStr.includes('allweather') || surfaceStr.includes('synthetic')) {
+                            courseName = courseName + ' (Dirt)';
+                        } else if (surfaceStr.includes('grass') || surfaceStr.includes('turf') || 
+                                   surfaceStr.includes('græs') || surfaceStr.includes('græsbane')) {
+                            courseName = courseName + ' (Grass)';
+                        } else {
+                            // If no clear surface → default to plain name (rare case)
+                            // or you can force one, e.g. courseName += ' (Unknown)';
                         }
                     }
-         
+
                     courses.add(courseName);
                 }
                 if (row.Class && row.Class.trim()) classes.add(row.Class.trim());
@@ -1993,25 +2003,38 @@
             return racingData.filter(race => {
                 if (!courseValues.includes('all')) {
                     let raceCourse = race.Course || '';
-         
-                    if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
-                        const surface = (race.Surface || '').toLowerCase();
-                        const track = (race.Track || '').toLowerCase();
-                        const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
-             
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            raceCourse += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            raceCourse += ' (Grass)';
+
+                    // Normalize Bro Park & Øvrevoll consistently with populateFilters
+                    const lowerCourse = raceCourse.toLowerCase();
+                    if (lowerCourse.includes('bro park') || lowerCourse.includes('øvrevoll') || 
+                        lowerCourse.includes('brop') || lowerCourse.includes('ovrevoll')) {
+                        
+                        const surfaceStr = [
+                            race.Surface || '',
+                            race.Track || '',
+                            race.Conditions || '',
+                            race['Track Condition'] || ''
+                        ].join(' ').toLowerCase();
+
+                        if (surfaceStr.includes('dirt') || surfaceStr.includes('sand') || 
+                            surfaceStr.includes('allweather') || surfaceStr.includes('synthetic')) {
+                            raceCourse = race.Course + ' (Dirt)';
+                        } else if (surfaceStr.includes('grass') || surfaceStr.includes('turf') || 
+                                   surfaceStr.includes('græs') || surfaceStr.includes('græsbane')) {
+                            raceCourse = race.Course + ' (Grass)';
                         }
                     }
-         
-                    const matchesCourse = courseValues.some(course =>
-                        raceCourse === course || race.Course === course ||
-                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
-                    );
+
+                    // Match against selected filters (supports both plain and (Grass)/(Dirt) versions)
+                    const matchesCourse = courseValues.some(selected => {
+                        if (selected === raceCourse) return true;
+                        if (race.Course === selected) return true;
+                        // Allow matching plain name to split version
+                        const plainSelected = selected.replace(/ \((Grass|Dirt)\)$/, '');
+                        return race.Course === plainSelected || 
+                               race.Course.includes(plainSelected);
+                    });
+
                     if (!matchesCourse) return false;
                 }
                 if (!monthValues.includes('all')) {
