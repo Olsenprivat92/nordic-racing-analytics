@@ -2542,10 +2542,12 @@ function normalizeCourseName(course, surface = '', track = '', conditions = '') 
                         }
                     }
          
-                    const matchesCourse = courseValues.some(course =>
-                        raceCourse === course || race.Course === course ||
-                        (race.Course && race.Course.includes(course.replace(' (Dirt)', '').replace(' (Grass)', '')))
-                    );
+                    const matchesCourse = courseValues.some(selected => {
+                        if (normalized === selected) return true;
+                        // Also match if user selected plain "Bro Park" — show both
+                        if (selected === 'Bro Park' || selected === 'Øvrevoll') return true;
+                        return false;
+                    });
                     if (!matchesCourse) return false;
                 }
                 if (!monthValues.includes('all')) {
