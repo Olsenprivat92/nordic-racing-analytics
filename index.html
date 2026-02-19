@@ -3084,31 +3084,18 @@
  
             // Additional for horse
             if (type === 'horse') {
-                // Helper: filter races by max carried weight (kg)
-                const maxWeight = 64.0; // ← you can change this number anytime
-
-                // All rankings — only races ≤ 64 kg
+                // All rankings — only races with carried weight ≤ 64 kg
+                const maxWeightKg = 64.0;
                 const ratingsAll = races
                     .filter(r => {
-                        const weight = parseFloat(r.Weight || r['Carried Weight'] || '0');
-                        return !isNaN(weight) && weight <= maxWeight;
+                        const weight = parseFloat(r.Weight || r['Carried Weight'] || r['Weight carried'] || '0');
+                        return !isNaN(weight) && weight <= maxWeightKg;
                     })
                     .map(r => parseFloat(r.Ranking))
                     .filter(v => !isNaN(v) && v > 0);
 
                 metrics.avgRatingAll = ratingsAll.length > 0 ? (ratingsAll.reduce((a, b) => a + b, 0) / ratingsAll.length).toFixed(1) : 'N/A';
                 metrics.bestRatingAll = ratingsAll.length > 0 ? Math.min(...ratingsAll) : 'N/A';
-
-                // You can repeat the same pattern for other categories if you want weight limit there too:
-                // Example: Sprint
-                const sprintAdult = adultRaces.filter(r => {
-                    const dist = parseInt(r.Distance);
-                    const weight = parseFloat(r.Weight || r['Carried Weight'] || '0');
-                    return dist >= 900 && dist <= 1400 && !isNaN(weight) && weight <= maxWeight;
-                });
-                const ratingsSprint = sprintAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-                metrics.avgRatingSprint = ratingsSprint.length > 0 ? (ratingsSprint.reduce((a, b) => a + b, 0) / ratingsSprint.length).toFixed(1) : 'N/A';
-                metrics.bestRatingSprint = ratingsSprint.length > 0 ? Math.min(...ratingsSprint) : 'N/A';
  
                 // Adult
                 const adultRaces = races.filter(r => parseInt(r.Age) > 2);
