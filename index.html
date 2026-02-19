@@ -3194,23 +3194,28 @@
             const best = arr => arr.length ? Math.min(...arr).toFixed(1) : 'N/A';
             const winPct = (w, s) => s > 0 ? ((w/s)*100).toFixed(1) + '%' : '0.0%';
 
-            let overview = `
-                <div class="stat-card"><div class="stat-value">${offspringList.length}</div><div class="stat-label">Number of Offspring</div></div>
-                <div class="stat-card"><div class="stat-value">${avg(rankings.all)} / ${best(rankings.all)}</div><div class="stat-label">Overall Avg / Best Ranking</div></div>
-            `;
-
-            const cats = [
-                {label: 'Sprint', key: 'sprint'},
-                {label: 'Middle Distance', key: 'middle'},
-                {label: 'Stay', key: 'stay'},
-                {label: '2 Yo', key: 'twoyo'},
-                {label: 'Dirt', key: 'dirt'},
-                {label: 'Grass', key: 'grass'}
+const overviewStats = [
+                { label: 'Number of Offspring', value: offspringList.length },
+                { label: 'Starts', value: totalStarts },
+                { label: 'Win %', value: winPct(totalWins, totalStarts) },
+                { label: 'Avg Ranking (All)', value: avg(rankings.all) },
+                { label: 'Best Ranking (All)', value: best(rankings.all) },
+                { label: 'Sprint – Starts / Avg / Best', value: `${rankings.sprint.length} / ${avg(rankings.sprint)} / ${best(rankings.sprint)}` },
+                { label: 'Middle – Starts / Avg / Best', value: `${rankings.middle.length} / ${avg(rankings.middle)} / ${best(rankings.middle)}` },
+                { label: 'Stay – Starts / Avg / Best', value: `${rankings.stay.length} / ${avg(rankings.stay)} / ${best(rankings.stay)}` },
+                { label: '2YO – Starts / Avg / Best', value: `${rankings.twoyo.length} / ${avg(rankings.twoyo)} / ${best(rankings.twoyo)}` },
+                { label: 'Dirt – Starts / Avg / Best', value: `${rankings.dirt.length} / ${avg(rankings.dirt)} / ${best(rankings.dirt)}` },
+                { label: 'Grass – Starts / Avg / Best', value: `${rankings.grass.length} / ${avg(rankings.grass)} / ${best(rankings.grass)}` }
             ];
 
-            cats.forEach(c => {
-                const r = rankings[c.key];
-                overview += `<div class="stat-card"><div class="stat-value">${r.length} starts / ${winPct(totalWins, totalStarts)}<br>${avg(r)} / ${best(r)}</div><div class="stat-label">${c.label}</div></div>`;
+            let overviewHtml = '';
+            overviewStats.forEach(stat => {
+                overviewHtml += `
+                    <div class="stat-card">
+                        <div class="stat-label">${stat.label}</div>
+                        <div class="stat-value">${stat.value}</div>
+                    </div>
+                `;
             });
 
             document.getElementById('breedingOverview').innerHTML = overview;
