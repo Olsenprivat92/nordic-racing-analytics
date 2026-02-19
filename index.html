@@ -2977,202 +2977,220 @@
             if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
             return new Date(year, month, day);
         }
-        function calculateDetailedMetrics(races, type = null) {
-            if (races.length === 0) return null;
- 
-            const metrics = {};
- 
-            // All
-            metrics.countAll = races.length;
-            const placesAll = races.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgPlaceAll = placesAll.length > 0 ? (placesAll.reduce((a, b) => a + b, 0) / placesAll.length).toFixed(2) : 'N/A';
-            const oddsAll = races.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgOddsAll = oddsAll.length > 0 ? (oddsAll.reduce((a, b) => a + b, 0) / oddsAll.length).toFixed(2) : 'N/A';
-            metrics.countOddsAll = oddsAll.length;
-            const winsAll = races.filter(r => r.Place === '1' || r.Place === 1).length;
-            metrics.winPctAll = metrics.countAll > 0 ? ((winsAll / metrics.countAll) * 100).toFixed(1) : '0.0';
- 
-            // Ranking average
-            const rankingsAll = races.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgRankingAll = rankingsAll.length > 0 ? (rankingsAll.reduce((a, b) => a + b, 0) / rankingsAll.length).toFixed(2) : 'N/A';
- 
-            // Sprint
-            const sprintRaces = races.filter(r => {
-                const dist = parseInt(r.Distance);
-                return dist >= 900 && dist <= 1400;
-            });
-            metrics.countSprint = sprintRaces.length;
-            const placesSprint = sprintRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgPlaceSprint = placesSprint.length > 0 ? (placesSprint.reduce((a, b) => a + b, 0) / placesSprint.length).toFixed(2) : 'N/A';
-            const oddsSprint = sprintRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgOddsSprint = oddsSprint.length > 0 ? (oddsSprint.reduce((a, b) => a + b, 0) / oddsSprint.length).toFixed(2) : 'N/A';
-            metrics.countOddsSprint = oddsSprint.length;
-            const winsSprint = sprintRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            metrics.winPctSprint = metrics.countSprint > 0 ? ((winsSprint / metrics.countSprint) * 100).toFixed(1) : '0.0';
- 
-            // Middle
-            const middleRaces = races.filter(r => {
-                const dist = parseInt(r.Distance);
-                return dist > 1400 && dist <= 1800;
-            });
-            metrics.countMiddle = middleRaces.length;
-            const placesMiddle = middleRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgPlaceMiddle = placesMiddle.length > 0 ? (placesMiddle.reduce((a, b) => a + b, 0) / placesMiddle.length).toFixed(2) : 'N/A';
-            const oddsMiddle = middleRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgOddsMiddle = oddsMiddle.length > 0 ? (oddsMiddle.reduce((a, b) => a + b, 0) / oddsMiddle.length).toFixed(2) : 'N/A';
-            metrics.countOddsMiddle = oddsMiddle.length;
-            const winsMiddle = middleRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            metrics.winPctMiddle = metrics.countMiddle > 0 ? ((winsMiddle / metrics.countMiddle) * 100).toFixed(1) : '0.0';
- 
-            // Stay
-            const stayRaces = races.filter(r => {
-                const dist = parseInt(r.Distance);
-                return dist > 1800;
-            });
-            metrics.countStay = stayRaces.length;
-            const placesStay = stayRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgPlaceStay = placesStay.length > 0 ? (placesStay.reduce((a, b) => a + b, 0) / placesStay.length).toFixed(2) : 'N/A';
-            const oddsStay = stayRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgOddsStay = oddsStay.length > 0 ? (oddsStay.reduce((a, b) => a + b, 0) / oddsStay.length).toFixed(2) : 'N/A';
-            metrics.countOddsStay = oddsStay.length;
-            const winsStay = stayRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            metrics.winPctStay = metrics.countStay > 0 ? ((winsStay / metrics.countStay) * 100).toFixed(1) : '0.0';
- 
-            // Short field
-            const shortRaces = races.filter(r => parseInt(r.Field) <= 5);
-            metrics.countShort = shortRaces.length;
-            const placesShort = shortRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgPlaceShort = placesShort.length > 0 ? (placesShort.reduce((a, b) => a + b, 0) / placesShort.length).toFixed(2) : 'N/A';
-            const oddsShort = shortRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgOddsShort = oddsShort.length > 0 ? (oddsShort.reduce((a, b) => a + b, 0) / oddsShort.length).toFixed(2) : 'N/A';
-            metrics.countOddsShort = oddsShort.length;
-            const winsShort = shortRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-            metrics.winPctShort = metrics.countShort > 0 ? ((winsShort / metrics.countShort) * 100).toFixed(1) : '0.0';
- 
-            // 2YO for ranks and top
-            const twoYO = races.filter(r => parseInt(r.Age) === 2);
-            metrics.count2YO = twoYO.length;
-            const places2YO = twoYO.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
-            metrics.avgPlace2YO = places2YO.length > 0 ? (places2YO.reduce((a, b) => a + b, 0) / places2YO.length).toFixed(2) : 'N/A';
- 
-            // Jump 2YO if trainer
-            if (type === 'trainer') {
-                const horseJumps = {};
-                twoYO.forEach(race => {
-                    const horse = race.Horse;
-                    if (!horseJumps[horse]) horseJumps[horse] = [];
-                    horseJumps[horse].push(race);
-                });
-                const jumps = [];
-                Object.keys(horseJumps).forEach(horse => {
-                    const horseRaces = horseJumps[horse].sort((a, b) => parseRaceDate(a.Date) - parseRaceDate(b.Date));
-                    if (horseRaces.length >= 2) {
-                        const place1 = parseFloat(horseRaces[0].Place);
-                        const place2 = parseFloat(horseRaces[1].Place);
-                        if (!isNaN(place1) && !isNaN(place2) && place1 > 0 && place2 > 0) {
-                            jumps.push(place1 - place2); // positive if improved (lower place better? Wait, lower place is better, so if place2 < place1, jump positive for improvement
-                        }
-                    }
-                });
-                metrics.avgPlaceJump2YO = jumps.length > 0 ? (jumps.reduce((a, b) => a + b, 0) / jumps.length).toFixed(2) : 'N/A';
-                metrics.countJump2YO = jumps.length;
-            }
- 
-            //  Odds vs Win Formula
-            const expectedWins = oddsAll.reduce((sum, o) => sum + (1 / o), 0);
-            metrics.oddsVsWinFormula = expectedWins > 0 ? ((winsAll / expectedWins) * 100).toFixed(1) : 'N/A';
- 
-            // Additional for horse
-            if (type === 'horse') {
-                // All rankings — only races with carried weight ≤ 64 kg
-                const maxWeightKg = 64.0;
-                const ratingsAll = races
-                    .filter(r => {
-                        const weight = parseFloat(r.Weight || r['Carried Weight'] || r['Weight carried'] || '0');
-                        return !isNaN(weight) && weight <= maxWeightKg;
-                    })
-                    .map(r => parseFloat(r.Ranking))
-                    .filter(v => !isNaN(v) && v > 0);
+function calculateDetailedMetrics(races, type = null) {
+    if (races.length === 0) return null;
+    const metrics = {};
 
-                metrics.avgRatingAll = ratingsAll.length > 0 ? (ratingsAll.reduce((a, b) => a + b, 0) / ratingsAll.length).toFixed(1) : 'N/A';
-                metrics.bestRatingAll = ratingsAll.length > 0 ? Math.min(...ratingsAll) : 'N/A';
- 
-                // Adult
-                const adultRaces = races.filter(r => parseInt(r.Age) > 2);
-                metrics.countAdult = adultRaces.length;
-                const ratingsAdult = adultRaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-                metrics.avgRatingAdult = ratingsAdult.length > 0 ? (ratingsAdult.reduce((a, b) => a + b, 0) / ratingsAdult.length).toFixed(1) : 'N/A';
-                metrics.bestRatingAdult = ratingsAdult.length > 0 ? Math.min(...ratingsAdult) : 'N/A';
- 
-                // 2YO
-                const twoYORaces = races.filter(r => parseInt(r.Age) === 2);
-                metrics.count2YO = twoYORaces.length;
-                const ratings2YO = twoYORaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-                metrics.avgRating2YO = ratings2YO.length > 0 ? (ratings2YO.reduce((a, b) => a + b, 0) / ratings2YO.length).toFixed(1) : 'N/A';
-                metrics.bestRating2YO = ratings2YO.length > 0 ? Math.min(...ratings2YO) : 'N/A';
- 
-                // Sprint adult
-                const sprintAdult = adultRaces.filter(r => {
-                    const dist = parseInt(r.Distance);
-                    return dist >= 900 && dist <= 1400;
-                });
-                metrics.countSprintAdult = sprintAdult.length;
-                const ratingsSprint = sprintAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-                metrics.avgRatingSprint = ratingsSprint.length > 0 ? (ratingsSprint.reduce((a, b) => a + b, 0) / ratingsSprint.length).toFixed(1) : 'N/A';
-                metrics.bestRatingSprint = ratingsSprint.length > 0 ? Math.min(...ratingsSprint) : 'N/A';
- 
-                // Middle adult
-                const middleAdult = adultRaces.filter(r => {
-                    const dist = parseInt(r.Distance);
-                    return dist > 1400 && dist <= 1800;
-                });
-                metrics.countMiddleAdult = middleAdult.length;
-                const ratingsMiddle = middleAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-                metrics.avgRatingMiddle = ratingsMiddle.length > 0 ? (ratingsMiddle.reduce((a, b) => a + b, 0) / ratingsMiddle.length).toFixed(1) : 'N/A';
-                metrics.bestRatingMiddle = ratingsMiddle.length > 0 ? Math.min(...ratingsMiddle) : 'N/A';
- 
-                // Stay adult
-                const stayAdult = adultRaces.filter(r => {
-                    const dist = parseInt(r.Distance);
-                    return dist > 1800;
-                });
-                metrics.countStayAdult = stayAdult.length;
-                const ratingsStay = stayAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
-                metrics.avgRatingStay = ratingsStay.length > 0 ? (ratingsStay.reduce((a, b) => a + b, 0) / ratingsStay.length).toFixed(1) : 'N/A';
-                metrics.bestRatingStay = ratingsStay.length > 0 ? Math.min(...ratingsStay) : 'N/A';
- 
-                // Win %
-                const wins = races.filter(r => r.Place === '1' || r.Place === 1).length;
-                metrics.winPct = metrics.countAll > 0 ? ((wins / metrics.countAll) * 100).toFixed(1) : '0.0';
- 
-                // Places
-                const first = wins;
-                const second = races.filter(r => r.Place === '2' || r.Place === 2).length;
-                const third = races.filter(r => r.Place === '3' || r.Place === 3).length;
-                metrics.places = `(${first}-${second}-${third})`;
- 
-                // Avg odds
-                const odds = races.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v));
-                metrics.avgOdds = odds.length > 0 ? (odds.reduce((a,b)=>a+b,0)/odds.length).toFixed(1) : 'N/A';
- 
-                // Year born
-                metrics.yearBorn = 'N/A';
-                if (races.length > 0) {
-                    const race = races[0];
-                    const parts = race.Date.split('-');
-                    const year = 2000 + parseInt(parts[2]);
-                    const age = parseInt(race.Age);
-                    if (!isNaN(year) && !isNaN(age)) {
-                        metrics.yearBorn = year - age;
-                    }
+    // Common stats (no weight filter)
+    metrics.countAll = races.length;
+    const placesAll = races.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgPlaceAll = placesAll.length > 0 ? (placesAll.reduce((a, b) => a + b, 0) / placesAll.length).toFixed(2) : 'N/A';
+    const oddsAll = races.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgOddsAll = oddsAll.length > 0 ? (oddsAll.reduce((a, b) => a + b, 0) / oddsAll.length).toFixed(2) : 'N/A';
+    metrics.countOddsAll = oddsAll.length;
+    const winsAll = races.filter(r => r.Place === '1' || r.Place === 1).length;
+    metrics.winPctAll = metrics.countAll > 0 ? ((winsAll / metrics.countAll) * 100).toFixed(1) : '0.0';
+
+    // Ranking average (all races) - used only for trainer/jockey if needed
+    const rankingsAll = races.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgRankingAll = rankingsAll.length > 0 ? (rankingsAll.reduce((a, b) => a + b, 0) / rankingsAll.length).toFixed(2) : 'N/A';
+
+    // Sprint
+    const sprintRaces = races.filter(r => {
+        const dist = parseInt(r.Distance);
+        return dist >= 900 && dist <= 1400;
+    });
+    metrics.countSprint = sprintRaces.length;
+    const placesSprint = sprintRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgPlaceSprint = placesSprint.length > 0 ? (placesSprint.reduce((a, b) => a + b, 0) / placesSprint.length).toFixed(2) : 'N/A';
+    const oddsSprint = sprintRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgOddsSprint = oddsSprint.length > 0 ? (oddsSprint.reduce((a, b) => a + b, 0) / oddsSprint.length).toFixed(2) : 'N/A';
+    metrics.countOddsSprint = oddsSprint.length;
+    const winsSprint = sprintRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+    metrics.winPctSprint = metrics.countSprint > 0 ? ((winsSprint / metrics.countSprint) * 100).toFixed(1) : '0.0';
+
+    // Middle
+    const middleRaces = races.filter(r => {
+        const dist = parseInt(r.Distance);
+        return dist > 1400 && dist <= 1800;
+    });
+    metrics.countMiddle = middleRaces.length;
+    const placesMiddle = middleRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgPlaceMiddle = placesMiddle.length > 0 ? (placesMiddle.reduce((a, b) => a + b, 0) / placesMiddle.length).toFixed(2) : 'N/A';
+    const oddsMiddle = middleRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgOddsMiddle = oddsMiddle.length > 0 ? (oddsMiddle.reduce((a, b) => a + b, 0) / oddsMiddle.length).toFixed(2) : 'N/A';
+    metrics.countOddsMiddle = oddsMiddle.length;
+    const winsMiddle = middleRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+    metrics.winPctMiddle = metrics.countMiddle > 0 ? ((winsMiddle / metrics.countMiddle) * 100).toFixed(1) : '0.0';
+
+    // Stay
+    const stayRaces = races.filter(r => {
+        const dist = parseInt(r.Distance);
+        return dist > 1800;
+    });
+    metrics.countStay = stayRaces.length;
+    const placesStay = stayRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgPlaceStay = placesStay.length > 0 ? (placesStay.reduce((a, b) => a + b, 0) / placesStay.length).toFixed(2) : 'N/A';
+    const oddsStay = stayRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgOddsStay = oddsStay.length > 0 ? (oddsStay.reduce((a, b) => a + b, 0) / oddsStay.length).toFixed(2) : 'N/A';
+    metrics.countOddsStay = oddsStay.length;
+    const winsStay = stayRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+    metrics.winPctStay = metrics.countStay > 0 ? ((winsStay / metrics.countStay) * 100).toFixed(1) : '0.0';
+
+    // Short field
+    const shortRaces = races.filter(r => parseInt(r.Field) <= 5);
+    metrics.countShort = shortRaces.length;
+    const placesShort = shortRaces.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgPlaceShort = placesShort.length > 0 ? (placesShort.reduce((a, b) => a + b, 0) / placesShort.length).toFixed(2) : 'N/A';
+    const oddsShort = shortRaces.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgOddsShort = oddsShort.length > 0 ? (oddsShort.reduce((a, b) => a + b, 0) / oddsShort.length).toFixed(2) : 'N/A';
+    metrics.countOddsShort = oddsShort.length;
+    const winsShort = shortRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+    metrics.winPctShort = metrics.countShort > 0 ? ((winsShort / metrics.countShort) * 100).toFixed(1) : '0.0';
+
+    // 2YO count (used later)
+    const twoYO = races.filter(r => parseInt(r.Age) === 2);
+    metrics.count2YO = twoYO.length;
+    const places2YO = twoYO.map(r => parseFloat(r.Place)).filter(v => !isNaN(v) && v > 0);
+    metrics.avgPlace2YO = places2YO.length > 0 ? (places2YO.reduce((a, b) => a + b, 0) / places2YO.length).toFixed(2) : 'N/A';
+
+    // Jump 2YO if trainer (unchanged)
+    if (type === 'trainer') {
+        const horseJumps = {};
+        twoYO.forEach(race => {
+            const horse = race.Horse;
+            if (!horseJumps[horse]) horseJumps[horse] = [];
+            horseJumps[horse].push(race);
+        });
+        const jumps = [];
+        Object.keys(horseJumps).forEach(horse => {
+            const horseRaces = horseJumps[horse].sort((a, b) => parseRaceDate(a.Date) - parseRaceDate(b.Date));
+            if (horseRaces.length >= 2) {
+                const place1 = parseFloat(horseRaces[0].Place);
+                const place2 = parseFloat(horseRaces[1].Place);
+                if (!isNaN(place1) && !isNaN(place2) && place1 > 0 && place2 > 0) {
+                    jumps.push(place1 - place2);
                 }
- 
-                // Breeder if available
-                metrics.breeder = races[0].Breeder || 'N/A';
             }
- 
-            return metrics;
+        });
+        metrics.avgPlaceJump2YO = jumps.length > 0 ? (jumps.reduce((a, b) => a + b, 0) / jumps.length).toFixed(2) : 'N/A';
+        metrics.countJump2YO = jumps.length;
+    }
+
+    // Odds vs Win Formula (unchanged)
+    const expectedWins = oddsAll.reduce((sum, o) => sum + (1 / o), 0);
+    metrics.oddsVsWinFormula = expectedWins > 0 ? ((winsAll / expectedWins) * 100).toFixed(1) : 'N/A';
+
+    // Horse-specific metrics with 64 kg filter on ALL rankings
+    if (type === 'horse') {
+        const maxWeightKg = 64.0;
+
+        // Helper: filter races by weight ≤ 64 kg
+        const filterByWeight = (raceList) => raceList.filter(r => {
+            const weight = parseFloat(r.Weight || r['Carried Weight'] || r['Weight carried'] || r['kg'] || '0');
+            return !isNaN(weight) && weight <= maxWeightKg;
+        });
+
+        // Overall (all races) - filtered
+        const allFiltered = filterByWeight(races);
+        const ratingsAll = allFiltered.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRatingAll = ratingsAll.length > 0 ? (ratingsAll.reduce((a, b) => a + b, 0) / ratingsAll.length).toFixed(1) : 'N/A';
+        metrics.bestRatingAll = ratingsAll.length > 0 ? Math.min(...ratingsAll) : 'N/A';
+
+        // Adult - filtered
+        const adultRaces = filterByWeight(races.filter(r => parseInt(r.Age) > 2));
+        metrics.countAdult = adultRaces.length;
+        const ratingsAdult = adultRaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRatingAdult = ratingsAdult.length > 0 ? (ratingsAdult.reduce((a, b) => a + b, 0) / ratingsAdult.length).toFixed(1) : 'N/A';
+        metrics.bestRatingAdult = ratingsAdult.length > 0 ? Math.min(...ratingsAdult) : 'N/A';
+
+        // 2YO - filtered
+        const twoYORaces = filterByWeight(races.filter(r => parseInt(r.Age) === 2));
+        metrics.count2YO = twoYORaces.length;
+        const ratings2YO = twoYORaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRating2YO = ratings2YO.length > 0 ? (ratings2YO.reduce((a, b) => a + b, 0) / ratings2YO.length).toFixed(1) : 'N/A';
+        metrics.bestRating2YO = ratings2YO.length > 0 ? Math.min(...ratings2YO) : 'N/A';
+
+        // Sprint adult - filtered
+        const sprintAdult = filterByWeight(adultRaces.filter(r => {
+            const dist = parseInt(r.Distance);
+            return dist >= 900 && dist <= 1400;
+        }));
+        metrics.countSprintAdult = sprintAdult.length;
+        const ratingsSprint = sprintAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRatingSprint = ratingsSprint.length > 0 ? (ratingsSprint.reduce((a, b) => a + b, 0) / ratingsSprint.length).toFixed(1) : 'N/A';
+        metrics.bestRatingSprint = ratingsSprint.length > 0 ? Math.min(...ratingsSprint) : 'N/A';
+
+        // Middle adult - filtered
+        const middleAdult = filterByWeight(adultRaces.filter(r => {
+            const dist = parseInt(r.Distance);
+            return dist > 1400 && dist <= 1800;
+        }));
+        metrics.countMiddleAdult = middleAdult.length;
+        const ratingsMiddle = middleAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRatingMiddle = ratingsMiddle.length > 0 ? (ratingsMiddle.reduce((a, b) => a + b, 0) / ratingsMiddle.length).toFixed(1) : 'N/A';
+        metrics.bestRatingMiddle = ratingsMiddle.length > 0 ? Math.min(...ratingsMiddle) : 'N/A';
+
+        // Stay adult - filtered
+        const stayAdult = filterByWeight(adultRaces.filter(r => {
+            const dist = parseInt(r.Distance);
+            return dist > 1800;
+        }));
+        metrics.countStayAdult = stayAdult.length;
+        const ratingsStay = stayAdult.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRatingStay = ratingsStay.length > 0 ? (ratingsStay.reduce((a, b) => a + b, 0) / ratingsStay.length).toFixed(1) : 'N/A';
+        metrics.bestRatingStay = ratingsStay.length > 0 ? Math.min(...ratingsStay) : 'N/A';
+
+        // Dirt - filtered
+        const dirtRaces = filterByWeight(races.filter(r => {
+            const s = (r.Surface || '').toLowerCase();
+            return s.includes('dirt') || s.includes('sand');
+        }));
+        const ratingsDirt = dirtRaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRatingDirt = ratingsDirt.length > 0 ? (ratingsDirt.reduce((a, b) => a + b, 0) / ratingsDirt.length).toFixed(1) : 'N/A';
+        metrics.bestRatingDirt = ratingsDirt.length > 0 ? Math.min(...ratingsDirt) : 'N/A';
+
+        // Grass - filtered
+        const grassRaces = filterByWeight(races.filter(r => {
+            const s = (r.Surface || '').toLowerCase();
+            return s.includes('grass') || s.includes('turf') || s.includes('græs');
+        }));
+        const ratingsGrass = grassRaces.map(r => parseFloat(r.Ranking)).filter(v => !isNaN(v) && v > 0);
+        metrics.avgRatingGrass = ratingsGrass.length > 0 ? (ratingsGrass.reduce((a, b) => a + b, 0) / ratingsGrass.length).toFixed(1) : 'N/A';
+        metrics.bestRatingGrass = ratingsGrass.length > 0 ? Math.min(...ratingsGrass) : 'N/A';
+
+        // Win % (no weight filter)
+        const wins = races.filter(r => r.Place === '1' || r.Place === 1).length;
+        metrics.winPct = metrics.countAll > 0 ? ((wins / metrics.countAll) * 100).toFixed(1) : '0.0';
+
+        // Places (no weight filter)
+        const first = wins;
+        const second = races.filter(r => r.Place === '2' || r.Place === 2).length;
+        const third = races.filter(r => r.Place === '3' || r.Place === 3).length;
+        metrics.places = `(${first}-${second}-${third})`;
+
+        // Avg odds (no weight filter)
+        const odds = races.map(r => parseFloat(r.Odds)).filter(v => !isNaN(v));
+        metrics.avgOdds = odds.length > 0 ? (odds.reduce((a,b)=>a+b,0)/odds.length).toFixed(1) : 'N/A';
+
+        // Year born (unchanged)
+        metrics.yearBorn = 'N/A';
+        if (races.length > 0) {
+            const race = races[0];
+            const parts = race.Date.split('-');
+            const year = 2000 + parseInt(parts[2]);
+            const age = parseInt(race.Age);
+            if (!isNaN(year) && !isNaN(age)) {
+                metrics.yearBorn = year - age;
+            }
         }
+
+        // Breeder (unchanged)
+        metrics.breeder = races[0].Breeder || 'N/A';
+    }
+
+    return metrics;
+}
         // Breeding Analysis Functions
         function updateBreedingFilters() {
             const type = document.getElementById('breedingType').value;
