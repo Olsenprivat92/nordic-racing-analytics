@@ -3846,8 +3846,8 @@ function calculateDetailedMetrics(races, type = null) {
                 trainerCell.innerHTML = trainer + (trainerComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
                 trainerCell.title = trainerComment || '';
 
-                // Jockey with * indicator + hover tooltip
-                const jockeyName = document.getElementById(`jockey-${rowNum}`).value.trim();
+                // Jockey with * and hover tooltip
+                const jockeyName = document.getElementById(`jockey-${rowNum}`).value.trim();   // ← This line was missing
                 const jockeyComment = getJockeyComment(jockeyName);
                 const jockeyInput = document.getElementById(`jockey-${rowNum}`);
                 jockeyInput.title = jockeyComment || '';
