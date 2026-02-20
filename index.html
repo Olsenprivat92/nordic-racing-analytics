@@ -1999,7 +1999,6 @@
         }
         function getFilteredData() {
             const courseValues = getSelectedValues('courseFilter');
-            const monthValues = getSelectedValues('monthFilter');
             const classValues = getSelectedValues('classFilter');
             const fieldValues = getSelectedValues('fieldFilter');
             const distanceValues = getSelectedValues('distanceFilter');
@@ -2014,10 +2013,6 @@
                     if (!matchesCourse) return false;
                 }
 
-                if (!monthValues.includes('all')) {
-                    const raceMonth = (race.Date || '').split('-')[1];
-                    if (!monthValues.includes(raceMonth)) return false;
-                }
                 if (!classValues.includes('all')) {
                     if (!classValues.includes(race.Class)) return false;
                 }
