@@ -779,6 +779,15 @@
                             </div>
                         </div>
                     </div>
+                                        <!-- Comment for Trainer -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>Comment</h3>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="trainerComment" rows="4" style="width: 100%; padding: 1rem;" onchange="saveTrainerComment()"></textarea>
+                        </div>
+                    </div>
                     <!-- Top Trainers by Metric -->
                     <div class="card" style="margin-top: 2rem;">
                         <div class="card-header">
@@ -979,6 +988,15 @@
                             <div id="jockeyDetailedMetrics">
                                 <p>Loading detailed metrics...</p>
                             </div>
+                        </div>
+                    </div>
+                                        <!-- Comment for Jockey -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>Comment</h3>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="jockeyComment" rows="4" style="width: 100%; padding: 1rem;" onchange="saveJockeyComment()"></textarea>
                         </div>
                     </div>
                     <!-- Top Jockeys by Metric -->
@@ -2645,8 +2663,17 @@
             html += '<tr><td><strong>Odds vs Win %:</strong></td><td>' + (metrics.oddsVsWinFormula || 'N/A') + '%</td><td>' + (ranks.oddsVsWinFormula ? ranks.oddsVsWinFormula + ' out of ' + ranks.oddsVsWinFormulaTotal : 'N/A') + '</td></tr>';
             html += '</table>';
             html += '<div class="requirements-box">Rankings based on trainers with at least 10 races in the category.</div>';
- 
+
             document.getElementById('trainerDetailedMetrics').innerHTML = html;
+ 
+            // Load trainer comment if only one is selected
+            const trainerSelected = getSelectedValues('trainerAnalysisFilter');
+            const trainerCommentBox = document.getElementById('trainerComment');
+            if (trainerSelected.length === 1 && trainerSelected[0] !== 'all') {
+                trainerCommentBox.value = localStorage.getItem('trainerComment_' + trainerSelected[0]) || '';
+            } else {
+                trainerCommentBox.value = '';
+            }
         }
         function getCountKeyForMetric(metric) {
             switch(metric) {
@@ -4097,6 +4124,15 @@ function calculateDetailedMetrics(races, type = null) {
             updateJockeyTopMetrics();
             // Update horse table with all performances
             updateJockeyHorseTable(filtered);
+
+            // Load jockey comment if only one is selected
+            const jockeySelected = getSelectedValues('jockeyAnalysisFilter');
+            const jockeyCommentBox = document.getElementById('jockeyComment');
+            if (jockeySelected.length === 1 && jockeySelected[0] !== 'all') {
+                jockeyCommentBox.value = localStorage.getItem('jockeyComment_' + jockeySelected[0]) || '';
+            } else {
+                jockeyCommentBox.value = '';
+            }
         }
         function getAllJockeyMetrics(surfaceValues = ['all'], courseValues = ['all']) {
             let filteredRacingData = racingData;
@@ -4262,6 +4298,22 @@ function calculateDetailedMetrics(races, type = null) {
             html += '</table>';
             document.getElementById(`topJockey${metric}`).innerHTML = html;
         }
+        function saveTrainerComment() {
+            const selected = getSelectedValues('trainerAnalysisFilter');
+            if (selected.length === 1 && selected[0] !== 'all') {
+                localStorage.setItem('trainerComment_' + selected[0], document.getElementById('trainerComment').value);
+            }
+        }
+
+        function saveJockeyComment() {
+            const selected = getSelectedValues('jockeyAnalysisFilter');
+            if (selected.length === 1 && selected[0] !== 'all') {
+                localStorage.setItem('jockeyComment_' + selected[0], document.getElementById('jockeyComment').value);
+            }
+        }
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
