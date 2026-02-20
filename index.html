@@ -2091,32 +2091,46 @@
         }
         function updatePostPositions(data, elementId = 'postPositionAnalysis') {
             const postStats = {};
- 
+
             data.forEach(race => {
-                const post = parseInt(race.Startspor) || parseInt(race['Post Position'] ) || 0;
-                if (post > 0 && post <= 20) {
-                    if (!postStats[post]) postStats[post] = {wins: 0, runs: 0};
+                const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
+                const field = parseInt(race.Field) || 0;
+
+                if (post > 0 && field > 0 && post <= field) {
+                    if (!postStats[post]) {
+                        postStats[post] = { runs: 0, wins: 0, expected: 0 };
+                    }
                     postStats[post].runs++;
                     if (race.Place === '1' || race.Place === 1) postStats[post].wins++;
+                    postStats[post].expected += (1 / field);   // fair share for this race
                 }
             });
- 
-            let html = '<table><tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win%</th></tr>';
+
+            let html = '<table><tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win %</th><th>Expected %</th><th>Differential</th></tr>';
+
             for (let i = 1; i <= 20; i++) {
-                if (postStats[i] && postStats[i].runs > 0) {
-                    const winPct = ((postStats[i].wins / postStats[i].runs) * 100).toFixed(1);
-                    const color = winPct > 15 ? '#22c55e' : winPct > 10 ? '#f59e0b' : '#94a3b8';
-                    html += '<tr>';
-                    html += '<td>' + i + '</td>';
-                    html += '<td>' + postStats[i].runs + '</td>';
-                    html += '<td>' + postStats[i].wins + '</td>';
-                    html += '<td style="color:' + color + '; font-weight:600">' + winPct + '%</td>';
-                    html += '</tr>';
+                const p = postStats[i] || { runs: 0, wins: 0, expected: 0 };
+
+                if (p.runs > 0) {
+                    const winPct = (p.wins / p.runs * 100).toFixed(1);
+                    const expPct = (p.expected / p.runs * 100).toFixed(1);
+                    const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
+
+                    const diffColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
+
+                    html += `<tr>
+                        <td><strong>${i}</strong></td>
+                        <td>${p.runs}</td>
+                        <td>${p.wins}</td>
+                        <td>${winPct}%</td>
+                        <td>${expPct}%</td>
+                        <td style="color:${diffColor}; font-weight:600">${diff > 0 ? '+' : ''}${diff}%</td>
+                    </tr>`;
                 }
             }
+
             html += '</table>';
- 
-            document.getElementById(elementId).innerHTML = html || '<p>No data available</p>';
+            document.getElementById(elementId).innerHTML = html || '<p>No post position data available</p>';
         }
         function updateWinningTimes(data) {
             const timesByDistance = {};
