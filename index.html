@@ -1542,19 +1542,20 @@
         });
         function switchView(view, event) {
             if (event) event.stopPropagation();
- 
+
             document.querySelectorAll('.view-container').forEach(el => {
                 el.classList.remove('active');
             });
             document.getElementById(view + '-view').classList.add('active');
- 
+
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('active');
             });
- 
             if (event && event.target) {
                 event.target.classList.add('active');
             }
+
+            // === All view initializations ===
             if (view === 'courses') {
                 updateCourseAnalysis();
                 loadFavoriteTrends();
@@ -1568,7 +1569,7 @@
             } else if (view === 'breeding') {
                 updateBreedingFilters();
                 updateBreedingAnalysis();
-                updateTopSires();  // Load Top 10 Sires
+                updateTopSires();
             } else if (view === 'next-race') {
                 initNextRaceData();
                 populateNextRaceView();
