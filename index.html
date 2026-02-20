@@ -500,24 +500,6 @@
                                 </select>
                             </div>
                             <div class="filter-box">
-                                <div class="filter-title">📅 Race Months</div>
-                                <select id="monthFilter" multiple size="5" onchange="updateCourseAnalysis()">
-                                    <option value="all" selected>All Months</option>
-                                    <option value="01">January</option>
-                                    <option value="02">February</option>
-                                    <option value="03">March</option>
-                                    <option value="04">April</option>
-                                    <option value="05">May</option>
-                                    <option value="06">June</option>
-                                    <option value="07">July</option>
-                                    <option value="08">August</option>
-                                    <option value="09">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
                                 <div class="filter-title">🏆 Race Classes</div>
                                 <select id="classFilter" multiple size="5" onchange="updateCourseAnalysis()">
                                     <option value="all" selected>All Classes</option>
@@ -550,19 +532,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="analysis-grid">
+                                        <div class="analysis-grid">
+                        <!-- Post Position Analysis -->
                         <div class="analysis-box">
                             <h3>📊 Post Position Analysis</h3>
                             <div id="postPositionAnalysis" class="scrollable">
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
-                        <div class="analysis-box">
-                            <h3>⏱️ Average Winning Times</h3>
-                            <div id="winningTimes" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
+
+                        <!-- Top Jockeys -->
                         <div class="analysis-box">
                             <h3>🏆 Top Jockeys
                                 <button class="show-all-btn" onclick="toggleJockeyView()">Show All</button>
@@ -582,6 +561,8 @@
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
+
+                        <!-- Top Trainers -->
                         <div class="analysis-box">
                             <h3>👥 Top Trainers
                                 <button class="show-all-btn" onclick="toggleTrainerView()">Show All</button>
@@ -601,32 +582,15 @@
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
+
+                        <!-- Favorite Performance by Course -->
                         <div class="analysis-box">
-                            <h3>📈 Monthly Field Size Trends</h3>
-                            <div id="fieldTrends" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>💰 Average Winning Odds by Class</h3>
-                            <div id="winningOdds" class="scrollable">
+                            <h3>🎯 Favorite Performance by Course</h3>
+                            <div id="favoriteAnalysis" class="scrollable">
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
                     </div>
-                    <div class="card" style="margin-top: 2rem;">
-                        <div class="card-header">
-                            <h3>🎯 Favorite vs Longshot Analysis</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="favoriteAnalysis">
-                                <p class="loading">Loading favorite trends data...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- Trainer Analysis View -->
         <div class="view-container" id="trainers-view">
             <div class="card">
@@ -2096,13 +2060,9 @@
         }
         function updateCourseAnalysis() {
             const filtered = getFilteredData();
-            console.log('Filtered races:', filtered.length);
             updatePostPositions(filtered);
-            updateWinningTimes(filtered);
             updateTopJockeys(filtered);
             updateTopTrainers(filtered);
-            updateFieldTrends(filtered);
-            updateWinningOdds(filtered);
             updateFavoriteAnalysis();
         }
         function updatePostPositions(data, elementId = 'postPositionAnalysis') {
@@ -2380,97 +2340,54 @@
             document.getElementById('winningOdds').innerHTML = html || '<p>No class/odds data available</p>';
         }
         function updateFavoriteAnalysis() {
-            if (favoriteTrendsData.length === 0) {
-                document.getElementById('favoriteAnalysis').innerHTML = '<p>Loading favorite trends data...</p>';
-                return;
-            }
+            const container = document.getElementById('favoriteAnalysis');
+            if (!container) return;
+
             const selectedCourses = getSelectedValues('courseFilter');
-            let html = '<div class="analysis-grid">';
-            html += '<div class="analysis-box">';
-            html += '<h3>📊 Favorite Performance by Course</h3>';
             let filteredTrends = favoriteTrendsData;
+
             if (!selectedCourses.includes('all')) {
                 filteredTrends = favoriteTrendsData.filter(item => {
-                    return selectedCourses.some(selected =>
-                        selected === item.Course ||
+                    return selectedCourses.some(selected => 
+                        selected === item.Course || 
                         selected === item.OriginalCourse ||
                         (item.OriginalCourse && selected.includes(item.OriginalCourse.replace(' (Dirt)', '').replace(' (Grass)', '')))
                     );
                 });
             }
+
+            let html = '<div class="analysis-grid">';
+
             const courseGroups = {};
             filteredTrends.forEach(item => {
-                const courseKey = item.Course;
-                if (!courseGroups[courseKey]) {
-                    courseGroups[courseKey] = [];
-                }
-                courseGroups[courseKey].push(item);
+                const key = item.Course;
+                if (!courseGroups[key]) courseGroups[key] = [];
+                courseGroups[key].push(item);
             });
+
             if (Object.keys(courseGroups).length === 0) {
-                html += '<p>No favorite trends data available for selected course(s)</p>';
+                html += '<p>No favorite trends data available for selected course(s).</p>';
             } else {
                 Object.keys(courseGroups).sort().forEach(course => {
                     const courseData = courseGroups[course];
-                    html += '<div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">';
-                    html += `<h4 style="color: #1e40af; margin-bottom: 0.5rem;">🏁 ${course}</h4>`;
-                    html += '<table style="font-size: 0.875rem;">';
-                    html += '<tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
+                    html += `<div class="analysis-box" style="margin-bottom:1.5rem;">`;
+                    html += `<h4 style="color:#1e40af;margin-bottom:0.5rem;">🏁 ${course}</h4>`;
+                    html += '<table style="font-size:0.875rem;width:100%;"><tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
                     courseData.forEach(item => {
-                        const top25Color = item.Top25 < 40 ? '#ef4444' : item.Top25 <= 60 ? '#0f172a' : '#22c55e';
-                        const range2650Color = item.Range26_50 < 20 ? '#ef4444' : item.Range26_50 <= 35 ? '#0f172a' : '#22c55e';
-                        const range5175Color = item.Range51_75 < 10 ? '#ef4444' : item.Range51_75 <= 20 ? '#0f172a' : '#22c55e';
-                        const range76100Color = item.Range76_100 < 5 ? '#ef4444' : item.Range76_100 <= 13 ? '#0f172a' : '#22c55e';
-                        html += '<tr>';
-                        html += `<td>${item.Class}</td>`;
-                        html += `<td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>`;
-                        html += `<td style="color:${range2650Color}; font-weight:600">${item.Range26_50.toFixed(1)}%</td>`;
-                        html += `<td style="color:${range5175Color}; font-weight:600">${item.Range51_75.toFixed(1)}%</td>`;
-                        html += `<td style="color:${range76100Color}; font-weight:600">${item.Range76_100.toFixed(1)}%</td>`;
-                        html += `<td>${item.Total}</td>`;
-                        html += '</tr>';
+                        html += `<tr>
+                            <td>${item.Class}</td>
+                            <td>${item.Top25.toFixed(1)}%</td>
+                            <td>${item.Range26_50.toFixed(1)}%</td>
+                            <td>${item.Range51_75.toFixed(1)}%</td>
+                            <td>${item.Range76_100.toFixed(1)}%</td>
+                            <td>${item.Total}</td>
+                        </tr>`;
                     });
                     html += '</table></div>';
                 });
             }
             html += '</div>';
-            html += '<div class="analysis-box">';
-            html += '<h3>🎯 Current Selection Analysis</h3>';
-            const filtered = getFilteredData();
-            const winners = filtered.filter(r => r.Place === '1' || r.Place === 1);
-            const validOdds = winners.map(r => parseFloat(r.Odds)).filter(odds => !isNaN(odds) && odds > 0);
-            if (validOdds.length > 0) {
-                const oddsRanges = [
-                    {label: 'Favorites (≤3.0)', min: 0, max: 3.0},
-                    {label: 'Second Choice (3.1-6.0)', min: 3.1, max: 6.0},
-                    {label: 'Mid-range (6.1-15.0)', min: 6.1, max: 15.0},
-                    {label: 'Longshots (>15.0)', min: 15.1, max: 999}
-                ];
-                html += '<table><tr><th>Range</th><th>Winners</th><th>%</th></tr>';
-                oddsRanges.forEach(range => {
-                    const rangeWinners = validOdds.filter(odds =>
-                        odds > range.min && (range.max === 999 ? true : odds <= range.max)
-                    );
-                    const count = rangeWinners.length;
-                    const percentage = ((count / validOdds.length) * 100).toFixed(1);
-                    const color = count > validOdds.length * 0.3 ? '#22c55e' : '#94a3b8';
-                    html += `<tr><td>${range.label}</td><td>${count}</td><td style="color:${color}">${percentage}%</td></tr>`;
-                });
-                html += '</table>';
-                const favoriteWins = validOdds.filter(odds => odds <= 3.0).length;
-                const longshotWins = validOdds.filter(odds => odds > 15.0).length;
-                const avgAllOdds = (validOdds.reduce((a, b) => a + b, 0) / validOdds.length).toFixed(2);
-                html += '<div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 6px;">';
-                html += '<strong>Key Insights:</strong><br>';
-                html += `• Favorite strike rate: ${((favoriteWins / validOdds.length) * 100).toFixed(1)}%<br>`;
-                html += `• Longshot wins: ${longshotWins} (${((longshotWins / validOdds.length) * 100).toFixed(1)}%)<br>`;
-                html += `• Average winning odds: ${avgAllOdds}<br>`;
-                html += `• Total races: ${validOdds.length}`;
-                html += '</div>';
-            } else {
-                html += '<p>No odds data available for current filter selection</p>';
-            }
-            html += '</div></div>';
-            document.getElementById('favoriteAnalysis').innerHTML = html;
+            container.innerHTML = html;
         }
         function toggleJockeyView() {
             showAllJockeys = !showAllJockeys;
