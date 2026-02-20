@@ -500,24 +500,6 @@
                                 </select>
                             </div>
                             <div class="filter-box">
-                                <div class="filter-title">📅 Race Months</div>
-                                <select id="monthFilter" multiple size="5" onchange="updateCourseAnalysis()">
-                                    <option value="all" selected>All Months</option>
-                                    <option value="01">January</option>
-                                    <option value="02">February</option>
-                                    <option value="03">March</option>
-                                    <option value="04">April</option>
-                                    <option value="05">May</option>
-                                    <option value="06">June</option>
-                                    <option value="07">July</option>
-                                    <option value="08">August</option>
-                                    <option value="09">September</option>
-                                    <option value="10">October</option>
-                                    <option value="11">November</option>
-                                    <option value="12">December</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
                                 <div class="filter-title">🏆 Race Classes</div>
                                 <select id="classFilter" multiple size="5" onchange="updateCourseAnalysis()">
                                     <option value="all" selected>All Classes</option>
@@ -1999,7 +1981,6 @@
         }
         function getFilteredData() {
             const courseValues = getSelectedValues('courseFilter');
-            const monthValues = getSelectedValues('monthFilter');
             const classValues = getSelectedValues('classFilter');
             const fieldValues = getSelectedValues('fieldFilter');
             const distanceValues = getSelectedValues('distanceFilter');
@@ -2012,11 +1993,6 @@
                     const normalized = normalizeCourseName(race.Course || '', race.Surface || '');
                     const matchesCourse = courseValues.some(selected => normalized === selected);
                     if (!matchesCourse) return false;
-                }
-
-                if (!monthValues.includes('all')) {
-                    const raceMonth = (race.Date || '').split('-')[1];
-                    if (!monthValues.includes(raceMonth)) return false;
                 }
                 if (!classValues.includes('all')) {
                     if (!classValues.includes(race.Class)) return false;
