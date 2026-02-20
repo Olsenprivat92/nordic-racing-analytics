@@ -2062,13 +2062,22 @@
             tbody.innerHTML = html || '<tr><td colspan="7">No race data available</td></tr>';
         }
         function updateCourseAnalysis() {
-            const filtered = getFilteredData();
+            console.log('=== Course Analysis Update Started ===');
             
+            const filtered = getFilteredData();
+            console.log('Number of races after filtering:', filtered.length);
+            
+            if (filtered.length === 0) {
+                console.log('WARNING: No races match current filters');
+            }
+
             updatePostPositions(filtered);
             updateTopJockeys(filtered);
             updateTopTrainers(filtered);
             updateWinningOdds(filtered);
             updateFavoriteAnalysis();
+
+            console.log('=== Course Analysis Update Finished ===');
         }
         function updatePostPositions(data, elementId = 'postPositionAnalysis') {
             const postStats = {};
