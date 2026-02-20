@@ -2073,13 +2073,9 @@
         }
         function updateCourseAnalysis() {
             const filtered = getFilteredData();
-            console.log('Filtered races:', filtered.length);
             updatePostPositions(filtered);
-            updateWinningTimes(filtered);
             updateTopJockeys(filtered);
             updateTopTrainers(filtered);
-            updateFieldTrends(filtered);
-            updateWinningOdds(filtered);
             updateFavoriteAnalysis();
         }
         function updatePostPositions(data, elementId = 'postPositionAnalysis') {
