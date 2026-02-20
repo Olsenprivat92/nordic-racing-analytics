@@ -2338,17 +2338,31 @@
             const container = document.getElementById('favoriteAnalysis');
             if (!container) return;
 
+            const selectedCourses = getSelectedValues('courseFilter');
             let html = '<div class="analysis-grid">';
 
+            let filteredTrends = favoriteTrendsData;
+
+            // Respect the course filter (exactly like Post Position does)
+            if (!selectedCourses.includes('all')) {
+                filteredTrends = favoriteTrendsData.filter(item => {
+                    return selectedCourses.some(selected => 
+                        selected === item.Course || 
+                        selected === item.OriginalCourse ||
+                        (item.OriginalCourse && selected.includes(item.OriginalCourse.replace(' (Dirt)', '').replace(' (Grass)', '')))
+                    );
+                });
+            }
+
             const courseGroups = {};
-            favoriteTrendsData.forEach(item => {
+            filteredTrends.forEach(item => {
                 const key = item.Course;
                 if (!courseGroups[key]) courseGroups[key] = [];
                 courseGroups[key].push(item);
             });
 
             if (Object.keys(courseGroups).length === 0) {
-                html += '<p>No favorite trends data available.</p>';
+                html += '<p>No favorite trends data available for selected course(s).</p>';
             } else {
                 Object.keys(courseGroups).sort().forEach(course => {
                     const courseData = courseGroups[course];
@@ -2368,6 +2382,7 @@
                     html += '</table></div>';
                 });
             }
+
             html += '</div>';
             container.innerHTML = html;
         }
