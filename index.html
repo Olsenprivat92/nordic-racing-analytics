@@ -3839,14 +3839,15 @@ function calculateDetailedMetrics(races, type = null) {
                 document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
                 // Trainer
                 const trainer = horseRaces[0] ? horseRaces[0].Trainer || horseRaces[0].Owner : 'N/A';
-
+                
                 // Trainer with * indicator + hover tooltip
                 const trainerComment = getTrainerComment(trainer);
                 const trainerCell = document.getElementById(`trainer-${rowNum}`);
                 trainerCell.innerHTML = trainer + (trainerComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
-                trainerCell.title = trainerComment || ''; 
+                trainerCell.title = trainerComment || '';
 
-                // Jockey with * and hover tooltip
+                // Jockey with * indicator + hover tooltip
+                const jockeyName = document.getElementById(`jockey-${rowNum}`).value.trim();
                 const jockeyComment = getJockeyComment(jockeyName);
                 const jockeyInput = document.getElementById(`jockey-${rowNum}`);
                 jockeyInput.title = jockeyComment || '';
