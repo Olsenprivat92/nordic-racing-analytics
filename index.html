@@ -551,18 +551,15 @@
                         </div>
                     </div>
                     <div class="analysis-grid">
+                        <!-- Post Position Analysis -->
                         <div class="analysis-box">
                             <h3>📊 Post Position Analysis</h3>
                             <div id="postPositionAnalysis" class="scrollable">
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
-                        <div class="analysis-box">
-                            <h3>⏱️ Average Winning Times</h3>
-                            <div id="winningTimes" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
+
+                        <!-- Top Jockeys -->
                         <div class="analysis-box">
                             <h3>🏆 Top Jockeys
                                 <button class="show-all-btn" onclick="toggleJockeyView()">Show All</button>
@@ -582,6 +579,8 @@
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
+
+                        <!-- Top Trainers -->
                         <div class="analysis-box">
                             <h3>👥 Top Trainers
                                 <button class="show-all-btn" onclick="toggleTrainerView()">Show All</button>
@@ -601,32 +600,15 @@
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
+
+                        <!-- Favorite Performance by Course -->
                         <div class="analysis-box">
-                            <h3>📈 Monthly Field Size Trends</h3>
-                            <div id="fieldTrends" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
-                            <h3>💰 Average Winning Odds by Class</h3>
-                            <div id="winningOdds" class="scrollable">
+                            <h3>🎯 Favorite Performance by Course</h3>
+                            <div id="favoriteAnalysis" class="scrollable">
                                 <p class="loading">Loading...</p>
                             </div>
                         </div>
                     </div>
-                    <div class="card" style="margin-top: 2rem;">
-                        <div class="card-header">
-                            <h3>🎯 Favorite vs Longshot Analysis</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="favoriteAnalysis">
-                                <p class="loading">Loading favorite trends data...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- Trainer Analysis View -->
         <div class="view-container" id="trainers-view">
             <div class="card">
@@ -2096,13 +2078,10 @@
         }
         function updateCourseAnalysis() {
             const filtered = getFilteredData();
-            console.log('Filtered races:', filtered.length);
+            
             updatePostPositions(filtered);
-            updateWinningTimes(filtered);
             updateTopJockeys(filtered);
             updateTopTrainers(filtered);
-            updateFieldTrends(filtered);
-            updateWinningOdds(filtered);
             updateFavoriteAnalysis();
         }
         function updatePostPositions(data, elementId = 'postPositionAnalysis') {
