@@ -3839,12 +3839,24 @@ function calculateDetailedMetrics(races, type = null) {
                 document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
                 // Trainer
                 const trainer = horseRaces[0] ? horseRaces[0].Trainer || horseRaces[0].Owner : 'N/A';
-                document.getElementById(`trainer-${rowNum}`).textContent = trainer;
+
+                // Trainer with * indicator + hover tooltip
+                const trainerComment = getTrainerComment(trainer);
+                const trainerCell = document.getElementById(`trainer-${rowNum}`);
+                trainerCell.innerHTML = trainer + (trainerComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
+                trainerCell.title = trainerComment || ''; 
+
+                // Jockey with * and hover tooltip
+                const jockeyComment = getJockeyComment(jockeyName);
+                const jockeyInput = document.getElementById(`jockey-${rowNum}`);
+                jockeyInput.title = jockeyComment || '';
+
                 // Trainer %
                 const trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
                 const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
                 const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
                 document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+
                 // 1 Avg Trainer
                 let oneAvgTrainer = 'N/A';
                 if (trainer) {
@@ -4284,7 +4296,7 @@ function calculateDetailedMetrics(races, type = null) {
         function updateTopJockeyMetric(metric, allMetrics, minRaces) {
             const lowerBetter = isLowerBetter(metric);
             const countKey = getCountKeyForMetric(metric);
-            let filtered = allMetrics.filter(m =>m[countKey] >= minRaces && m[metric] !== 'N/A' && !isNaN(parseFloat(m[metric])));
+            let filtered = allMetrics.filter(m => m[countKey] >= minRaces && m[metric] !== 'N/A' && !isNaN(parseFloat(m[metric])));
             let sorted = filtered.sort((a, b) => {
                 const va = parseFloat(a[metric]) || (lowerBetter ? Infinity : -Infinity);
                 const vb = parseFloat(b[metric]) || (lowerBetter ? Infinity : -Infinity);
@@ -4298,6 +4310,7 @@ function calculateDetailedMetrics(races, type = null) {
             html += '</table>';
             document.getElementById(`topJockey${metric}`).innerHTML = html;
         }
+
         function saveTrainerComment() {
             const selected = getSelectedValues('trainerAnalysisFilter');
             if (selected.length === 1 && selected[0] !== 'all') {
@@ -4311,9 +4324,14 @@ function calculateDetailedMetrics(races, type = null) {
                 localStorage.setItem('jockeyComment_' + selected[0], document.getElementById('jockeyComment').value);
             }
         }
-    </script>
-</body>
-</html>
+
+        function getTrainerComment(name) {
+            return localStorage.getItem('trainerComment_' + name) || '';
+        }
+
+        function getJockeyComment(name) {
+            return localStorage.getItem('jockeyComment_' + name) || '';
+        }
     </script>
 </body>
 </html>
