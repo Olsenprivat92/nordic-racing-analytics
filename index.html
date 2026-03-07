@@ -1274,97 +1274,39 @@
         <!-- Next Race View -->
         <div class="view-container" id="next-race-view">
             <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                <select id="raceDaySelect" onchange="switchNextRaceView()">
+                <select id="raceDaySelect" onchange="switchNextRaceView(); populateNextRaceSelection();">
                     <option value="1">Race Day 1</option>
                     <option value="2">Race Day 2</option>
                     <option value="3">Race Day 3</option>
                     <option value="4">Race Day 4</option>
                     <option value="5">Race Day 5</option>
                 </select>
-                <select id="raceSelect" onchange="switchNextRaceView()">
-                    <option value="1">Race 1</option>
-                    <option value="2">Race 2</option>
-                    <option value="3">Race 3</option>
-                    <option value="4">Race 4</option>
-                    <option value="5">Race 5</option>
-                    <option value="6">Race 6</option>
-                    <option value="7">Race 7</option>
-                    <option value="8">Race 8</option>
-                    <option value="9">Race 9</option>
-                    <option value="10">Race 10</option>
-                    <option value="11">Race 11</option>
-                    <option value="12">Race 12</option>
-                </select>
             </div>
 
-            <!-- New Selection Page (visible by default until configured) -->
+            <!-- New simplified selection page -->
             <div id="next-race-selection" style="margin-bottom: 2rem;">
                 <h3>Select Race Day Configuration</h3>
-                <select id="courseSelect" onchange="updateDistanceOptions(); saveSelection();">
-                    <option value="">Select Course</option>
-                </select>
-                <input type="number" id="numRaces" min="1" max="12" value="1" onchange="generateRaceInputs(); saveSelection();" placeholder="Number of races">
-                <div id="raceInputs"></div>
-                <button onclick="goToRacePage()">Next: Race Pages</button>
+                <div style="margin-top: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Course</label>
+                    <select id="courseSelect" onchange="updateDistanceOptions(); saveSelection();">
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Number of races</label>
+                    <input type="number" id="numRaces" min="1" max="12" value="1" onchange="generateRaceInputs(); saveSelection();" style="width: 100px; padding: 8px;">
+                </div>
+                <div id="raceInputs" style="margin-top: 1.5rem;"></div>
+                <button onclick="goToRacePage()" style="margin-top: 1.5rem; padding: 10px 20px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer;">Next: Race Pages</button>
             </div>
 
-            <!-- Existing content (hidden until "Next" is clicked) -->
+            <!-- Race pages (hidden by default) -->
             <div id="race-pages" style="display: none;">
-                <div class="start-list-loader">
-                    <h3>Load Start List</h3>
-                    <select id="startListFormat">
-                        <option value="danish">Danish (e.g. Klampenborg)</option>
-                        <option value="norwegian">Norwegian (e.g. Øvrevoll)</option>
-                        <option value="swedish">Swedish (e.g. Svensk Galopp)</option>
-                    </select>
-                    <textarea id="startListText" rows="10" placeholder="Paste the start list text here (copy from PDF or web page)"></textarea>
-                    <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
-                    <button onclick="parseAndFillStartList()">Parse and Fill Table</button>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <h2 class="card-title">🏇 Next Race Analysis</h2>
-                    </div>
-                    <div class="card-body">
-                        <!-- Race Condition Filters -->
-                        <div class="filters">
-                            <div class="filters-grid">
-                                <div class="filter-box">
-                                    <div class="filter-title">🏁 Course</div>
-                                    <select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                        <option value="">Select Course</option>
-                                    </select>
-                                </div>
-                                <div class="filter-box">
-                                    <div class="filter-title">📏 Distance</div>
-                                    <select id="nextRaceDistance" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                        <option value="">Select Distance</option>
-                                    </select>
-                                </div>
-                                <div class="filter-box">
-                                    <div class="filter-title">🏆 Class</div>
-                                    <select id="nextRaceClass" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                        <option value="">Select Class</option>
-                                        <option value="Ældre Vinder">Ældre Vinder</option>
-                                        <option value="3 Års Maiden">3 Års Maiden</option>
-                                        <option value="3 Års Vinder">3 Års Vinder</option>
-                                        <option value="2 Års">2 Års</option>
-                                        <option value="Class 1">Class 1</option>
-                                        <option value="Class 2">Class 2</option>
-                                        <option value="Class 3">Class 3</option>
-                                        <option value="Class 4">Class 4</option>
-                                        <option value="Class 5">Class 5</option>
-                                        <option value="Noviseløb">Noviseløb</option>
-                                        <option value="Ældre Maiden">Ældre Maiden</option>
-                                        <option value="Max Hcp">Max Hcp</option>
-                                    </select>
-                                </div>
-                                <div class="filter-box">
-                                    <div class="filter-title">📅 Date</div>
-                                    <input type="date" id="nextRaceDate" value="2025-10-11" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                </div>
-                            </div>
+                <!-- Your existing content here (Load Start List, card, filters, table, prediction, buttons) -->
+                <!-- ... (keep everything you had inside race-pages) ... -->
+                <button onclick="returnToSelection()" style="margin-top: 2rem; padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Return to Main View</button>
+            </div>
+        </div>
                         </div>
 
                         <!-- Scenario Analysis (Notes, Post Position, Favorite Performance) -->
@@ -1444,9 +1386,31 @@
                             </div>
                         </div>
 
-                        <!-- Prediction -->
- 
-        </div>
+                         <!-- Prediction -->
+                        <div class="card" style="margin-top: 2rem;">
+                            <div class="card-header">
+                                <h3>Prediction</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                    <div><label>A:</label> <input type="text" id="predictionA" style="width: 100%;" onchange="savePrediction()"></div>
+                                    <div><label>B:</label> <input type="text" id="predictionB" style="width: 100%;" onchange="savePrediction()"></div>
+                                    <div><label>C:</label> <input type="text" id="predictionC" style="width: 100%;" onchange="savePrediction()"></div>
+                                    <div><label>D:</label> <input type="text" id="predictionD" style="width: 100%;" onchange="savePrediction()"></div>
+                                    <div><label>E:</label> <input type="text" id="predictionE" style="width: 100%;" onchange="savePrediction()"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
+                        <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
+
+                        <!-- Return button at the very bottom of race-pages -->
+                        <button onclick="returnToSelection()" style="margin-top: 2rem; padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Return to Main View</button>
+                    </div> <!-- end of card-body -->
+                </div> <!-- end of card -->
+            </div> <!-- end of race-pages -->
+        </div> <!-- end of next-race-view -->
 
         <!-- Notes Editor View -->
         <div class="view-container" id="notes-view">
