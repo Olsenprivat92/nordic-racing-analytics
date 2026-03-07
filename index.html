@@ -3778,6 +3778,8 @@ function updateTopSires() {
                 jockeyInput.title = jockeyComment || '';
 
                 // Trainer Win % on the selected course only
+                                console.log('Selected Course:', selectedCourse);
+                console.log('Trainer Races on course:', trainerRaces.length, 'Wins:', trainerWins);
                 if (!selectedCourse) {
                     document.getElementById(`trainerPct-${rowNum}`).textContent = 'N/A';
                 } else {
