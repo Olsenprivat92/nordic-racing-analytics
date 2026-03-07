@@ -3777,11 +3777,25 @@ function updateTopSires() {
                 const jockeyComment = getJockeyComment(jockeyName);
                 jockeyInput.title = jockeyComment || '';
 
-                // Trainer %
-                const trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
-                const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-                const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-                document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+                // Trainer Win %
+                const selectedCourse = document.getElementById('nextRaceCourse').value;
+                if (!selectedCourse) {
+                    document.getElementById(`trainerPct-${rowNum}`).textContent = 'N/A';
+                } else {
+                    const trainerWinsOnCourse = racingData.filter(r => 
+                        (r.Trainer || r.Owner) === trainer &&
+                        normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse &&
+                        (r.Place === '1' || r.Place === 1)
+                    ).length;
+
+                    const trainerRacesOnCourse = racingData.filter(r => 
+                        (r.Trainer || r.Owner) === trainer &&
+                        normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
+                    ).length;
+
+                    document.getElementById(`trainerPct-${rowNum}`).textContent = 
+                        trainerRacesOnCourse > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse) * 100).toFixed(1) + '%' : 'N/A';
+                }
 
                 // 1 Avg Trainer
                 let oneAvgTrainer = 'N/A';
