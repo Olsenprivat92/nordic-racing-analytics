@@ -1809,7 +1809,7 @@
             horseCourseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
                 Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
         }
-                function updateFilterOptions() {
+        function updateFilterOptions() {
             const selectedCourses = getSelectedValues('courseFilter');
             if (selectedCourses.includes('all') || selectedCourses.length === 0) {
                 // Show all options if "All Courses" or nothing selected
