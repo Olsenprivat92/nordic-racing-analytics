@@ -1158,14 +1158,14 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">Type</div>
-                                <select id="breedingType" onchange="updateBreedingFilters(); updateBreedingAnalysis()">
+<select id="breedingType" onchange="updateBreedingFilters(); updateBreedingAnalysis(); loadBreedingComment();">
                                     <option value="sire">Sire</option>
                                     <option value="dam">Dam</option>
                                 </select>
                             </div>
                             <div class="filter-box">
                                 <div class="filter-title">Name</div>
-                                <input list="breedingList" id="breedingName" placeholder="Select name" onchange="updateBreedingAnalysis()">
+<input list="breedingList" id="breedingName" placeholder="Select name" onchange="updateBreedingAnalysis(); loadBreedingComment();">
                                 <datalist id="breedingList"></datalist>
                             </div>
                         </div>
@@ -1180,7 +1180,15 @@
                             <div class="stats-grid" id="breedingOverview"></div>
                         </div>
                     </div>
-
+                    <!-- Comment for Sire/Dam -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>Comment</h3>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="breedingComment" rows="4" style="width: 100%; padding: 1rem;" onchange="saveBreedingComment()"></textarea>
+                        </div>
+                    </div>
                     <!-- All Offspring Panel -->
                     <div class="card">
                         <div class="card-header">
@@ -4249,7 +4257,29 @@ function calculateDetailedMetrics(races, type = null) {
                 localStorage.setItem('jockeyComment_' + selected[0], document.getElementById('jockeyComment').value);
             }
         }
+        function saveBreedingComment() {
+            const type = document.getElementById('breedingType').value; // 'sire' or 'dam'
+            const name = document.getElementById('breedingName').value.trim();
+            const comment = document.getElementById('breedingComment').value.trim();
 
+            if (name) {
+                const key = type + 'Comment_' + name;
+                localStorage.setItem(key, comment);
+            }
+        }
+
+        function loadBreedingComment() {
+            const type = document.getElementById('breedingType').value;
+            const name = document.getElementById('breedingName').value.trim();
+            const commentBox = document.getElementById('breedingComment');
+
+            if (name) {
+                const key = type + 'Comment_' + name;
+                commentBox.value = localStorage.getItem(key) || '';
+            } else {
+                commentBox.value = '';
+            }
+        }
         function getTrainerComment(name) {
             return localStorage.getItem('trainerComment_' + name) || '';
         }
