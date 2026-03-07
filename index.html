@@ -3697,9 +3697,9 @@ function updateTopSires() {
                     clearNextRaceRow(rowNum);
                     return;
                 }
+                const selectedCourse = document.getElementById('nextRaceCourse').value;
                 const surfaceValues = getSelectedValues('nextRaceSurfaceFilter');
                 const distValues = getSelectedValues('nextRaceDistanceFilter');
-                const selectedCourse = document.getElementById('nextRaceCourse').value;
                 const selectedDate = document.getElementById('nextRaceDate').value || '2025-10-11';
                 let horseRaces = racingData.filter(r => r.Horse === horseName);
                 if (surfaceValues.length > 0 && !surfaceValues.includes('all')) {
@@ -3777,23 +3777,22 @@ function updateTopSires() {
                 const jockeyComment = getJockeyComment(jockeyName);
                 jockeyInput.title = jockeyComment || '';
 
-                // Trainer Win %
-                const selectedCourse = document.getElementById('nextRaceCourse').value;
+                // Trainer Win % on the selected course only
                 if (!selectedCourse) {
                     document.getElementById(`trainerPct-${rowNum}`).textContent = 'N/A';
                 } else {
-                    const trainerWinsOnCourse = racingData.filter(r => 
+                    const trainerWinsOnCourse = racingData.filter(r =>
                         (r.Trainer || r.Owner) === trainer &&
                         normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse &&
                         (r.Place === '1' || r.Place === 1)
                     ).length;
 
-                    const trainerRacesOnCourse = racingData.filter(r => 
+                    const trainerRacesOnCourse = racingData.filter(r =>
                         (r.Trainer || r.Owner) === trainer &&
                         normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
                     ).length;
 
-                    document.getElementById(`trainerPct-${rowNum}`).textContent = 
+                    document.getElementById(`trainerPct-${rowNum}`).textContent =
                         trainerRacesOnCourse > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse) * 100).toFixed(1) + '%' : 'N/A';
                 }
 
