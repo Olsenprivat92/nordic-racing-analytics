@@ -1411,6 +1411,7 @@
                                         <th>Avg Ranking</th>
                                         <th>Comment</th>
                                         <th>Wins/Races</th>
+                                        <th>Win%</th>
                                         <th>Trainer</th>
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
@@ -3691,24 +3692,25 @@ function saveHorseData(rowNum) {
             tbody.innerHTML = '';
             for (let i = 1; i <= 15; i++) {
                 const row = document.createElement('tr');
-row.innerHTML = `
-    <td>${i}</td>
-    <td>
-        <div class="horse-jockey-container">
-            <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
-            <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
-            <input type="text" id="withweight-${i}" placeholder="Weight" onchange="saveHorseData(${i})">
-        </div>
-        <div id="last5-${i}"></div>
-    </td>
-    <td id="avgRanking-${i}"></td>
-    <td id="comment-${i}"></td>
-    <td id="winsRaces-${i}"></td>
-    <td id="trainer-${i}"></td>
-    <td id="trainerPct-${i}"></td>
-    <td id="jockeyPct-${i}"></td>
-    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
-`;
+                row.innerHTML = `
+                    <td>${i}</td>
+                    <td>
+                        <div class="horse-jockey-container">
+                            <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+                            <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+                            <input type="text" id="withweight-${i}" placeholder="Weight" onchange="saveHorseData(${i})">
+                        </div>
+                        <div id="last5-${i}"></div>
+                    </td>
+                    <td id="avgRanking-${i}"></td>
+                    <td id="comment-${i}"></td>
+                    <td id="winsRaces-${i}"></td>
+                    <td id="winPct-${i}"></td>
+                    <td id="trainer-${i}"></td>
+                    <td id="trainerPct-${i}"></td>
+                    <td id="jockeyPct-${i}"></td>
+                    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
+                `;
                 tbody.appendChild(row);
             }
         }
@@ -3787,6 +3789,9 @@ row.innerHTML = `
                 const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
                 const races = horseRaces.length;
                 document.getElementById(`winsRaces-${rowNum}`).textContent = wins + '/' + races;
+                // Win%
+                const metrics = calculateDetailedMetrics(horseRaces, 'horse');
+                document.getElementById(`winPct-${rowNum}`).textContent = metrics.winPct + '%';
                 // Avg Ranking
                 document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRankingAll || 'N/A';
                 // Comment
@@ -3814,6 +3819,7 @@ row.innerHTML = `
                         normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
                     );
                     const trainerWinsOnCourse = trainerRacesOnCourse.filter(r => r.Place === '1' || r.Place === 1).length;
+
                     const trainerWinPct = trainerRacesOnCourse.length > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse.length) * 100).toFixed(1) + '%' : 'N/A';
                     document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
 
@@ -3868,7 +3874,7 @@ row.innerHTML = `
             }
         }
         function clearNextRaceRow(rowNum) {
-['last5', 'avgRanking', 'comment', 'winsRaces', 'trainer', 'trainerPct', 'jockeyPct']
+            ['last5', 'winsRaces', 'winPct', 'avgRanking', 'comment', 'trainer', 'trainerPct', 'jockeyPct'].forEach(id => {
                 document.getElementById(`${id}-${rowNum}`).textContent = '';
             });
         }
