@@ -1079,10 +1079,6 @@
                                 </select>
                             </div>
                             <div class="filter-box">
-                                <div class="filter-title">Ranking</div>
-                                <input type="text" id="horseRankingFilter" placeholder="e.g. >80" onchange="updateHorseAnalysis()">
-                            </div>
-                            <div class="filter-box">
                                 <div class="filter-title">🎂 Age</div>
                                 <select id="horseAgeFilter" multiple size="3" onchange="updateHorseAnalysis()">
                                     <option value="all" selected>All Ages</option>
@@ -3339,7 +3335,6 @@ function calculateDetailedMetrics(races, type = null) {
             const courseValues = getSelectedValues('horseCourseFilter');
             const classValues = getSelectedValues('horseClassFilter');
             const placeValues = getSelectedValues('horsePlaceFilter');
-            const rankingFilter = document.getElementById('horseRankingFilter').value.trim();
             const ageValues = getSelectedValues('horseAgeFilter');
             const fromDate = document.getElementById('horseFromDate').value;
             const toDate = document.getElementById('horseToDate').value;
@@ -3367,21 +3362,6 @@ function calculateDetailedMetrics(races, type = null) {
                     const place = parseInt(race.Place);
                     const placeGroup = place === 1 ? '1' : place === 2 ? '2' : place === 3 ? '3' : place === 4 ? '4' : place >= 5 ? '5+' : '';
                     if (!placeValues.includes(placeGroup)) return false;
-                }
-                if (rankingFilter) {
-                    const ranking = parseFloat(race.Ranking);
-                    if (!isNaN(ranking)) {
-                        if (rankingFilter.startsWith('>')) {
-                            const val = parseFloat(rankingFilter.slice(1));
-                            if (ranking <= val) return false;
-                        } else if (rankingFilter.startsWith('<')) {
-                            const val = parseFloat(rankingFilter.slice(1));
-                            if (ranking >= val) return false;
-                        } else {
-                            const val = parseFloat(rankingFilter);
-                            if (ranking < val) return false;
-                        }
-                    }
                 }
                 if (!ageValues.includes('all')) {
                     const age = parseInt(race.Age) || 0;
