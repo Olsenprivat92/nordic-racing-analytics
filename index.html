@@ -1876,77 +1876,84 @@
             const course = document.getElementById('nextRaceCourse').value;
             const distance = document.getElementById('nextRaceDistance').value;
             const raceClass = document.getElementById('nextRaceClass').value;
+
+            // Notes (unchanged)
             if (!course || !distance || !raceClass) {
                 document.getElementById('nextRaceNotes').innerHTML = '<p>Select all fields to see notes.</p>';
-                document.getElementById('nextRacePostPosition').innerHTML = '<p>Select course and distance to see analysis.</p>';
                 document.getElementById('nextRaceFavoritePerformance').innerHTML = '<p>Select course and class to see analysis.</p>';
                 return;
             }
-            // Load notes with fallback
+
             let note = localStorage.getItem(`note_${course}_${distance}_${raceClass}`);
-            if (!note) {
-                note = localStorage.getItem(`note_${course}_all_${raceClass}`);
-            }
-            if (!note) {
-                note = localStorage.getItem(`note_${course}_${distance}_all`);
-            }
-            if (!note) {
-                note = localStorage.getItem(`note_${course}_all_all`);
-            }
+            if (!note) note = localStorage.getItem(`note_${course}_all_${raceClass}`);
+            if (!note) note = localStorage.getItem(`note_${course}_${distance}_all`);
+            if (!note) note = localStorage.getItem(`note_${course}_all_all`);
             note = note || 'No notes available.';
             document.getElementById('nextRaceNotes').innerHTML = `<p>${note}</p>`;
-            // Post position analysis
+
+            // Post Position (unchanged)
             const filteredData = racingData.filter(race => {
                 let raceCourse = race.Course || '';
                 if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
                     const surface = (race.Surface || '').toLowerCase();
-                    const track = (race.Track || '').toLowerCase();
-                    const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
-                    if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                        track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                        raceCourse += ' (Dirt)';
-                    } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                               track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                        raceCourse += ' (Grass)';
-                    }
+                    if (surface.includes('dirt') || surface.includes('sand')) raceCourse += ' (Dirt)';
+                    else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs')) raceCourse += ' (Grass)';
                 }
                 return raceCourse === course && race.Distance === distance;
             });
             updatePostPositions(filteredData, 'nextRacePostPosition');
-            // Favorite performance
-            updateFavoritePerformance(course, raceClass);
-        }
-        function updateFavoritePerformance(course, raceClass) {
-            if (favoriteTrendsData.length === 0) {
-                document.getElementById('nextRaceFavoritePerformance').innerHTML = '<p>Loading favorite trends data...</p>';
-                return;
-            }
-            let html = '';
-            const filteredTrends = favoriteTrendsData.filter(item => {
-                return (item.Course === course || item.OriginalCourse === course.replace(' (Dirt)', '').replace(' ( (Grass)', '')) &&
-                       item.Class === raceClass;
+
+            // === NEW: Use the same Favorite Performance as in Course Analysis ===
+            const favoriteContainer = document.getElementById('nextRaceFavoritePerformance');
+            if (!favoriteContainer) return;
+
+            const selectedCourses = [course]; // Only the current selected course
+            let filteredTrends = favoriteTrendsData;
+
+            filteredTrends = favoriteTrendsData.filter(item => {
+                return selectedCourses.some(selected =>
+                    selected === item.Course ||
+                    selected === item.OriginalCourse ||
+                    (item.OriginalCourse && selected.includes(item.OriginalCourse.replace(' (Dirt)', '').replace(' (Grass)', '')))
+                );
             });
+
+            let html = '';
             if (filteredTrends.length === 0) {
-                html += '<p>No favorite performance data available for this combination.</p>';
+                html += '<p>No favorite data for this course.</p>';
             } else {
-                html += '<table><tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
+                const courseGroups = {};
                 filteredTrends.forEach(item => {
-                    const top25Color = item.Top25 < 40 ? '#ef4444' : item.Top25 <= 60 ? '#0f172a' : '#22c55e';
-                    const range2650Color = item.Range26_50 < 20 ? '#ef4444' : item.Range26_50 <= 35 ? '#0f172a' : '#22c55e';
-                    const range5175Color = item.Range51_75 < 10 ? '#ef4444' : item.Range51_75 <= 20 ? '#0f172a' : '#22c55e';
-                    const range76100Color = item.Range76_100 < 5 ? '#ef4444' : item.Range76_100 <= 13 ? '#0f172a' : '#22c55e';
-                    html += '<tr>';
-                    html += `<td>${item.Class}</td>`;
-                    html += `<td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>`;
-                    html += `<td style="color:${range2650Color}; font-weight:600">${item.Range26_50.toFixed(1)}%</td>`;
-                    html += `<td style="color:${range5175Color}; font-weight:600">${item.Range51_75.toFixed(1)}%</td>`;
-                    html += `<td style="color:${range76100Color}; font-weight:600">${item.Range76_100.toFixed(1)}%</td>`;
-                    html += `<td>${item.Total}</td>`;
-                    html += '</tr>';
+                    const key = item.Course;
+                    if (!courseGroups[key]) courseGroups[key] = [];
+                    courseGroups[key].push(item);
                 });
-                html += '</table>';
+
+                Object.keys(courseGroups).forEach(course => {
+                    const courseData = courseGroups[course];
+                    html += `<div style="margin-bottom:1.5rem;">`;
+                    html += `<h4 style="color:#1e40af;margin-bottom:0.5rem;">🏁 ${course}</h4>`;
+                    html += '<table style="font-size:0.875rem;width:100%;"><tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
+                    courseData.forEach(item => {
+                        const top25Color = item.Top25 < 40 ? '#ef4444' : item.Top25 <= 60 ? '#0f172a' : '#22c55e';
+                        const range2650Color = item.Range26_50 < 20 ? '#ef4444' : item.Range26_50 <= 35 ? '#0f172a' : '#22c55e';
+                        const range5175Color = item.Range51_75 < 10 ? '#ef4444' : item.Range51_75 <= 20 ? '#0f172a' : '#22c55e';
+                        const range76100Color = item.Range76_100 < 5 ? '#ef4444' : item.Range76_100 <= 13 ? '#0f172a' : '#22c55e';
+
+                        html += `<tr>
+                            <td>${item.Class}</td>
+                            <td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>
+                            <td style="color:${range2650Color}; font-weight:600">${item.Range26_50.toFixed(1)}%</td>
+                            <td style="color:${range5175Color}; font-weight:600">${item.Range51_75.toFixed(1)}%</td>
+                            <td style="color:${range76100Color}; font-weight:600">${item.Range76_100.toFixed(1)}%</td>
+                            <td>${item.Total}</td>
+                        </tr>`;
+                    });
+                    html += '</table></div>';
+                });
             }
-            document.getElementById('nextRaceFavoritePerformance').innerHTML = html;
+
+            favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>';
         }
         function loadScenarioNote() {
             const course = document.getElementById('notesCourse').value;
