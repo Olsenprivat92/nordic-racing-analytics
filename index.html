@@ -2314,11 +2314,8 @@
 
             if (!selectedCourses.includes('all')) {
                 filteredTrends = favoriteTrendsData.filter(item => {
-                    return selectedCourses.some(selected =>
-                        selected === item.Course ||
-                        selected === item.OriginalCourse ||
-                        (item.OriginalCourse && selected.includes(item.OriginalCourse.replace(' (Dirt)', '').replace(' (Grass)', '')))
-                    );
+                    // Strict exact match on the normalized Course name
+                    return selectedCourses.includes(item.Course);
                 });
             }
 
