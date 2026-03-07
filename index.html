@@ -3571,29 +3571,47 @@ function updateTopSires() {
         function saveNextRaceData() {
             localStorage.setItem('nextRaceData', JSON.stringify(nextRaceData));
         }
-        function switchNextRaceView() {
-            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-            const race = parseInt(document.getElementById('raceSelect').value) - 1;
-            const currentRace = nextRaceData.days[day].races[race];
-            document.getElementById('nextRaceCourse').value = currentRace.course;
-            document.getElementById('nextRaceDistance').value = currentRace.distance;
-            document.getElementById('nextRaceClass').value = currentRace.class;
-            document.getElementById('nextRaceDate').value = currentRace.date;
-            for (let i = 1; i <= 15; i++) {
-                const horseData = currentRace.horses[i - 1];
-                document.getElementById(`horse-${i}`).value = horseData.horse;
-                document.getElementById(`jockey-${i}`).value = horseData.jockey;
-                document.getElementById(`class-${i}`).value = horseData.class;
-                document.getElementById(`withweight-${i}`).value = horseData.withweight;
-                updateNextRaceRow(i);
-            }
-            document.getElementById('predictionA').value = currentRace.prediction.a;
-            document.getElementById('predictionB').value = currentRace.prediction.b;
-            document.getElementById('predictionC').value = currentRace.prediction.c;
-            document.getElementById('predictionD').value = currentRace.prediction.d;
-            document.getElementById('predictionE').value = currentRace.prediction.e;
-            updateNextRaceScenario();
-        }
+function switchNextRaceView() {
+    const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+    const race = parseInt(document.getElementById('raceSelect').value) - 1;
+
+    // Safety check - initialize if missing
+    if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
+    if (!nextRaceData.days[day].races[race]) {
+        nextRaceData.days[day].races[race] = {
+            course: '',
+            distance: '',
+            class: '',
+            date: '2025-10-11',
+            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+            prediction: { a: '', b: '', c: '', d: '', e: '' }
+        };
+    }
+
+    const currentRace = nextRaceData.days[day].races[race];
+
+    document.getElementById('nextRaceCourse').value = currentRace.course;
+    document.getElementById('nextRaceDistance').value = currentRace.distance;
+    document.getElementById('nextRaceClass').value = currentRace.class;
+    document.getElementById('nextRaceDate').value = currentRace.date;
+
+    for (let i = 1; i <= 15; i++) {
+        const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
+        document.getElementById(`horse-${i}`).value = horseData.horse;
+        document.getElementById(`jockey-${i}`).value = horseData.jockey;
+        document.getElementById(`class-${i}`).value = horseData.class;
+        document.getElementById(`withweight-${i}`).value = horseData.withweight;
+        updateNextRaceRow(i);
+    }
+
+    document.getElementById('predictionA').value = currentRace.prediction.a;
+    document.getElementById('predictionB').value = currentRace.prediction.b;
+    document.getElementById('predictionC').value = currentRace.prediction.c;
+    document.getElementById('predictionD').value = currentRace.prediction.d;
+    document.getElementById('predictionE').value = currentRace.prediction.e;
+
+    updateNextRaceScenario();
+}
         function saveNextRaceFilters() {
             const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
             const race = parseInt(document.getElementById('raceSelect').value) - 1;
@@ -3604,17 +3622,31 @@ function updateTopSires() {
             currentRace.date = document.getElementById('nextRaceDate').value;
             saveNextRaceData();
         }
-        function saveHorseData(rowNum) {
-            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-            const race = parseInt(document.getElementById('raceSelect').value) - 1;
-            const currentRace = nextRaceData.days[day].races[race];
-            const horseData = currentRace.horses[rowNum - 1];
-            horseData.horse = document.getElementById(`horse-${rowNum}`).value;
-            horseData.jockey = document.getElementById(`jockey-${rowNum}`).value;
-            horseData.class = document.getElementById(`class-${rowNum}`).value;
-            horseData.withweight = document.getElementById(`withweight-${rowNum}`).value;
-            saveNextRaceData();
-        }
+function saveHorseData(rowNum) {
+    const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+    const race = parseInt(document.getElementById('raceSelect').value) - 1;
+
+    // Safety: initialize if missing
+    if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
+    if (!nextRaceData.days[day].races[race]) {
+        nextRaceData.days[day].races[race] = {
+            course: '',
+            distance: '',
+            class: '',
+            date: '2025-10-11',
+            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+            prediction: { a: '', b: '', c: '', d: '', e: '' }
+        };
+    }
+
+    const currentRace = nextRaceData.days[day].races[race];
+    const horseData = currentRace.horses[rowNum - 1];
+    horseData.horse = document.getElementById(`horse-${rowNum}`).value;
+    horseData.jockey = document.getElementById(`jockey-${rowNum}`).value;
+    horseData.class = document.getElementById(`class-${rowNum}`).value;
+    horseData.withweight = document.getElementById(`withweight-${rowNum}`).value;
+    saveNextRaceData();
+}
         function savePrediction() {
             const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
             const race = parseInt(document.getElementById('raceSelect').value) - 1;
@@ -3777,51 +3809,25 @@ function updateTopSires() {
                 const jockeyComment = getJockeyComment(jockeyName);
                 jockeyInput.title = jockeyComment || '';
 
-                // Trainer Win % on the selected course only
-                                console.log('Selected Course:', selectedCourse);
-                console.log('Trainer Races on course:', trainerRaces.length, 'Wins:', trainerWins);
+// Trainer Win % on the selected course only
+                console.log('Selected Course:', selectedCourse);
                 if (!selectedCourse) {
                     document.getElementById(`trainerPct-${rowNum}`).textContent = 'N/A';
                 } else {
-                    const trainerWinsOnCourse = racingData.filter(r =>
-                        (r.Trainer || r.Owner) === trainer &&
-                        normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse &&
-                        (r.Place === '1' || r.Place === 1)
-                    ).length;
-
                     const trainerRacesOnCourse = racingData.filter(r =>
                         (r.Trainer || r.Owner) === trainer &&
                         normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
-                    ).length;
+                    );
+                    const trainerWinsOnCourse = trainerRacesOnCourse.filter(r => r.Place === '1' || r.Place === 1).length;
 
-                    document.getElementById(`trainerPct-${rowNum}`).textContent =
-                        trainerRacesOnCourse > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse) * 100).toFixed(1) + '%' : 'N/A';
+                    const trainerWinPct = trainerRacesOnCourse.length > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse.length) * 100).toFixed(1) + '%' : 'N/A';
+                    document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+
+                    // TEMP DEBUG - shows why N/A
+                    console.log('Trainer Races found on course:', trainerRacesOnCourse.length, 'Wins:', trainerWinsOnCourse);
+                    console.log('Example race course names (first 3):', trainerRacesOnCourse.slice(0, 3).map(r => normalizeCourseName(r.Course, r.Surface)));
                 }
 
-                // 1 Avg Trainer
-                let oneAvgTrainer = 'N/A';
-                if (trainer) {
-                    const trainerFiltered = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
-                    const analysisDate = new Date(selectedDate);
-                    const cutoffDate = new Date(analysisDate);
-                    cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-                    const periodData = trainerFiltered.filter(race => {
-                        const raceDate = parseRaceDate(race.Date);
-                        return raceDate >= cutoffDate && raceDate <= analysisDate;
-                    });
-                    const percentages = [];
-                    periodData.forEach(race => {
-                        const place = parseFloat(race.Place);
-                        const field = parseInt(race.Field);
-                        if (!isNaN(place) && !isNaN(field) && place > 0 && field > 0) {
-                            const percentage = ((field - place + 1) / field) * 100;
-                            percentages.push(percentage);
-                        }
-                    });
-                    if (percentages.length > 0) {
-                        oneAvgTrainer = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
-                    }
-                }
                 // Jockey %
                 const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
                 let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
