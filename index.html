@@ -1937,19 +1937,14 @@
             });
             updatePostPositions(filteredData, 'nextRacePostPosition');
 
-            // === NEW: Use the same Favorite Performance as in Course Analysis ===
+            // === Favorite Performance - strict match like in Course Analysis ===
             const favoriteContainer = document.getElementById('nextRaceFavoritePerformance');
             if (!favoriteContainer) return;
 
             const selectedCourses = [course]; // Only the current selected course
-            let filteredTrends = favoriteTrendsData;
-
-            filteredTrends = favoriteTrendsData.filter(item => {
-                return selectedCourses.some(selected =>
-                    selected === item.Course ||
-                    selected === item.OriginalCourse ||
-                    (item.OriginalCourse && selected.includes(item.OriginalCourse.replace(' (Dirt)', '').replace(' (Grass)', '')))
-                );
+            let filteredTrends = favoriteTrendsData.filter(item => {
+                // Strict exact match on the normalized Course name
+                return selectedCourses.includes(item.Course);
             });
 
             let html = '';
