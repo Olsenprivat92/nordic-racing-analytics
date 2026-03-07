@@ -578,12 +578,6 @@
                             </div>
                         </div>
                         <div class="analysis-box">
-                            <h3>📈 Monthly Field Size Trends</h3>
-                            <div id="fieldTrends" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
                             <h3>💰 Average Winning Odds by Class</h3>
                             <div id="winningOdds" class="scrollable">
                                 <p class="loading">Loading...</p>
@@ -2246,38 +2240,6 @@
             html += '</table>';
  
             document.getElementById('topTrainers').innerHTML = html || '<p>No trainer data available</p>';
-        }
-        function updateFieldTrends(data) {
-            const monthlyStats = {};
- 
-            data.forEach(race => {
-                const field = parseInt(race.Field) || 0;
-                const month = (race.Date || '').split('-')[1];
-     
-                if (field > 0 && month) {
-                    if (!monthlyStats[month]) {
-                        monthlyStats[month] = {totalHorses: 0, raceCount: 0};
-                    }
-                    monthlyStats[month].totalHorses += field;
-                    monthlyStats[month].raceCount++;
-                }
-            });
- 
-            const monthNames = {
-                '01': 'January', '02': 'February', '03': 'March', '04': 'April',
-                '05': 'May', '06': 'June', '07': 'July', '08': 'August',
-                '09': 'September', '10': 'October', '11': 'November', '12': 'December'
-            };
- 
-            let html = '<table><tr><th>Month</th><th>Races</th><th>Avg Field Size</th></tr>';
-            Object.keys(monthlyStats).sort().forEach(month => {
-                const stats = monthlyStats[month];
-                const avgFieldSize = (stats.totalHorses / stats.raceCount).toFixed(1);
-                html += '<tr><td>' + (monthNames[month] || month) + '</td><td>' + stats.raceCount + '</td><td>' + avgFieldSize + '</td></tr>';
-            });
-            html += '</table>';
- 
-            document.getElementById('fieldTrends').innerHTML = html || '<p>No field size data available</p>';
         }
         function updateWinningOdds(data) {
             const classStats = {};
