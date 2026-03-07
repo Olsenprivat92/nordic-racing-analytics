@@ -495,7 +495,7 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">🏁 Courses & Surfaces</div>
-                                <select id="courseFilter" multiple size="5" onchange="updateCourseAnalysis()">
+<select id="courseFilter" multiple size="5" onchange="updateCourseAnalysis(); updateFilterOptions();">
                                     <option value="all" selected>All Courses</option>
                                 </select>
                             </div>
@@ -1812,6 +1812,40 @@
             const horseCourseFilter = document.getElementById('horseCourseFilter');
             horseCourseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
                 Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+        }
+                function updateFilterOptions() {
+            const selectedCourses = getSelectedValues('courseFilter');
+            if (selectedCourses.includes('all') || selectedCourses.length === 0) {
+                // Show all options if "All Courses" or nothing selected
+                populateFilters(); // Reset to original full lists
+                return;
+            }
+
+            // Filter data based on selected courses
+            const filteredRaces = racingData.filter(race => {
+                const normalized = normalizeCourseName(race.Course || '', race.Surface || '');
+                return selectedCourses.includes(normalized);
+            });
+
+            // Collect available classes, field sizes, distances from filtered races
+            const availableClasses = new Set(filteredRaces.map(r => r.Class).filter(Boolean));
+            const availableFields = new Set(filteredRaces.map(r => parseInt(r.Field)).filter(n => !isNaN(n)));
+            const availableDistances = new Set(filteredRaces.map(r => r.Distance).filter(Boolean));
+
+            // Update Race Classes dropdown
+            const classFilter = document.getElementById('classFilter');
+            classFilter.innerHTML = '<option value="all" selected>All Classes</option>' +
+                Array.from(availableClasses).sort().map(cls => `<option value="${cls}">${cls}</option>`).join('');
+
+            // Update Field Sizes dropdown
+            const fieldFilter = document.getElementById('fieldFilter');
+            fieldFilter.innerHTML = '<option value="all" selected>All Field Sizes</option>' +
+                Array.from(availableFields).sort((a,b)=>a-b).map(size => `<option value="${size}">${size} horses</option>`).join('');
+
+            // Update Distances dropdown
+            const distanceFilter = document.getElementById('distanceFilter');
+            distanceFilter.innerHTML = '<option value="all" selected>All Distances</option>' +
+                Array.from(availableDistances).sort((a,b)=>parseInt(a)-parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
         }
         function populateNextRaceFilters() {
             const courses = new Set();
