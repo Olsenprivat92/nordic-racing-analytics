@@ -1413,7 +1413,7 @@
                                         <th>Wins/Races</th>
                                         <th>Win%</th>
                                         <th>Trainer</th>
-                                        <th>Trainer Win% (Course)</th>
+                                        <th>Trainer %</th>
                                         <th>Jockey %</th>
                                         <th>Class</th>
                                     </tr>
@@ -3777,15 +3777,8 @@ function updateTopSires() {
                 const jockeyComment = getJockeyComment(jockeyName);
                 jockeyInput.title = jockeyComment || '';
 
-                // Trainer Win % on the selected course
-                const selectedCourse = document.getElementById('nextRaceCourse').value;
-                let trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
-                if (selectedCourse) {
-                    trainerRaces = trainerRaces.filter(race => {
-                        let raceCourse = normalizeCourseName(race.Course || '', race.Surface || '');
-                        return raceCourse === selectedCourse;
-                    });
-                }
+                // Trainer %
+                const trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
                 const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
                 const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
                 document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
