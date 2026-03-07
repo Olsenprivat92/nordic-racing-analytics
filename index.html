@@ -3398,6 +3398,25 @@ function calculateDetailedMetrics(races, type = null) {
                 return;
             }
             const metrics = calculateDetailedMetrics(filteredRaces, 'horse');
+            // IMPROVED Year Born: use earliest race for accuracy
+            let yearBorn = 'N/A';
+            if (filteredRaces.length > 0) {
+                // Sort races by date (earliest first)
+                const sortedByDate = filteredRaces.slice().sort((a, b) => {
+                    const dateA = parseRaceDate(a.Date) || new Date(0);
+                    const dateB = parseRaceDate(b.Date) || new Date(0);
+                    return dateA - dateB;
+                });
+
+                const earliestRace = sortedByDate[0];
+                const earliestDate = parseRaceDate(earliestRace.Date);
+                const ageAtEarliest = parseInt(earliestRace.Age) || 0;
+
+                if (earliestDate && !isNaN(ageAtEarliest) && ageAtEarliest > 0) {
+                    const raceYear = earliestDate.getFullYear();
+                    yearBorn = raceYear - ageAtEarliest;
+                }
+            }
             const surfaceValues = getSelectedValues('horseSurfaceFilter');
             const allHorseMetrics = getAllHorseMetrics(surfaceValues);
             const ranks = calculateRanks(metrics, allHorseMetrics, selectedHorse);
@@ -3418,7 +3437,7 @@ function calculateDetailedMetrics(races, type = null) {
  
             charHtml += '<div class="stat-card"><div class="stat-value">' + trainer + '</div><div class="stat-label">Trainer <br><small>Rank: ' + trainerRank + '</small></div></div>';
             charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.breeder + '</div><div class="stat-label">Breeder</div></div>';
-            charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.yearBorn + '</div><div class="stat-label">Year Born</div></div>';
+            charHtml += '<div class="stat-card"><div class="stat-value">' + yearBorn + '</div><div class="stat-label">Year Born</div></div>';
             charHtml += '<div class="stat-card"><div class="stat-value">' + metrics.avgOdds + '</div><div class="stat-label">Average Odds <br><small>Rank: ' + (ranks.avgOdds ? ranks.avgOdds + '/' + ranks.avgOddsTotal : 'N/A') + '</small></div></div>';
             charHtml += '<div class="stat-card"><div class="stat-value"><span style="font-weight: bold; color: #1e40af;">' + metrics.bestRatingAdult + '</span> / ' + metrics.avgRatingAdult + ' (' + metrics.countAdult + ')</div><div class="stat-label">Best / Avg Rating <br><small>Rank: ' + (ranks.avgRatingAdult ? ranks.avgRatingAdult + '/' + ranks.avgRatingAdultTotal : 'N/A') + '</small></div></div>';
             charHtml += '<div class="stat-card"><div class="stat-value"><span style="font-weight: bold; color: #1e40af;">' + metrics.bestRatingSprint + '</span> / ' + metrics.avgRatingSprint + ' (' + metrics.countSprintAdult + ')</div><div class="stat-label">Best / Avg Sprint <br><small>Rank: ' + (ranks.avgRatingSprint ? ranks.avgRatingSprint + '/' + ranks.avgRatingSprintTotal : 'N/A') + '</small></div></div>';
