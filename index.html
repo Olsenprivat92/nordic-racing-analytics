@@ -1274,144 +1274,176 @@
         <!-- Next Race View -->
         <div class="view-container" id="next-race-view">
             <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                <select id="raceDaySelect" onchange="switchNextRaceView(); populateNextRaceSelection();">
+                <select id="raceDaySelect" onchange="switchNextRaceView()">
                     <option value="1">Race Day 1</option>
                     <option value="2">Race Day 2</option>
                     <option value="3">Race Day 3</option>
                     <option value="4">Race Day 4</option>
                     <option value="5">Race Day 5</option>
                 </select>
+                <select id="raceSelect" onchange="switchNextRaceView()">
+                    <option value="1">Race 1</option>
+                    <option value="2">Race 2</option>
+                    <option value="3">Race 3</option>
+                    <option value="4">Race 4</option>
+                    <option value="5">Race 5</option>
+                    <option value="6">Race 6</option>
+                    <option value="7">Race 7</option>
+                    <option value="8">Race 8</option>
+                    <option value="9">Race 9</option>
+                    <option value="10">Race 10</option>
+                    <option value="11">Race 11</option>
+                    <option value="12">Race 12</option>
+                </select>
             </div>
-
-            <!-- New simplified selection page -->
-            <div id="next-race-selection" style="margin-bottom: 2rem;">
-                <h3>Select Race Day Configuration</h3>
-                <div style="margin-top: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Course</label>
-                    <select id="courseSelect" onchange="updateDistanceOptions(); saveSelection();">
-                        <option value="">Select Course</option>
-                    </select>
-                </div>
-                <div style="margin-top: 1rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Number of races</label>
-                    <input type="number" id="numRaces" min="1" max="12" value="1" onchange="generateRaceInputs(); saveSelection();" style="width: 100px; padding: 8px;">
-                </div>
-                <div id="raceInputs" style="margin-top: 1.5rem;"></div>
-                <button onclick="goToRacePage()" style="margin-top: 1.5rem; padding: 10px 20px; background: #1e40af; color: white; border: none; border-radius: 6px; cursor: pointer;">Next: Race Pages</button>
+            <div class="start-list-loader">
+                <h3>Load Start List</h3>
+                <select id="startListFormat">
+                    <option value="danish">Danish (e.g. Klampenborg)</option>
+                    <option value="norwegian">Norwegian (e.g. Øvrevoll)</option>
+                    <option value="swedish">Swedish (e.g. Svensk Galopp)</option>
+                </select>
+                <textarea id="startListText" rows="10" placeholder="Paste the start list text here (copy from PDF or web page)"></textarea>
+                <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
+                <button onclick="parseAndFillStartList()">Parse and Fill Table</button>
             </div>
-
-            <!-- Race pages (hidden by default) -->
-            <div id="race-pages" style="display: none;">
-                <!-- Your existing content here (Load Start List, card, filters, table, prediction, buttons) -->
-                <!-- ... (keep everything you had inside race-pages) ... -->
-                <button onclick="returnToSelection()" style="margin-top: 2rem; padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Return to Main View</button>
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏇 Next Race Analysis</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Race Condition Filters -->
+                    <div class="filters">
+                        <div class="filters-grid">
+                            <div class="filter-box">
+                                <div class="filter-title">🏁 Course</div>
+                                <select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
+                                    <option value="">Select Course</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📏 Distance</div>
+                                <select id="nextRaceDistance" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
+                                    <option value="">Select Distance</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">🏆 Class</div>
+                                <select id="nextRaceClass" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
+                                    <option value="">Select Class</option>
+                                    <option value="Ældre Vinder">Ældre Vinder</option>
+                                    <option value="3 Års Maiden">3 Års Maiden</option>
+                                    <option value="3 Års Vinder">3 Års Vinder</option>
+                                    <option value="2 Års">2 Års</option>
+                                    <option value="Class 1">Class 1</option>
+                                    <option value="Class 2">Class 2</option>
+                                    <option value="Class 3">Class 3</option>
+                                    <option value="Class 4">Class 4</option>
+                                    <option value="Class 5">Class 5</option>
+                                    <option value="Noviseløb">Noviseløb</option>
+                                    <option value="Ældre Maiden">Ældre Maiden</option>
+                                    <option value="Max Hcp">Max Hcp</option>
+                                </select>
+                            </div>
+                            <div class="filter-box">
+                                <div class="filter-title">📅 Date</div>
+                                <input type="date" id="nextRaceDate" value="2025-10-11" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Scenario Analysis -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>Scenario Analysis</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="analysis-grid">
+                                <div class="analysis-box">
+                                    <h3>📝 Notes</h3>
+                                    <div id="nextRaceNotes" class="scrollable">
+                                        <p>No notes available.</p>
+                                    </div>
+                                </div>
+                                <div class="analysis-box">
+                                    <h3>📊 Post Position Analysis</h3>
+                                    <div id="nextRacePostPosition" class="scrollable">
+                                        <p>Select course and distance to see analysis.</p>
+                                    </div>
+                                </div>
+                                <div class="analysis-box">
+                                    <h3>🎯 Favorite Performance</h3>
+                                    <div id="nextRaceFavoritePerformance" class="scrollable">
+                                        <p>Select course and class to see analysis.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Global Filter for Last 5 Races -->
+                    <div class="filter-box" style="margin-bottom: 1rem;">
+                        <div class="filter-title">🌱 Filter Last 5 Races by Surface</div>
+                        <select id="nextRaceSurfaceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
+                            <option value="all" selected>All Surfaces</option>
+                            <option value="Grass">Grass</option>
+                            <option value="Dirt">Dirt</option>
+                        </select>
+                    </div>
+                    <div class="filter-box" style="margin-bottom: 2rem;">
+                        <div class="filter-title">📏 Filter Last 5 Races by Distance</div>
+                        <select id="nextRaceDistanceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
+                            <option value="all" selected>All Distances</option>
+                            <option value="Sprint">Sprint</option>
+                            <option value="Middle">Middle</option>
+                            <option value="Stay">Stay</option>
+                        </select>
+                    </div>
+                    <!-- Horse and Jockey Inputs -->
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div class="card-header">
+                            <h3>Enter Horses and Jockeys</h3>
+                        </div>
+                        <div class="card-body">
+                            <table id="nextRaceTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Horse / Jockey / Weight / Last 5 Races</th>
+                                        <th>Avg Ranking</th>
+                                        <th>Comment</th>
+                                        <th>Wins/Races</th>
+                                        <th>Win%</th>
+                                        <th>Trainer</th>
+                                        <th>1 Avg Trainer</th>
+                                        <th>Trainer %</th>
+                                        <th>Jockey %</th>
+                                        <th>Class</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top: 2rem;">
+                        <div class="card-header">
+                            <h3>Prediction</h3>
+                        </div>
+                        <div class="card-body">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div><label>A:</label> <input type="text" id="predictionA" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>B:</label> <input type="text" id="predictionB" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>C:</label> <input type="text" id="predictionC" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>D:</label> <input type="text" id="predictionD" style="width: 100%;" onchange="savePrediction()"></div>
+                                <div><label>E:</label> <input type="text" id="predictionE" style="width: 100%;" onchange="savePrediction()"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
+                    <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
+                </div>
             </div>
         </div>
-                        </div>
-
-                        <!-- Scenario Analysis (Notes, Post Position, Favorite Performance) -->
-                        <div class="card" style="margin-bottom: 2rem;">
-                            <div class="card-header">
-                                <h3>Scenario Analysis</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="analysis-grid">
-                                    <div class="analysis-box">
-                                        <h3>📝 Notes</h3>
-                                        <div id="nextRaceNotes" class="scrollable">
-                                            <p>No notes available.</p>
-                                        </div>
-                                    </div>
-                                    <div class="analysis-box">
-                                        <h3>📊 Post Position Analysis</h3>
-                                        <div id="nextRacePostPosition" class="scrollable">
-                                            <p>Select course and distance to see analysis.</p>
-                                        </div>
-                                    </div>
-                                    <div class="analysis-box">
-                                        <h3>🎯 Favorite Performance</h3>
-                                        <div id="nextRaceFavoritePerformance" class="scrollable">
-                                            <p>Select course and class to see analysis.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Filters for last 5 races -->
-                        <div class="filter-box" style="margin-bottom: 1rem;">
-                            <div class="filter-title">🌱 Filter Last 5 Races by Surface</div>
-                            <select id="nextRaceSurfaceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
-                                <option value="all" selected>All Surfaces</option>
-                                <option value="Grass">Grass</option>
-                                <option value="Dirt">Dirt</option>
-                            </select>
-                        </div>
-                        <div class="filter-box" style="margin-bottom: 2rem;">
-                            <div class="filter-title">📏 Filter Last 5 Races by Distance</div>
-                            <select id="nextRaceDistanceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
-                                <option value="all" selected>All Distances</option>
-                                <option value="Sprint">Sprint</option>
-                                <option value="Middle">Middle</option>
-                                <option value="Stay">Stay</option>
-                            </select>
-                        </div>
-
-                        <!-- Horse and Jockey Inputs -->
-                        <div class="card" style="margin-bottom: 2rem;">
-                            <div class="card-header">
-                                <h3>Enter Horses and Jockeys</h3>
-                            </div>
-                            <div class="card-body">
-                                <table id="nextRaceTable">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Horse / Jockey / Weight / Last 5 Races</th>
-                                            <th>Avg Ranking</th>
-                                            <th>Comment</th>
-                                            <th>Wins/Races</th>
-                                            <th>Win%</th>
-                                            <th>Trainer</th>
-                                            <th>1 Avg Trainer</th>
-                                            <th>Trainer %</th>
-                                            <th>Jockey %</th>
-                                            <th>Class</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Rows generated dynamically -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                         <!-- Prediction -->
-                        <div class="card" style="margin-top: 2rem;">
-                            <div class="card-header">
-                                <h3>Prediction</h3>
-                            </div>
-                            <div class="card-body">
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                                    <div><label>A:</label> <input type="text" id="predictionA" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>B:</label> <input type="text" id="predictionB" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>C:</label> <input type="text" id="predictionC" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>D:</label> <input type="text" id="predictionD" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>E:</label> <input type="text" id="predictionE" style="width: 100%;" onchange="savePrediction()"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
-                        <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
-
-                        <!-- Return button at the very bottom of race-pages -->
-                        <button onclick="returnToSelection()" style="margin-top: 2rem; padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">Return to Main View</button>
-                    </div> <!-- end of card-body -->
-                </div> <!-- end of card -->
-            </div> <!-- end of race-pages -->
-        </div> <!-- end of next-race-view -->
-
         <!-- Notes Editor View -->
         <div class="view-container" id="notes-view">
             <div class="card">
@@ -3562,109 +3594,6 @@ function updateTopSires() {
             document.getElementById('predictionD').value = currentRace.prediction.d;
             document.getElementById('predictionE').value = currentRace.prediction.e;
             updateNextRaceScenario();
-        }
-        function populateNextRaceSelection() {
-            const courseSelect = document.getElementById('courseSelect');
-            if (courseSelect) {
-                courseSelect.innerHTML = '<option value="">Select Course</option>' +
-                    Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
-            }
-            // Load saved selection for current day
-            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-            const saved = nextRaceData.days[day];
-            if (saved.course) {
-                document.getElementById('courseSelect').value = saved.course;
-                document.getElementById('numRaces').value = saved.numRaces || 1;
-                generateRaceInputs();
-                // Load per-race values
-                for (let i = 0; i < (saved.numRaces || 1); i++) {
-                    const raceNum = i + 1;
-                    if (document.getElementById(`distance-${raceNum}`)) {
-                        document.getElementById(`distance-${raceNum}`).value = saved.races[i]?.distance || '';
-                        document.getElementById(`class-${raceNum}`).value = saved.races[i]?.class || '';
-                        document.getElementById(`field-${raceNum}`).value = saved.races[i]?.field || '';
-                    }
-                }
-                updateDistanceOptions();
-            }
-        }
-
-        function generateRaceInputs() {
-            const num = parseInt(document.getElementById('numRaces').value) || 1;
-            let html = '';
-            for (let i = 1; i <= num; i++) {
-                html += `<div style="margin-top: 1rem;">
-                    <h4>Race ${i}</h4>
-                    <select id="distance-${i}" onchange="saveSelection();">
-                        <option value="">Select Distance</option>
-                    </select>
-                    <select id="class-${i}" onchange="saveSelection();">
-                        <option value="">Select Class</option>
-                        <option value="Ældre Vinder">Ældre Vinder</option>
-                        <option value="3 Års Maiden">3 Års Maiden</option>
-                        <option value="3 Års Vinder">3 Års Vinder</option>
-                        <option value="2 Års">2 Års</option>
-                        <option value="Class 1">Class 1</option>
-                        <option value="Class 2">Class 2</option>
-                        <option value="Class 3">Class 3</option>
-                        <option value="Class 4">Class 4</option>
-                        <option value="Class 5">Class 5</option>
-                        <option value="Noviseløb">Noviseløb</option>
-                        <option value="Ældre Maiden">Ældre Maiden</option>
-                        <option value="Max Hcp">Max Hcp</option>
-                    </select>
-                    <input type="number" id="field-${i}" min="1" max="20" placeholder="Number of horses" onchange="saveSelection();">
-                </div>`;
-            }
-            document.getElementById('raceInputs').innerHTML = html;
-            updateDistanceOptions();
-        }
-
-        function updateDistanceOptions() {
-            const selectedCourse = document.getElementById('courseSelect').value;
-            if (!selectedCourse) return;
-
-            const filteredRaces = racingData.filter(race => {
-                let raceCourse = normalizeCourseName(race.Course, race.Surface);
-                return raceCourse === selectedCourse;
-            });
-
-            const availableDistances = new Set(filteredRaces.map(r => r.Distance).filter(Boolean));
-
-            const numRaces = parseInt(document.getElementById('numRaces').value) || 1;
-            for (let i = 1; i <= numRaces; i++) {
-                const distanceSelect = document.getElementById(`distance-${i}`);
-                if (distanceSelect) {
-                    distanceSelect.innerHTML = '<option value="">Select Distance</option>' +
-                        Array.from(availableDistances).sort((a,b)=>parseInt(a)-parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
-                }
-            }
-        }
-
-        function saveSelection() {
-            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-            const course = document.getElementById('courseSelect').value;
-            const numRaces = parseInt(document.getElementById('numRaces').value) || 1;
-
-            nextRaceData.days[day].course = course;
-            nextRaceData.days[day].numRaces = numRaces;
-
-            for (let i = 0; i < numRaces; i++) {
-                const raceNum = i + 1;
-                nextRaceData.days[day].races[i] = {
-                    distance: document.getElementById(`distance-${raceNum}`)?.value || '',
-                    class: document.getElementById(`class-${raceNum}`)?.value || '',
-                    field: parseInt(document.getElementById(`field-${raceNum}`)?.value) || 15
-                };
-            }
-
-            saveNextRaceData();
-        }
-
-        function goToRacePage() {
-            document.getElementById('next-race-selection').style.display = 'none';
-            document.getElementById('race-pages').style.display = 'block';
-            switchNextRaceView();
         }
         function saveNextRaceFilters() {
             const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
