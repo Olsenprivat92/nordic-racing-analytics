@@ -540,12 +540,6 @@
                             </div>
                         </div>
                         <div class="analysis-box">
-                            <h3>⏱️ Average Winning Times</h3>
-                            <div id="winningTimes" class="scrollable">
-                                <p class="loading">Loading...</p>
-                            </div>
-                        </div>
-                        <div class="analysis-box">
                             <h3>🏆 Top Jockeys
                                 <button class="show-all-btn" onclick="toggleJockeyView()">Show All</button>
                             </h3>
@@ -2120,44 +2114,6 @@
 
             html += '</table>';
             document.getElementById(elementId).innerHTML = html || '<p>No post position data available</p>';
-        }
-        function updateWinningTimes(data) {
-            const timesByDistance = {};
- 
-            data.filter(r => r.Place === '1' || r.Place === 1).forEach(race => {
-                const dist = parseInt(race.Distance) || 0;
-                const time = race.Time || race['Time 2'] || '';
-     
-                if (dist > 0 && time) {
-                    if (!timesByDistance[dist]) timesByDistance[dist] = [];
-         
-                    let seconds = 0;
-                    if (time.includes(':')) {
-                        const parts = time.split(':');
-                        seconds = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
-                    } else {
-                        seconds = parseFloat(time);
-                    }
-         
-                    if (!isNaN(seconds) && seconds > 0) {
-                        timesByDistance[dist].push(seconds);
-                    }
-                }
-            });
- 
-            let html = '<table><tr><th>Distance</th><th>Races</th><th>Avg Time</th></tr>';
-            Object.keys(timesByDistance).sort((a, b) => a - b).forEach(dist => {
-                const times = timesByDistance[dist];
-                const avg = times.reduce((a, b) => a + b, 0) / times.length;
-                const mins = Math.floor(avg / 60);
-                const secs = (avg % 60).toFixed(1);
-                const timeStr = mins > 0 ? mins + ':' + secs.padStart(4, '0') : secs + 's';
-     
-                html += '<tr><td>' + dist + 'm</td><td>' + times.length + '</td><td>' + timeStr + '</td></tr>';
-            });
-            html += '</table>';
- 
-            document.getElementById('winningTimes').innerHTML = html || '<p>No timing data available</p>';
         }
         function updateTopJockeys(data) {
             const jockeyStats = {};
