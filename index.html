@@ -3777,19 +3777,35 @@ function updateTopSires() {
                 const jockeyComment = getJockeyComment(jockeyName);
                 jockeyInput.title = jockeyComment || '';
 
-                // Trainer Win % on the selected course only
-                const selectedCourse = document.getElementById('nextRaceCourse').value;
-                let trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
-                if (selectedCourse) {
-                    trainerRaces = trainerRaces.filter(race => {
-                        let raceCourse = normalizeCourseName(race.Course || '', race.Surface || '');
-                        return raceCourse === selectedCourse;
-                    });
-                }
+                // Trainer %
+                const trainerRaces = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
                 const trainerWins = trainerRaces.filter(r => r.Place === '1' || r.Place === 1).length;
                 const trainerWinPct = trainerRaces.length > 0 ? ((trainerWins / trainerRaces.length) * 100).toFixed(1) + '%' : 'N/A';
                 document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
 
+                // 1 Avg Trainer
+                let oneAvgTrainer = 'N/A';
+                if (trainer) {
+                    const trainerFiltered = racingData.filter(r => (r.Trainer || r.Owner) === trainer);
+                    const analysisDate = new Date(selectedDate);
+                    const cutoffDate = new Date(analysisDate);
+                    cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+                    const periodData = trainerFiltered.filter(race => {
+                        const raceDate = parseRaceDate(race.Date);
+                        return raceDate >= cutoffDate && raceDate <= analysisDate;
+                    });
+                    const percentages = [];
+                    periodData.forEach(race => {
+                        const place = parseFloat(race.Place);
+                        const field = parseInt(race.Field);
+                        if (!isNaN(place) && !isNaN(field) && place > 0 && field > 0) {
+                            const percentage = ((field - place + 1) / field) * 100;
+                            percentages.push(percentage);
+                        }
+                    });
+                    if (percentages.length > 0) {
+                        oneAvgTrainer = (percentages.reduce((a, b) => a + b, 0) / percentages.length).toFixed(1) + '%';
+                    }
                 }
                 // Jockey %
                 const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
