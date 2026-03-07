@@ -1411,7 +1411,6 @@
                                         <th>Avg Ranking</th>
                                         <th>Comment</th>
                                         <th>Wins/Races</th>
-                                        <th>Win%</th>
                                         <th>Trainer</th>
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
@@ -3705,7 +3704,6 @@ function saveHorseData(rowNum) {
                     <td id="avgRanking-${i}"></td>
                     <td id="comment-${i}"></td>
                     <td id="winsRaces-${i}"></td>
-                    <td id="winPct-${i}"></td>
                     <td id="trainer-${i}"></td>
                     <td id="trainerPct-${i}"></td>
                     <td id="jockeyPct-${i}"></td>
@@ -3789,9 +3787,6 @@ function saveHorseData(rowNum) {
                 const wins = horseRaces.filter(r => r.Place === '1' || r.Place === 1).length;
                 const races = horseRaces.length;
                 document.getElementById(`winsRaces-${rowNum}`).textContent = wins + '/' + races;
-                // Win%
-                const metrics = calculateDetailedMetrics(horseRaces, 'horse');
-                document.getElementById(`winPct-${rowNum}`).textContent = metrics.winPct + '%';
                 // Avg Ranking
                 document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRankingAll || 'N/A';
                 // Comment
@@ -3874,7 +3869,7 @@ function saveHorseData(rowNum) {
             }
         }
         function clearNextRaceRow(rowNum) {
-            ['last5', 'winsRaces', 'winPct', 'avgRanking', 'comment', 'trainer', 'trainerPct', 'jockeyPct'].forEach(id => {
+            ['last5', 'winsRaces', 'avgRanking', 'comment', 'trainer', 'trainerPct', 'jockeyPct'].forEach(id => {
                 document.getElementById(`${id}-${rowNum}`).textContent = '';
             });
         }
