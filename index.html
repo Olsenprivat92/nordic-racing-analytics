@@ -1294,8 +1294,20 @@
                     <option value="10">Race 10</option>
                     <option value="11">Race 11</option>
                     <option value="12">Race 12</option>
+                    <option value="overview">Overview</option>
                 </select>
             </div>
+            <!-- Overview Page (shown only when "Overview" is selected) -->
+<div id="overview-page" style="display: none; margin-top: 2rem;">
+    <div class="card">
+        <div class="card-header">
+            <h3>Race Day Overview (Predictions)</h3>
+        </div>
+        <div class="card-body">
+            <div id="predictionOverview" style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap;"></div>
+        </div>
+    </div>
+</div>
             <div class="start-list-loader">
                 <h3>Load Start List</h3>
                 <select id="startListFormat">
