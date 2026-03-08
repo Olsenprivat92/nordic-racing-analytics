@@ -3880,10 +3880,18 @@ function saveHorseData(rowNum) {
             } catch (e) {
                 console.error('Error updating row ' + rowNum + ': ' + e.message);
             }
-                   // Siblings row (Y/N + hover tooltip)
+                // Siblings row (Y/N + hover tooltip)
                 const siblingsCell = document.getElementById(`siblings-${rowNum}`);
+                siblingsCell.textContent = '';
+                siblingsCell.title = '';
+
+                console.log('Siblings debug - Horse:', horseName);
+                console.log('Siblings debug - horseRaces length:', horseRaces.length);
+
                 if (horseName && horseRaces.length > 0) {
-                    const dam = horseRaces[0].Filly || ''; // Dam from first race
+                    const dam = horseRaces[0].Filly || '';
+                    console.log('Siblings debug - Dam:', dam);
+
                     const siblings = [];
                     racingData.forEach(r => {
                         if (r.Filly === dam && r.Horse !== horseName && !siblings.includes(r.Horse)) {
@@ -3891,18 +3899,19 @@ function saveHorseData(rowNum) {
                         }
                     });
 
+                    console.log('Siblings debug - Found:', siblings.length, siblings);
+
                     if (siblings.length > 0) {
                         siblingsCell.textContent = 'Y';
                         siblingsCell.title = 'Siblings: ' + siblings.join(', ');
                         siblingsCell.style.cursor = 'help';
-                        siblingsCell.style.color = '#1e40af'; // Optional: make Y stand out
+                        siblingsCell.style.color = '#1e40af';
                     } else {
                         siblingsCell.textContent = 'N';
-                        siblingsCell.title = '';
+                        siblingsCell.title = 'No siblings';
                     }
                 } else {
-                    siblingsCell.textContent = '';
-                    siblingsCell.title = '';
+                    console.log('Siblings debug - skipped (no horse or no races)');
                 }
         }
 function clearNextRaceRow(rowNum) {
