@@ -3854,17 +3854,18 @@ function updateNextRaceRow(rowNum) {
         const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
         document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
 
-        // Post Position Hover Tooltip (colored differential + colored gate number)
+        // Post Position Hover Tooltip (per-row, colored gate number)
         const currentCourse = document.getElementById('nextRaceCourse').value;
         const currentDistance = document.getElementById('nextRaceDistance').value;
         const postStats = getPostPositionStatsForRace(currentCourse, currentDistance);
         const postNum = rowNum;
         const p = postStats && postStats[postNum] ? postStats[postNum] : { runs: 0, wins: 0, expected: 0 };
 
-        // Select the correct cell for THIS row (nth-child uses 1-based index)
+        // Select the first cell of THIS row (nth-child(1) for column, nth-child(rowNum) for row)
         const postCell = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum}) td:nth-child(1)`);
+
         if (postCell) {
-            // Clear old listeners to avoid duplicates
+            // Remove any existing listeners to prevent duplicates
             postCell.onmouseover = null;
             postCell.onmouseout = null;
 
@@ -3876,7 +3877,7 @@ function updateNextRaceRow(rowNum) {
                     const diffClass = diff >= 0 ? 'diff-positive' : 'diff-negative';
                     const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
 
-                    // Color the gate number based on differential
+                    // Gate number color based on differential
                     const gateColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
 
                     showPostTooltip(e, postNum, p, currentCourse, currentDistance, gateColor);
