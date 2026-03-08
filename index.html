@@ -3855,17 +3855,19 @@ function updateNextRaceRow(rowNum) {
         const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
         document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
 
-        // Post Position Hover Tooltip - fixed per-row selector + gate color
+        // Post Position Hover Tooltip - fixed per-row selector
         const currentCourse = document.getElementById('nextRaceCourse').value;
         const currentDistance = document.getElementById('nextRaceDistance').value;
         const postStats = getPostPositionStatsForRace(currentCourse, currentDistance);
         const postNum = rowNum;
         const p = postStats && postStats[postNum] ? postStats[postNum] : { runs: 0, wins: 0, expected: 0 };
 
-        const rowElement = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum})`);
-        const postCell = rowElement ? rowElement.querySelector('td:nth-child(1)') : null;
+        // Get THIS row's gate cell (first column)
+        const thisRow = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum})`);
+        const postCell = thisRow ? thisRow.querySelector('td:nth-child(1)') : null;
 
         if (postCell) {
+            // Clear any old listeners (prevents row 1 stealing all hovers)
             postCell.onmouseover = null;
             postCell.onmouseout = null;
 
