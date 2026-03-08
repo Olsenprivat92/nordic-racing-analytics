@@ -3900,7 +3900,7 @@ function updateNextRaceRow(rowNum) {
             siblingsCell.title = '';
         }
 
-        // Jockey Comment (JC) row – Y/N + hover tooltip from Jockey Analysis
+// Jockey Comment (JC) row
         const jcCell = document.getElementById(`jockeyComment-${rowNum}`);
         if (jockeyName) {
             const jcComment = getJockeyComment(jockeyName) || '';
