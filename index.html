@@ -3576,7 +3576,7 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const race = parseInt(document.getElementById('raceSelect').value) - 1;
 
-    // Safety check - initialize if missing
+    // Safety: initialize missing day/race
     if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
     if (!nextRaceData.days[day].races[race]) {
         nextRaceData.days[day].races[race] = {
@@ -3591,10 +3591,10 @@ function switchNextRaceView() {
 
     const currentRace = nextRaceData.days[day].races[race];
 
-    document.getElementById('nextRaceCourse').value = currentRace.course;
-    document.getElementById('nextRaceDistance').value = currentRace.distance;
-    document.getElementById('nextRaceClass').value = currentRace.class;
-    document.getElementById('nextRaceDate').value = currentRace.date;
+    document.getElementById('nextRaceCourse').value = currentRace.course || '';
+    document.getElementById('nextRaceDistance').value = currentRace.distance || '';
+    document.getElementById('nextRaceClass').value = currentRace.class || '';
+    document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
 
     for (let i = 1; i <= 15; i++) {
         const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
@@ -3605,11 +3605,11 @@ function switchNextRaceView() {
         updateNextRaceRow(i);
     }
 
-    document.getElementById('predictionA').value = currentRace.prediction.a;
-    document.getElementById('predictionB').value = currentRace.prediction.b;
-    document.getElementById('predictionC').value = currentRace.prediction.c;
-    document.getElementById('predictionD').value = currentRace.prediction.d;
-    document.getElementById('predictionE').value = currentRace.prediction.e;
+    document.getElementById('predictionA').value = currentRace.prediction.a || '';
+    document.getElementById('predictionB').value = currentRace.prediction.b || '';
+    document.getElementById('predictionC').value = currentRace.prediction.c || '';
+    document.getElementById('predictionD').value = currentRace.prediction.d || '';
+    document.getElementById('predictionE').value = currentRace.prediction.e || '';
 
     updateNextRaceScenario();
 }
@@ -3627,7 +3627,7 @@ function saveHorseData(rowNum) {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const race = parseInt(document.getElementById('raceSelect').value) - 1;
 
-    // Safety: initialize if missing
+    // Safety: initialize missing day/race
     if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
     if (!nextRaceData.days[day].races[race]) {
         nextRaceData.days[day].races[race] = {
@@ -3758,6 +3758,7 @@ function saveHorseData(rowNum) {
                     const dateB = parseRaceDate(b.Date) || new Date(0);
                     return dateB - dateA;
                 });
+                const metrics = calculateDetailedMetrics(horseRaces, 'horse');
                 // Last 5 races
                 const last5 = horseRaces.slice(0, 5);
                 let last5Html = '<table class="small-table">';
