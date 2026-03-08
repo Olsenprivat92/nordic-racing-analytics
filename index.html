@@ -3608,24 +3608,23 @@ function switchNextRaceView() {
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
 
-    // Safety: Initialize the entire day with ALL 12 races if missing
+    // Safety: FULL initialization for the day and ALL 12 races
+    if (!nextRaceData.days) nextRaceData.days = [];
     if (!nextRaceData.days[day]) {
         nextRaceData.days[day] = { races: [] };
     }
-    // Force create all 12 races for this day (fixes Race 1 & 2 on Day 1)
-    for (let r = 0; r < 12; r++) {
-        if (!nextRaceData.days[day].races[r]) {
-            nextRaceData.days[day].races[r] = {
-                course: '',
-                distance: '',
-                class: '',
-                date: '2025-10-11',
-                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
-                prediction: { a: '', b: '', c: '', d: '', e: '' }
-            };
-        }
+    // Create all 12 races if they don't exist (this fixes Race 1 & 2 blank on Day 1)
+    while (nextRaceData.days[day].races.length < 12) {
+        nextRaceData.days[day].races.push({
+            course: '',
+            distance: '',
+            class: '',
+            date: '2025-10-11',
+            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+            prediction: { a: '', b: '', c: '', d: '', e: '' }
+        });
     }
-    saveNextRaceData(); // Save the initialized structure
+    saveNextRaceData(); // Save the full structure
 
     if (raceValue === 'overview') {
         document.getElementById('overview-page').style.display = 'block';
