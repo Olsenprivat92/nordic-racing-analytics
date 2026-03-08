@@ -1416,7 +1416,6 @@
                                         <th>Jockey %</th>
                                         <th>Class</th>
                                         <th>Siblings</th>
-                                        <th>JC</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3697,26 +3696,24 @@ function saveHorseData(rowNum) {
             for (let i = 1; i <= 15; i++) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-row.innerHTML = `
-    <td>${i}</td>
-    <td>
-        <div class="horse-jockey-container">
-            <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
-            <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
-            <input type="text" id="withweight-${i}" placeholder="Weight" onchange="saveHorseData(${i})">
-        </div>
-        <div id="last5-${i}"></div>
-    </td>
-    <td id="avgRanking-${i}"></td>
-    <td id="comment-${i}"></td>
-    <td id="winsRaces-${i}"></td>
-    <td id="trainer-${i}"></td>
-    <td id="trainerPct-${i}"></td>
-    <td id="jockeyPct-${i}"></td>
-    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
-    <td id="siblings-${i}" title="" style="cursor: help;"></td>
-    <td id="jockeyComment-${i}" title="" style="cursor: help;"></td>   <!-- ← Add this line -->
-`;
+                    <td>${i}</td>
+                    <td>
+                        <div class="horse-jockey-container">
+                            <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+                            <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+                            <input type="text" id="withweight-${i}" placeholder="Weight" onchange="saveHorseData(${i})">
+                        </div>
+                        <div id="last5-${i}"></div>
+                    </td>
+                    <td id="avgRanking-${i}"></td>
+                    <td id="comment-${i}"></td>
+                    <td id="winsRaces-${i}"></td>
+                    <td id="trainer-${i}"></td>
+                    <td id="trainerPct-${i}"></td>
+                    <td id="jockeyPct-${i}"></td>
+                    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
+                    <td id="siblings-${i}" title="" style="cursor: help;"></td>
+                `;
                 tbody.appendChild(row);
             }
             console.log('Table rows created:', document.querySelectorAll('#nextRaceTable tbody tr').length);
@@ -3903,28 +3900,9 @@ function updateNextRaceRow(rowNum) {
         console.error('Error updating row ' + rowNum + ': ' + e.message);
         console.error(e.stack);
     }
-    // Jockey Comment (JC) row – Y/N + hover tooltip from Jockey Analysis
-                const jcCell = document.getElementById(`jockeyComment-${rowNum}`);
-                if (jockeyName) {
-                    const jcComment = getJockeyComment(jockeyName) || '';
-                    console.log('JC debug - Jockey:', jockeyName, 'Comment length:', jcComment.length);
-
-                    if (jcComment.trim()) {
-                        jcCell.textContent = 'Y';
-                        jcCell.title = 'Jockey Comment: ' + jcComment;
-                        jcCell.style.cursor = 'help';
-                        jcCell.style.color = '#1e40af';
-                    } else {
-                        jcCell.textContent = 'N';
-                        jcCell.title = 'No jockey comment saved';
-                    }
-                } else {
-                    jcCell.textContent = '';
-                    jcCell.title = '';
-                }
 }
 function clearNextRaceRow(rowNum) {
-    ['last5', 'avgRanking', 'comment', 'winsRaces', 'trainer', 'trainerPct', 'jockeyPct', 'siblings', 'jockeyComment'].forEach(id => {
+    ['last5', 'avgRanking', 'comment', 'winsRaces', 'trainer', 'trainerPct', 'jockeyPct', 'siblings'].forEach(id => {
         const element = document.getElementById(`${id}-${rowNum}`);
         if (element) element.textContent = '';
     });
