@@ -3861,9 +3861,10 @@ function updateNextRaceRow(rowNum) {
         const postNum = rowNum;
         const p = postStats && postStats[postNum] ? postStats[postNum] : { runs: 0, wins: 0, expected: 0 };
 
-        const postCell = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum}) td:first-child`);
+        // Select the correct cell for THIS row (nth-child uses 1-based index)
+        const postCell = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum}) td:nth-child(1)`);
         if (postCell) {
-            // Remove any old listeners to avoid duplicates
+            // Clear old listeners to avoid duplicates
             postCell.onmouseover = null;
             postCell.onmouseout = null;
 
