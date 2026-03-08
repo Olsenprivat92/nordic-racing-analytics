@@ -3717,6 +3717,7 @@ function saveHorseData(rowNum) {
                 tbody.appendChild(row);
             }
             console.log('Table rows created:', document.querySelectorAll('#nextRaceTable tbody tr').length);
+            attachGateTooltips();
         }
         function updateNextRaceAnalysis() {
             for (let i = 1; i <= 15; i++) {
@@ -4416,11 +4417,43 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
     tooltip.style.top = (e.pageY + 15) + 'px';
     tooltip.style.display = 'block';
 }
-
         function hidePostTooltip() {
             const tooltip = document.getElementById('postTooltip');
             if (tooltip) tooltip.style.display = 'none';
         }
+        function attachGateTooltips() {
+    const rows = document.querySelectorAll('#nextRaceTable tbody tr');
+    rows.forEach((row, index) => {
+        const rowNum = index + 1;
+        const postCell = row.querySelector('td:first-child');
+        if (!postCell) return;
+
+        // Clear old listeners
+        postCell.onmouseover = null;
+        postCell.onmouseout = null;
+
+        postCell.onmouseover = (e) => {
+            const currentCourse = document.getElementById('nextRaceCourse').value;
+            const currentDistance = document.getElementById('nextRaceDistance').value;
+            const postStats = getPostPositionStatsForRace(currentCourse, currentDistance);
+            const p = postStats && postStats[rowNum] ? postStats[rowNum] : { runs: 0, wins: 0, expected: 0 };
+
+            if (p.runs > 0) {
+                const winPct = (p.wins / p.runs * 100).toFixed(1);
+                const expPct = (p.expected / p.runs * 100).toFixed(1);
+                const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
+                const diffClass = diff >= 0 ? 'diff-positive' : 'diff-negative';
+                const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
+
+                const gateColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
+
+                showPostTooltip(e, rowNum, p, currentCourse, currentDistance, gateColor);
+            }
+        };
+
+        postCell.onmouseout = hidePostTooltip;
+    });
+}
     </script>
 </body>
 </html>
