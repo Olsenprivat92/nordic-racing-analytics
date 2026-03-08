@@ -1415,6 +1415,7 @@
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
                                         <th>Class</th>
+                                        <th>Siblings</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3710,6 +3711,7 @@ function saveHorseData(rowNum) {
                     <td id="trainerPct-${i}"></td>
                     <td id="jockeyPct-${i}"></td>
                     <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
+                    <td id="siblings-${i}" title="" style="cursor: help;"></td>
                 `;
                 tbody.appendChild(row);
             }
@@ -3877,11 +3879,32 @@ function saveHorseData(rowNum) {
             } catch (e) {
                 console.error('Error updating row ' + rowNum + ': ' + e.message);
             }
+                            // Siblings (Y/N + hover tooltip from Horse Analysis data)
+                const siblingsCell = document.getElementById(`siblings-${rowNum}`);
+                if (horseName) {
+                    const siblings = [];
+                    racingData.forEach(r => {
+                        if (r.Filly === horseRaces[0]?.Filly && r.Horse !== horseName && !siblings.includes(r.Horse)) {
+                            siblings.push(r.Horse);
+                        }
+                    });
+
+                    if (siblings.length > 0) {
+                        siblingsCell.textContent = 'Y';
+                        siblingsCell.title = 'Siblings: ' + siblings.join(', ');
+                    } else {
+                        siblingsCell.textContent = 'N';
+                        siblingsCell.title = '';
+                    }
+                } else {
+                    siblingsCell.textContent = '';
+                    siblingsCell.title = '';
+                }
         }
 function clearNextRaceRow(rowNum) {
-    ['last5', 'avgRanking', 'comment', 'winsRaces', 'trainer', 'trainerPct', 'jockeyPct'].forEach(id => {
+    ['last5', 'avgRanking', 'comment', 'winsRaces', 'trainer', 'trainerPct', 'jockeyPct', 'siblings'].forEach(id => {
         const element = document.getElementById(`${id}-${rowNum}`);
-        if (element) element.textContent = '';  // safe check
+        if (element) element.textContent = '';
     });
 }
         function parseAndFillStartList() {
