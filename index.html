@@ -3415,12 +3415,13 @@ function updateTopSires() {
                 document.getElementById('horsePerformanceDetails').innerHTML = '<p>No data for this horse.</p>';
                 return;
             }
-            const metrics = calculateDetailedMetrics(filteredRaces, 'horse');
+            const metrics = calculateDetailedMetrics(horseRaces, 'horse');
+
             // IMPROVED Year Born: use earliest race for accuracy
             let yearBorn = 'N/A';
-            if (filteredRaces.length > 0) {
+            if (horseRaces.length > 0) {
                 // Sort races by date (earliest first)
-                const sortedByDate = filteredRaces.slice().sort((a, b) => {
+                const sortedByDate = horseRaces.slice().sort((a, b) => {
                     const dateA = parseRaceDate(a.Date) || new Date(0);
                     const dateB = parseRaceDate(b.Date) || new Date(0);
                     return dateA - dateB;
@@ -3435,6 +3436,7 @@ function updateTopSires() {
                     yearBorn = raceYear - ageAtEarliest;
                 }
             }
+
             const surfaceValues = getSelectedValues('horseSurfaceFilter');
             const allHorseMetrics = getAllHorseMetrics(surfaceValues);
             const ranks = calculateRanks(metrics, allHorseMetrics, selectedHorse);
