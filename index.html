@@ -3711,6 +3711,7 @@ function saveHorseData(rowNum) {
                 `;
                 tbody.appendChild(row);
             }
+            console.log('Table rows created:', document.querySelectorAll('#nextRaceTable tbody tr').length);
         }
         function updateNextRaceAnalysis() {
             for (let i = 1; i <= 15; i++) {
@@ -3847,6 +3848,12 @@ function saveHorseData(rowNum) {
                 const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
                 const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
                 document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
+                                document.getElementById(`avgRanking-${rowNum}`).textContent = metrics.avgRankingAll || 'N/A';
+                document.getElementById(`comment-${rowNum}`).textContent = localStorage.getItem('horseComment_' + horseName) || 'N/A';
+                document.getElementById(`winsRaces-${rowNum}`).textContent = wins + '/' + races;
+                document.getElementById(`trainer-${rowNum}`).innerHTML = trainer + (trainerComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
+                document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+                document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
                                 // === Post Position Hover Tooltip (colored differential) ===
                 const currentCourse = document.getElementById('nextRaceCourse').value;
                 const currentDistance = document.getElementById('nextRaceDistance').value;
@@ -3868,11 +3875,12 @@ function saveHorseData(rowNum) {
                 console.error('Error updating row ' + rowNum + ': ' + e.message);
             }
         }
-        function clearNextRaceRow(rowNum) {
-            ['last5', 'winsRaces', 'avgRanking', 'comment', 'trainer', 'trainerPct', 'jockeyPct'].forEach(id => {
-                document.getElementById(`${id}-${rowNum}`).textContent = '';
-            });
-        }
+function clearNextRaceRow(rowNum) {
+    ['last5', 'avgRanking', 'comment', 'winsRaces', 'trainer', 'trainerPct', 'jockeyPct'].forEach(id => {
+        const element = document.getElementById(`${id}-${rowNum}`);
+        if (element) element.textContent = '';  // safe check
+    });
+}
         function parseAndFillStartList() {
             const format = document.getElementById('startListFormat').value;
             const text = document.getElementById('startListText').value.trim();
