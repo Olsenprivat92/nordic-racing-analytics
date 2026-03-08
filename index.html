@@ -3409,6 +3409,7 @@ function updateTopSires() {
                 return;
             }
             const filteredRaces = getHorseFilteredRaces(selectedHorse);
+                        let horseRaces = filteredRaces;  // ← Add this line (or rename filteredRaces to horseRaces if you prefer)
 console.log('Selected Horse:', selectedHorse);
 console.log('Filtered Races count:', filteredRaces.length);
 if (filteredRaces.length > 0) {
