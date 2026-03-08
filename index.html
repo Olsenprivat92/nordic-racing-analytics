@@ -3578,7 +3578,7 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const race = parseInt(document.getElementById('raceSelect').value) - 1;
 
-    // Safety: initialize missing day/race
+    // Safety init
     if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
     if (!nextRaceData.days[day].races[race]) {
         nextRaceData.days[day].races[race] = {
@@ -3629,7 +3629,7 @@ function saveHorseData(rowNum) {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const race = parseInt(document.getElementById('raceSelect').value) - 1;
 
-    // Safety: initialize missing day/race
+    // Safety init
     if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
     if (!nextRaceData.days[day].races[race]) {
         nextRaceData.days[day].races[race] = {
@@ -3811,19 +3811,19 @@ function saveHorseData(rowNum) {
                 const jockeyComment = getJockeyComment(jockeyName);
                 jockeyInput.title = jockeyComment || '';
 
-// Trainer Win % on the selected course only
-                console.log('Selected Course:', selectedCourse);
-                if (!selectedCourse) {
-                    document.getElementById(`trainerPct-${rowNum}`).textContent = 'N/A';
-                } else {
+                // Trainer Win % on the selected course only
+                let trainerWinPct = 'N/A'; // Declare early
+                if (selectedCourse) {
                     const trainerRacesOnCourse = racingData.filter(r =>
                         (r.Trainer || r.Owner) === trainer &&
                         normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
                     );
                     const trainerWinsOnCourse = trainerRacesOnCourse.filter(r => r.Place === '1' || r.Place === 1).length;
-
-                    const trainerWinPct = trainerRacesOnCourse.length > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse.length) * 100).toFixed(1) + '%' : 'N/A';
-                    document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+                    trainerWinPct = trainerRacesOnCourse.length > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse.length) * 100).toFixed(1) + '%' : 'N/A';
+                    // Debug
+                    console.log('Trainer Races found on course:', trainerRacesOnCourse.length, 'Wins:', trainerWinsOnCourse);
+                }
+                document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
 
                     // TEMP DEBUG - shows why N/A
                     console.log('Trainer Races found on course:', trainerRacesOnCourse.length, 'Wins:', trainerWinsOnCourse);
@@ -3880,15 +3880,10 @@ function saveHorseData(rowNum) {
             } catch (e) {
                 console.error('Error updating row ' + rowNum + ': ' + e.message);
             }
-                // Siblings (Y/N + hover tooltip from Horse Analysis data)
+                   // Siblings row (Y/N + hover tooltip)
                 const siblingsCell = document.getElementById(`siblings-${rowNum}`);
-                siblingsCell.textContent = ''; // Clear first
-                siblingsCell.title = '';
-
                 if (horseName && horseRaces.length > 0) {
-                    const dam = horseRaces[0].Filly || ''; // Use first race's Filly (dam)
-                    console.log('Siblings debug - Horse:', horseName, 'Dam:', dam);
-
+                    const dam = horseRaces[0].Filly || ''; // Dam from first race
                     const siblings = [];
                     racingData.forEach(r => {
                         if (r.Filly === dam && r.Horse !== horseName && !siblings.includes(r.Horse)) {
@@ -3896,19 +3891,18 @@ function saveHorseData(rowNum) {
                         }
                     });
 
-                    console.log('Siblings found:', siblings.length, siblings);
-
                     if (siblings.length > 0) {
                         siblingsCell.textContent = 'Y';
                         siblingsCell.title = 'Siblings: ' + siblings.join(', ');
-                        siblingsCell.style.color = '#1e40af'; // Optional: make Y blue to stand out
                         siblingsCell.style.cursor = 'help';
+                        siblingsCell.style.color = '#1e40af'; // Optional: make Y stand out
                     } else {
                         siblingsCell.textContent = 'N';
-                        siblingsCell.title = 'No siblings found';
+                        siblingsCell.title = '';
                     }
                 } else {
-                    console.log('Siblings skipped - no horse or no races');
+                    siblingsCell.textContent = '';
+                    siblingsCell.title = '';
                 }
         }
 function clearNextRaceRow(rowNum) {
