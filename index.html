@@ -3409,13 +3409,13 @@ function updateTopSires() {
                 return;
             }
             const filteredRaces = getHorseFilteredRaces(selectedHorse);
-            if (filteredRaces.length === 0) {
-                document.getElementById('horseMainCharacteristics').innerHTML = '<p>No data for this horse.</p>';
-                document.getElementById('horseMainInfo').innerHTML = '<p>No data for this horse.</p>';
-                document.getElementById('horseSiblings').innerHTML = '<p>No data for this horse.</p>';
-                document.getElementById('horsePerformanceDetails').innerHTML = '<p>No data for this horse.</p>';
-                return;
-            }
+console.log('Selected Horse:', selectedHorse);
+console.log('Filtered Races count:', filteredRaces.length);
+if (filteredRaces.length > 0) {
+    console.log('First race sample:', filteredRaces[0]);
+} else {
+    console.log('No races found for horse – check filters or data');
+}
             const metrics = calculateDetailedMetrics(horseRaces, 'horse');
 
             // IMPROVED Year Born: use earliest race for accuracy
