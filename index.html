@@ -3608,17 +3608,14 @@ function switchNextRaceView() {
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
 
-    if (raceValue === 'overview') {
-        // Show overview
-        document.getElementById('overview-page').style.display = 'block';
-        updatePredictionOverview(day);
-    } else {
-        const race = parseInt(raceValue) - 1;
-
-        // Your existing safety init (keep if you have it)
-        if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
-        if (!nextRaceData.days[day].races[race]) {
-            nextRaceData.days[day].races[race] = {
+    // Safety: Make sure this day has all 12 races initialized
+    if (!nextRaceData.days[day]) {
+        nextRaceData.days[day] = { races: [] };
+    }
+    // Create all 12 races if they don't exist
+    for (let r = 0; r < 12; r++) {
+        if (!nextRaceData.days[day].races[r]) {
+            nextRaceData.days[day].races[r] = {
                 course: '',
                 distance: '',
                 class: '',
@@ -3627,6 +3624,15 @@ function switchNextRaceView() {
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
             };
         }
+    }
+    saveNextRaceData(); // Save the initialized structure
+
+    if (raceValue === 'overview') {
+        // Show overview
+        document.getElementById('overview-page').style.display = 'block';
+        updatePredictionOverview(day);
+    } else {
+        const race = parseInt(raceValue) - 1;
 
         const currentRace = nextRaceData.days[day].races[race];
 
