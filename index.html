@@ -3881,33 +3881,33 @@ function saveHorseData(rowNum) {
                 console.error('Error updating row ' + rowNum + ': ' + e.message);
             }
                 // Siblings row (Y/N + hover tooltip)
-const siblingsCell = document.getElementById(`siblings-${rowNum}`);
-        if (horseName && horseRaces.length > 0) {
-            const dam = horseRaces[0].Filly || '';
-            const siblings = [];
-            racingData.forEach(r => {
-                if (r.Filly === dam && r.Horse !== horseName && !siblings.includes(r.Horse)) {
-                    siblings.push(r.Horse);
+                const siblingsCell = document.getElementById(`siblings-${rowNum}`);
+                if (horseName && horseRaces.length > 0) {
+                    const dam = horseRaces[0].Filly || '';
+                    const siblings = [];
+                    racingData.forEach(r => {
+                        if (r.Filly === dam && r.Horse !== horseName && !siblings.includes(r.Horse)) {
+                            siblings.push(r.Horse);
+                        }
+                    });
+                    if (siblings.length > 0) {
+                        siblingsCell.textContent = 'Y';
+                        siblingsCell.title = 'Siblings: ' + siblings.join(', ');
+                        siblingsCell.style.cursor = 'help';
+                        siblingsCell.style.color = '#1e40af';
+                    } else {
+                        siblingsCell.textContent = 'N';
+                        siblingsCell.title = '';
+                    }
+                } else {
+                    siblingsCell.textContent = '';
+                    siblingsCell.title = '';
                 }
-            });
-            if (siblings.length > 0) {
-                siblingsCell.textContent = 'Y';
-                siblingsCell.title = 'Siblings: ' + siblings.join(', ');
-                siblingsCell.style.cursor = 'help';
-                siblingsCell.style.color = '#1e40af';
-            } else {
-                siblingsCell.textContent = 'N';
-                siblingsCell.title = '';
+            } catch (e) {
+                console.error('Error updating row ' + rowNum + ': ' + e.message);
+                console.error(e.stack); // shows where it failed
             }
-        } else {
-            siblingsCell.textContent = '';
-            siblingsCell.title = '';
         }
-    } catch (e) {
-        console.error('Error updating row ' + rowNum + ': ' + e.message);
-        console.error(e.stack); // optional – shows full stack trace
-    }
-}
 function clearNextRaceRow(rowNum) {
     ['last5', 'avgRanking', 'comment', 'winsRaces', 'trainer', 'trainerPct', 'jockeyPct', 'siblings'].forEach(id => {
         const element = document.getElementById(`${id}-${rowNum}`);
