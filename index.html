@@ -4405,6 +4405,7 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
     const diffClass = diff >= 0 ? 'diff-positive' : 'diff-negative';
     const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
 
+    // Gate number is colored based on differential (green/red/black)
     tooltip.innerHTML = `
         <strong style="color: ${gateColor};">Post ${postNum}</strong> @ ${course} ${distance}m<br>
         Runs: ${stats.runs}<br>
