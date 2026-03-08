@@ -3608,12 +3608,12 @@ function switchNextRaceView() {
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
 
-    // Safety: FULL initialization for the day and ALL 12 races
+    // FULL safety initialization for the day and races
     if (!nextRaceData.days) nextRaceData.days = [];
     if (!nextRaceData.days[day]) {
         nextRaceData.days[day] = { races: [] };
     }
-    // Create all 12 races if they don't exist (this fixes Race 1 & 2 blank on Day 1)
+    // Create ALL 12 races if missing (this fixes Race 1 & 2 blank on Day 1)
     while (nextRaceData.days[day].races.length < 12) {
         nextRaceData.days[day].races.push({
             course: '',
@@ -3624,7 +3624,7 @@ function switchNextRaceView() {
             prediction: { a: '', b: '', c: '', d: '', e: '' }
         });
     }
-    saveNextRaceData(); // Save the full structure
+    saveNextRaceData(); // Save the initialized day
 
     if (raceValue === 'overview') {
         document.getElementById('overview-page').style.display = 'block';
