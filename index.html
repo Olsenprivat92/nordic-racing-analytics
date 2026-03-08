@@ -1308,18 +1308,22 @@
         </div>
     </div>
 </div>
-            <div class="start-list-loader">
-                <h3>Load Start List</h3>
-                <select id="startListFormat">
-                    <option value="danish">Danish (e.g. Klampenborg)</option>
-                    <option value="norwegian">Norwegian (e.g. Øvrevoll)</option>
-                    <option value="swedish">Swedish (e.g. Svensk Galopp)</option>
-                </select>
-                <textarea id="startListText" rows="10" placeholder="Paste the start list text here (copy from PDF or web page)"></textarea>
-                <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
-                <button onclick="parseAndFillStartList()">Parse and Fill Table</button>
-            </div>
-            <div class="card">
+<!-- Normal race content (hidden when Overview is selected) -->
+            <div id="race-pages">
+                <div class="start-list-loader">
+                    <h3>Load Start List</h3>
+                    <select id="startListFormat">
+                        <!-- ... -->
+                    </select>
+                    <textarea id="startListText" rows="10" placeholder="Paste the start list text here (copy from PDF or web page)"></textarea>
+                    <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
+                    <button onclick="parseAndFillStartList()">Parse and Fill Table</button>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">🏇 Next Race Analysis</h2>
+                    </div>
+                    <div class="card-body">
                 <div class="card-header">
                     <h2 class="card-title">🏇 Next Race Analysis</h2>
                 </div>
@@ -1450,11 +1454,21 @@
                             </div>
                         </div>
                     </div>
-                    <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
-                    <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
+<button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
+                <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
+            </div>
+
+            <!-- Overview Page (already added by you) -->
+            <div id="overview-page" style="display: none; margin-top: 2rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Race Day Overview (Predictions)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="predictionOverview" style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap;"></div>
+                    </div>
                 </div>
             </div>
-        </div>
         <!-- Notes Editor View -->
         <div class="view-container" id="notes-view">
             <div class="card">
@@ -3588,44 +3602,57 @@ if (filteredRaces.length > 0) {
         }
 function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-    const race = parseInt(document.getElementById('raceSelect').value) - 1;
+    const raceValue = document.getElementById('raceSelect').value;
 
-    // Safety init
-    if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
-    if (!nextRaceData.days[day].races[race]) {
-        nextRaceData.days[day].races[race] = {
-            course: '',
-            distance: '',
-            class: '',
-            date: '2025-10-11',
-            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
-            prediction: { a: '', b: '', c: '', d: '', e: '' }
-        };
+    // Hide both pages
+    document.getElementById('race-pages').style.display = 'none';
+    document.getElementById('overview-page').style.display = 'none';
+
+    if (raceValue === 'overview') {
+        // Show overview
+        document.getElementById('overview-page').style.display = 'block';
+        updatePredictionOverview(day);
+    } else {
+        const race = parseInt(raceValue) - 1;
+
+        // Your existing safety init (keep if you have it)
+        if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
+        if (!nextRaceData.days[day].races[race]) {
+            nextRaceData.days[day].races[race] = {
+                course: '',
+                distance: '',
+                class: '',
+                date: '2025-10-11',
+                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+                prediction: { a: '', b: '', c: '', d: '', e: '' }
+            };
+        }
+
+        const currentRace = nextRaceData.days[day].races[race];
+
+        document.getElementById('nextRaceCourse').value = currentRace.course || '';
+        document.getElementById('nextRaceDistance').value = currentRace.distance || '';
+        document.getElementById('nextRaceClass').value = currentRace.class || '';
+        document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
+
+        for (let i = 1; i <= 15; i++) {
+            const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
+            document.getElementById(`horse-${i}`).value = horseData.horse;
+            document.getElementById(`jockey-${i}`).value = horseData.jockey;
+            document.getElementById(`class-${i}`).value = horseData.class;
+            document.getElementById(`withweight-${i}`).value = horseData.withweight;
+            updateNextRaceRow(i);
+        }
+
+        document.getElementById('predictionA').value = currentRace.prediction.a || '';
+        document.getElementById('predictionB').value = currentRace.prediction.b || '';
+        document.getElementById('predictionC').value = currentRace.prediction.c || '';
+        document.getElementById('predictionD').value = currentRace.prediction.d || '';
+        document.getElementById('predictionE').value = currentRace.prediction.e || '';
+
+        document.getElementById('race-pages').style.display = 'block';
+        updateNextRaceScenario();
     }
-
-    const currentRace = nextRaceData.days[day].races[race];
-
-    document.getElementById('nextRaceCourse').value = currentRace.course || '';
-    document.getElementById('nextRaceDistance').value = currentRace.distance || '';
-    document.getElementById('nextRaceClass').value = currentRace.class || '';
-    document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
-
-    for (let i = 1; i <= 15; i++) {
-        const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
-        document.getElementById(`horse-${i}`).value = horseData.horse;
-        document.getElementById(`jockey-${i}`).value = horseData.jockey;
-        document.getElementById(`class-${i}`).value = horseData.class;
-        document.getElementById(`withweight-${i}`).value = horseData.withweight;
-        updateNextRaceRow(i);
-    }
-
-    document.getElementById('predictionA').value = currentRace.prediction.a || '';
-    document.getElementById('predictionB').value = currentRace.prediction.b || '';
-    document.getElementById('predictionC').value = currentRace.prediction.c || '';
-    document.getElementById('predictionD').value = currentRace.prediction.d || '';
-    document.getElementById('predictionE').value = currentRace.prediction.e || '';
-
-    updateNextRaceScenario();
 }
         function saveNextRaceFilters() {
             const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
@@ -3673,6 +3700,31 @@ function saveHorseData(rowNum) {
             currentRace.prediction.e = document.getElementById('predictionE').value;
             saveNextRaceData();
         }
+        function updatePredictionOverview(day) {
+    const overviewDiv = document.getElementById('predictionOverview');
+    if (!overviewDiv) return;
+
+    let html = '';
+    for (let r = 0; r < 12; r++) {
+        const race = nextRaceData.days[day]?.races?.[r];
+        if (!race) {
+            html += `<div>Race ${r+1}: (no data)</div>`;
+            continue;
+        }
+
+        const pred = race.prediction || { a: '', b: '', c: '', d: '', e: '' };
+        const letters = [];
+        if (pred.a) letters.push(`A: ${pred.a}`);
+        if (pred.b) letters.push(`B: ${pred.b}`);
+        if (pred.c) letters.push(`C: ${pred.c}`);
+        if (pred.d) letters.push(`D: ${pred.d}`);
+        if (pred.e) letters.push(`E: ${pred.e}`);
+
+        html += `<div>Race ${r+1}: ${letters.join('   ') || '(no predictions)'}</div>`;
+    }
+
+    overviewDiv.innerHTML = html || '<p>No predictions entered for this race day yet.</p>';
+}
         function clearCurrentRace() {
             const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
             const race = parseInt(document.getElementById('raceSelect').value) - 1;
