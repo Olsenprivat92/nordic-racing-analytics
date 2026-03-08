@@ -3630,26 +3630,13 @@ function switchNextRaceView() {
         });
     }
 
-    saveNextRaceData(); // Save the full day
+    saveNextRaceData(); // Save the full day structure immediately
 
     if (raceValue === 'overview') {
         document.getElementById('overview-page').style.display = 'block';
         updatePredictionOverview(day);
     } else {
         const race = parseInt(raceValue) - 1;
-
-        // Safety: make sure this race exists
-        if (!nextRaceData.days[day].races[race]) {
-            nextRaceData.days[day].races[race] = {
-                course: '',
-                distance: '',
-                class: '',
-                date: '2025-10-11',
-                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
-                prediction: { a: '', b: '', c: '', d: '', e: '' }
-            };
-            saveNextRaceData();
-        }
 
         const currentRace = nextRaceData.days[day].races[race];
 
