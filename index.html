@@ -3880,26 +3880,35 @@ function saveHorseData(rowNum) {
             } catch (e) {
                 console.error('Error updating row ' + rowNum + ': ' + e.message);
             }
-                            // Siblings (Y/N + hover tooltip from Horse Analysis data)
+                // Siblings (Y/N + hover tooltip from Horse Analysis data)
                 const siblingsCell = document.getElementById(`siblings-${rowNum}`);
-                if (horseName) {
+                siblingsCell.textContent = ''; // Clear first
+                siblingsCell.title = '';
+
+                if (horseName && horseRaces.length > 0) {
+                    const dam = horseRaces[0].Filly || ''; // Use first race's Filly (dam)
+                    console.log('Siblings debug - Horse:', horseName, 'Dam:', dam);
+
                     const siblings = [];
                     racingData.forEach(r => {
-                        if (r.Filly === horseRaces[0]?.Filly && r.Horse !== horseName && !siblings.includes(r.Horse)) {
+                        if (r.Filly === dam && r.Horse !== horseName && !siblings.includes(r.Horse)) {
                             siblings.push(r.Horse);
                         }
                     });
 
+                    console.log('Siblings found:', siblings.length, siblings);
+
                     if (siblings.length > 0) {
                         siblingsCell.textContent = 'Y';
                         siblingsCell.title = 'Siblings: ' + siblings.join(', ');
+                        siblingsCell.style.color = '#1e40af'; // Optional: make Y blue to stand out
+                        siblingsCell.style.cursor = 'help';
                     } else {
                         siblingsCell.textContent = 'N';
-                        siblingsCell.title = '';
+                        siblingsCell.title = 'No siblings found';
                     }
                 } else {
-                    siblingsCell.textContent = '';
-                    siblingsCell.title = '';
+                    console.log('Siblings skipped - no horse or no races');
                 }
         }
 function clearNextRaceRow(rowNum) {
