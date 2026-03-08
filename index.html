@@ -3854,19 +3854,17 @@ function updateNextRaceRow(rowNum) {
         const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
         document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
 
-        // Post Position Hover Tooltip - per row, colored gate number
+        // Post Position Hover Tooltip - fixed per-row selector + gate color
         const currentCourse = document.getElementById('nextRaceCourse').value;
         const currentDistance = document.getElementById('nextRaceDistance').value;
         const postStats = getPostPositionStatsForRace(currentCourse, currentDistance);
         const postNum = rowNum;
         const p = postStats && postStats[postNum] ? postStats[postNum] : { runs: 0, wins: 0, expected: 0 };
 
-        // Get the row element first
         const rowElement = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum})`);
-        const postCell = rowElement ? rowElement.querySelector('td:first-child') : null;
+        const postCell = rowElement ? rowElement.querySelector('td:nth-child(1)') : null;
 
         if (postCell) {
-            // Clear old listeners
             postCell.onmouseover = null;
             postCell.onmouseout = null;
 
@@ -3886,7 +3884,6 @@ function updateNextRaceRow(rowNum) {
 
             postCell.onmouseout = hidePostTooltip;
         }
-
         // Siblings row (Y/N + hover tooltip)
         const siblingsCell = document.getElementById(`siblings-${rowNum}`);
         if (horseName && horseRaces.length > 0) {
