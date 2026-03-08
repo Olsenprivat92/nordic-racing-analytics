@@ -3854,19 +3854,34 @@ function updateNextRaceRow(rowNum) {
         const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
         document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
 
-        // Post Position Hover Tooltip
+        // Post Position Hover Tooltip (colored differential + colored gate number)
         const currentCourse = document.getElementById('nextRaceCourse').value;
         const currentDistance = document.getElementById('nextRaceDistance').value;
         const postStats = getPostPositionStatsForRace(currentCourse, currentDistance);
         const postNum = rowNum;
         const p = postStats && postStats[postNum] ? postStats[postNum] : { runs: 0, wins: 0, expected: 0 };
+
         const postCell = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum}) td:first-child`);
         if (postCell) {
+            // Remove any old listeners to avoid duplicates
+            postCell.onmouseover = null;
+            postCell.onmouseout = null;
+
             postCell.onmouseover = (e) => {
                 if (p.runs > 0) {
-                    showPostTooltip(e, postNum, p, currentCourse, currentDistance);
+                    const winPct = (p.wins / p.runs * 100).toFixed(1);
+                    const expPct = (p.expected / p.runs * 100).toFixed(1);
+                    const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
+                    const diffClass = diff >= 0 ? 'diff-positive' : 'diff-negative';
+                    const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
+
+                    // Color the gate number based on differential
+                    const gateColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
+
+                    showPostTooltip(e, postNum, p, currentCourse, currentDistance, gateColor);
                 }
             };
+
             postCell.onmouseout = hidePostTooltip;
         }
 
@@ -4375,34 +4390,33 @@ function clearNextRaceRow(rowNum) {
             return postStats;
         }
 
-        function showPostTooltip(e, postNum, stats, course, distance) {
-            let tooltip = document.getElementById('postTooltip');
-            if (!tooltip) {
-                tooltip = document.createElement('div');
-                tooltip.id = 'postTooltip';
-                tooltip.className = 'post-tooltip';
-                document.body.appendChild(tooltip);
-            }
+function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
+    let tooltip = document.getElementById('postTooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'postTooltip';
+        tooltip.className = 'post-tooltip';
+        document.body.appendChild(tooltip);
+    }
 
-            const winPct = (stats.wins / stats.runs * 100).toFixed(1);
-            const expPct = (stats.expected / stats.runs * 100).toFixed(1);
-            const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
-            const diffClass = diff >= 0 ? 'diff-positive' : 'diff-negative';
-            const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
+    const winPct = (stats.wins / stats.runs * 100).toFixed(1);
+    const expPct = (stats.expected / stats.runs * 100).toFixed(1);
+    const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
+    const diffClass = diff >= 0 ? 'diff-positive' : 'diff-negative';
+    const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
 
-            tooltip.innerHTML = `
-                <strong>Post ${postNum}</strong> @ ${course} ${distance}m<br>
-                Runs: ${stats.runs}<br>
-                Wins: ${stats.wins}<br>
-                Win%: ${winPct}%<br>
-                Expected: ${expPct}%<br>
-                Differential: <span class="${diffClass}">${diffText}</span>
-            `;
-
-            tooltip.style.left = (e.pageX + 15) + 'px';
-            tooltip.style.top = (e.pageY + 15) + 'px';
-            tooltip.style.display = 'block';
-        }
+    tooltip.innerHTML = `
+        <strong style="color: ${gateColor};">Post ${postNum}</strong> @ ${course} ${distance}m<br>
+        Runs: ${stats.runs}<br>
+        Wins: ${stats.wins}<br>
+        Win%: ${winPct}%<br>
+        Expected: ${expPct}%<br>
+        Differential: <span class="${diffClass}">${diffText}</span>
+    `;
+    tooltip.style.left = (e.pageX + 15) + 'px';
+    tooltip.style.top = (e.pageY + 15) + 'px';
+    tooltip.style.display = 'block';
+}
 
         function hidePostTooltip() {
             const tooltip = document.getElementById('postTooltip');
