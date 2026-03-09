@@ -3780,7 +3780,7 @@ function switchNextRaceView() {
         updatePredictionOverview(day);
     } else if (raceValue === 'selection') {
         document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces(); // Generate the 12 race rows
+        populateSelectionRaces(); // This generates the 12 race rows
     } else {
         const race = parseInt(raceValue) - 1;
 
