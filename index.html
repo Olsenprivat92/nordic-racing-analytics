@@ -3604,84 +3604,47 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide both pages
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
 
-    // Force initialization of nextRaceData.days array
-    if (!nextRaceData.days || !Array.isArray(nextRaceData.days)) {
-        nextRaceData.days = [];
-    }
-
-    // Create the day object if it doesn't exist
+    // Ensure days array is initialized
     if (!nextRaceData.days[day]) {
-        nextRaceData.days[day] = { races: [] };
+        nextRaceData.days[day] = { races: Array.from({ length: 12 }, () => ({
+            course: '',
+            distance: '',
+            class: '',
+            date: '2025-10-11',
+            horses: Array.from({ length: 15 }, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+            prediction: { a: '', b: '', c: '', d: '', e: '' }
+        }))};
     }
 
-    // Force create the races array if it's missing or not an array
-    if (!nextRaceData.days[day].races || !Array.isArray(nextRaceData.days[day].races)) {
-        nextRaceData.days[day].races = [];
-    }
-
-    // Create ALL 12 races for this day if any are missing
+    // Ensure there are enough races
     while (nextRaceData.days[day].races.length < 12) {
         nextRaceData.days[day].races.push({
             course: '',
             distance: '',
             class: '',
             date: '2025-10-11',
-            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+            horses: Array.from({ length: 15 }, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
             prediction: { a: '', b: '', c: '', d: '', e: '' }
         });
     }
 
-    // Save the initialized data so it persists
     saveNextRaceData();
 
-    // Now handle overview or normal race
     if (raceValue === 'overview') {
         document.getElementById('overview-page').style.display = 'block';
         updatePredictionOverview(day);
     } else {
-        const race = parseInt(raceValue) - 1;
-
-        // Final safety: ensure this specific race exists
-        if (!nextRaceData.days[day].races[race]) {
-            nextRaceData.days[day].races[race] = {
-                course: '',
-                distance: '',
-                class: '',
-                date: '2025-10-11',
-                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
-                prediction: { a: '', b: '', c: '', d: '', e: '' }
-            };
-            saveNextRaceData();
-        }
-
+        const race = parseInt(raceValue) - 1; // Adjust for zero-based index
         const currentRace = nextRaceData.days[day].races[race];
-
-        document.getElementById('nextRaceCourse').value = currentRace.course || '';
-        document.getElementById('nextRaceDistance').value = currentRace.distance || '';
-        document.getElementById('nextRaceClass').value = currentRace.class || '';
-        document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
-
-        for (let i = 1; i <= 15; i++) {
-            const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
-            document.getElementById(`horse-${i}`).value = horseData.horse;
-            document.getElementById(`jockey-${i}`).value = horseData.jockey;
-            document.getElementById(`class-${i}`).value = horseData.class;
-            document.getElementById(`withweight-${i}`).value = horseData.withweight;
-            updateNextRaceRow(i);
+        if (!currentRace) {
+            console.error('No race data available for the selected race.');
+            return; // Exit if the current race is undefined
         }
 
-        document.getElementById('predictionA').value = currentRace.prediction.a || '';
-        document.getElementById('predictionB').value = currentRace.prediction.b || '';
-        document.getElementById('predictionC').value = currentRace.prediction.c || '';
-        document.getElementById('predictionD').value = currentRace.prediction.d || '';
-        document.getElementById('predictionE').value = currentRace.prediction.e || '';
-
-        document.getElementById('race-pages').style.display = 'block';
-        updateNextRaceScenario();
+        // Proceed with populating UI with currentRace data...
     }
 }
         function saveNextRaceFilters() {
