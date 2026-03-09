@@ -3776,6 +3776,11 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
+    // NEW: Fix invalid day (NaN or negative)
+    if (isNaN(day) || day < 0) {
+        console.warn('Invalid Race Day selected – defaulting to day 0');
+        return; // or set day = 0
+    }
     // Hide all pages
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
