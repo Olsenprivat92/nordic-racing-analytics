@@ -3830,22 +3830,21 @@ function updateNextRaceRow(rowNum) {
             clearNextRaceRow(rowNum);
             return;
         }
-        
+
         const selectedCourse = document.getElementById('nextRaceCourse').value;
         const surfaceValues = getSelectedValues('nextRaceSurfaceFilter');
         const distValues = getSelectedValues('nextRaceDistanceFilter');
         const selectedDate = document.getElementById('nextRaceDate').value || '2025-10-11';
-
         let horseRaces = racingData.filter(r => r.Horse === horseName);
-        
-        // NOW we can check horseRaces after it's defined
+
+        // Safety check after horseRaces is defined
         if (!horseRaces || horseRaces.length === 0) {
             document.getElementById(`avgRanking-${rowNum}`).textContent = 'N/A';
             document.getElementById(`comment-${rowNum}`).textContent = 'N/A';
             clearNextRaceRow(rowNum);
             return;
         }
-        
+
         if (surfaceValues.length > 0 && !surfaceValues.includes('all')) {
             horseRaces = horseRaces.filter(race => {
                 const raceSurface = (race.Surface || '').toLowerCase();
@@ -3869,7 +3868,6 @@ function updateNextRaceRow(rowNum) {
             const dateB = parseRaceDate(b.Date) || new Date(0);
             return dateB - dateA;
         });
-
         const metrics = calculateDetailedMetrics(horseRaces, 'horse');
 
         // Last 5 races
@@ -3919,7 +3917,7 @@ function updateNextRaceRow(rowNum) {
         trainerCell.innerHTML = trainer + (trainerComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
         trainerCell.title = trainerComment || '';
 
-        // Jockey with * and hover tooltip
+        // Jockey with * and hover tooltip (already there)
         const jockeyComment = getJockeyComment(jockeyName);
         jockeyInput.title = jockeyComment || '';
 
@@ -3938,9 +3936,8 @@ function updateNextRaceRow(rowNum) {
         // Sire row (name + * if comment, hover shows comment from Breeding)
         const sireCell = document.getElementById(`sire-${rowNum}`);
         if (horseRaces.length > 0) {
-            const sire = horseRaces[0].Sire || 'N/A';  // Take Sire from first race
-            const sireComment = localStorage.getItem(`sireComment_${sire}`) || '';  // From Breeding comment box
-
+            const sire = horseRaces[0].Sire || 'N/A';
+            const sireComment = localStorage.getItem(`sireComment_${sire}`) || '';
             if (sire !== 'N/A') {
                 sireCell.innerHTML = sire + (sireComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
                 sireCell.title = sireComment || '';
@@ -3953,7 +3950,8 @@ function updateNextRaceRow(rowNum) {
             sireCell.textContent = '';
             sireCell.title = '';
         }
-        // Jockey %
+
+        // Jockey % with * if comment, hover shows comment (this is the updated part)
         const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
         let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
         if (selectedCourse) {
@@ -3976,7 +3974,13 @@ function updateNextRaceRow(rowNum) {
         }
         const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
         const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-        document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
+
+        // Add * if comment exists, hover shows comment
+        const jockeyComment = getJockeyComment(jockey) || '';
+        const jockeyPctCell = document.getElementById(`jockeyPct-${rowNum}`);
+        jockeyPctCell.innerHTML = jockeyWinPct + (jockeyComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
+        jockeyPctCell.title = jockeyComment || '';
+        jockeyPctCell.style.cursor = jockeyComment ? 'help' : 'default';
 
         // Post Position Hover Tooltip - fixed per-row selector
         const currentCourse = document.getElementById('nextRaceCourse').value;
@@ -3984,16 +3988,13 @@ function updateNextRaceRow(rowNum) {
         const postStats = getPostPositionStatsForRace(currentCourse, currentDistance);
         const postNum = rowNum;
         const p = postStats && postStats[postNum] ? postStats[postNum] : { runs: 0, wins: 0, expected: 0 };
-
         // Get THIS row's gate cell (first column)
         const thisRow = document.querySelector(`#nextRaceTable tbody tr:nth-child(${rowNum})`);
         const postCell = thisRow ? thisRow.querySelector('td:nth-child(1)') : null;
-
         if (postCell) {
             // Clear any old listeners (prevents row 1 stealing all hovers)
             postCell.onmouseover = null;
             postCell.onmouseout = null;
-
             postCell.onmouseover = (e) => {
                 if (p.runs > 0) {
                     const winPct = (p.wins / p.runs * 100).toFixed(1);
@@ -4001,15 +4002,13 @@ function updateNextRaceRow(rowNum) {
                     const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
                     const diffClass = diff >= 0 ? 'diff-positive' : 'diff-negative';
                     const diffText = diff >= 0 ? `+${diff}%` : `${diff}%`;
-
                     const gateColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
-
                     showPostTooltip(e, postNum, p, currentCourse, currentDistance, gateColor);
                 }
             };
-
             postCell.onmouseout = hidePostTooltip;
         }
+
         // Siblings row (Y/N + hover tooltip)
         const siblingsCell = document.getElementById(`siblings-${rowNum}`);
         if (horseName && horseRaces.length > 0) {
