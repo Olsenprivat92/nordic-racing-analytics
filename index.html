@@ -3810,7 +3810,7 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide ALL pages first
+    // Hide ALL normal content and views
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'none';
@@ -3820,11 +3820,11 @@ function switchNextRaceView() {
         updatePredictionOverview(day);
     } else if (raceValue === 'selection') {
         document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces(); // This creates the 12 race rows with inputs
+        populateSelectionRaces(); // Generate the 12 race rows with distance/class inputs
     } else {
         const race = parseInt(raceValue) - 1;
 
-        // Safety: Initialize day and all 12 races if missing
+        // Safety: Initialize the day and all 12 races if missing
         if (!nextRaceData.days) nextRaceData.days = [];
         if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
         while (nextRaceData.days[day].races.length < 12) {
