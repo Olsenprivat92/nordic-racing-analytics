@@ -1964,6 +1964,59 @@
         selectionCourse.innerHTML = '<option value="">Select Course</option>' +
             document.getElementById('nextRaceCourse').innerHTML.replace('<option value="">Select Course</option>', '');
     }
+        function populateJockeyFilters() {
+    const jockeys = new Set();
+    const courses = new Set();
+    const classes = new Set();
+    const distances = new Set();
+    racingData.forEach(row => {
+        if (row.Jockey && row.Jockey.trim()) jockeys.add(row.Jockey.trim());
+
+        if (row.Course && row.Course.trim()) {
+            let courseName = row.Course.trim();
+
+            if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
+                const surface = (row.Surface || '').toLowerCase();
+                const track = (row.Track || '').toLowerCase();
+                const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
+
+                if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                    track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                    courseName += ' (Dirt)';
+                } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                           track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                    courseName += ' (Grass)';
+                }
+            }
+
+            courses.add(courseName);
+        }
+        if (row.Class && row.Class.trim()) classes.add(row.Class.trim());
+        if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
+    });
+
+    const jockeyFilter = document.getElementById('jockeyAnalysisFilter');
+    jockeyFilter.innerHTML = '<option value="all" selected>All Jockeys</option>' +
+        Array.from(jockeys).sort().map(jockey => `<option value="${jockey}">${jockey}</option>`).join('');
+
+    const courseFilter = document.getElementById('jockeyCourseFilter');
+    courseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
+        Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+
+    const classFilter = document.getElementById('jockeyClassFilter');
+    classFilter.innerHTML = '<option value="all" selected>All Classes</option>' +
+        Array.from(classes).sort().map(cls => `<option value="${cls}">${cls}</option>`).join('');
+
+    const distanceFilter = document.getElementById('jockeyDistanceFilter');
+    distanceFilter.innerHTML = '<option value="all" selected>All Distances</option>' +
+        Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
+
+    const topCourseFilter = document.getElementById('topJockeyCourseFilter');
+    if (topCourseFilter) {
+        topCourseFilter.innerHTML = '<option value="all" selected>All Courses</option>' +
+            Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+    }
+}
         function populateSelectionRaces() {
     const tableBody = document.getElementById('selectionRacesTable');
     if (!tableBody) return;
@@ -3717,62 +3770,34 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide both pages
+    // Hide all pages
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
+    document.getElementById('selection-page').style.display = 'none';
 
-    // Force initialization of nextRaceData.days array
-    if (!nextRaceData.days || !Array.isArray(nextRaceData.days)) {
-        nextRaceData.days = [];
-    }
-
-    // Create the day object if it doesn't exist
-    if (!nextRaceData.days[day]) {
-        nextRaceData.days[day] = { races: [] };
-    }
-
-    // Force create the races array if it's missing or not an array
-    if (!nextRaceData.days[day].races || !Array.isArray(nextRaceData.days[day].races)) {
-        nextRaceData.days[day].races = [];
-    }
-
-    // Create ALL 12 races for this day if any are missing
-    while (nextRaceData.days[day].races.length < 12) {
-        nextRaceData.days[day].races.push({
-            course: '',
-            distance: '',
-            class: '',
-            date: '2025-10-11',
-            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
-            prediction: { a: '', b: '', c: '', d: '', e: '' }
-        });
-    }
-
-    // Save the initialized data so it persists
-    saveNextRaceData();
-
-    // Now handle overview or normal race
     if (raceValue === 'overview') {
         document.getElementById('overview-page').style.display = 'block';
         updatePredictionOverview(day);
     } else if (raceValue === 'selection') {
         document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces(); // ← This line generates the 12 race rows
+        populateSelectionRaces(); // Generate the 12 race rows
     } else {
         const race = parseInt(raceValue) - 1;
 
-        // Your existing safety init (keep if you have it, or add this minimal version)
+        // Safety: Initialize day and all 12 races if missing
+        if (!nextRaceData.days) nextRaceData.days = [];
         if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
-        if (!nextRaceData.days[day].races[race]) {
-            nextRaceData.days[day].races[race] = {
+        while (nextRaceData.days[day].races.length < 12) {
+            nextRaceData.days[day].races.push({
                 course: '',
                 distance: '',
                 class: '',
                 date: '2025-10-11',
                 horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
-            };
+            });
         }
+        saveNextRaceData();
 
         const currentRace = nextRaceData.days[day].races[race];
 
@@ -3799,6 +3824,7 @@ function switchNextRaceView() {
         document.getElementById('race-pages').style.display = 'block';
         updateNextRaceScenario();
     }
+}
         function saveNextRaceFilters() {
             const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
             const race = parseInt(document.getElementById('raceSelect').value) - 1;
