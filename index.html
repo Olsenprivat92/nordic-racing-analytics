@@ -3816,18 +3816,22 @@ function updateNextRaceRow(rowNum) {
             clearNextRaceRow(rowNum);
             return;
         }
-        if (!horseRaces || horseRaces.length === 0) {
-            document.getElementById(`avgRanking-${rowNum}`).textContent = 'N/A';
-            document.getElementById(`comment-${rowNum}`).textContent = 'N/A';
-            clearNextRaceRow(rowNum);
-            return;
-        }
+        
         const selectedCourse = document.getElementById('nextRaceCourse').value;
         const surfaceValues = getSelectedValues('nextRaceSurfaceFilter');
         const distValues = getSelectedValues('nextRaceDistanceFilter');
         const selectedDate = document.getElementById('nextRaceDate').value || '2025-10-11';
 
         let horseRaces = racingData.filter(r => r.Horse === horseName);
+        
+        // NOW we can check horseRaces after it's defined
+        if (!horseRaces || horseRaces.length === 0) {
+            document.getElementById(`avgRanking-${rowNum}`).textContent = 'N/A';
+            document.getElementById(`comment-${rowNum}`).textContent = 'N/A';
+            clearNextRaceRow(rowNum);
+            return;
+        }
+        
         if (surfaceValues.length > 0 && !surfaceValues.includes('all')) {
             horseRaces = horseRaces.filter(race => {
                 const raceSurface = (race.Surface || '').toLowerCase();
