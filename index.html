@@ -3976,7 +3976,13 @@ function updateNextRaceRow(rowNum) {
         }
         const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
         const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-        document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
+
+        // Add * if comment exists, hover shows comment
+        const jockeyComment = getJockeyComment(jockey) || '';
+        const jockeyPctCell = document.getElementById(`jockeyPct-${rowNum}`);
+jockeyPctCell.innerHTML = jockeyWinPct + (jockeyComment ? ' <span style="color:#eab308; font-weight:bold; cursor:pointer;" onclick="switchView(\'jockeys\'); document.getElementById(\'jockeyAnalysisFilter\').value = \'' + jockey + '\'; updateJockeyAnalysis();">*</span>' : '');
+        jockeyPctCell.title = jockeyComment || '';
+        jockeyPctCell.style.cursor = jockeyComment ? 'help' : 'default';
 
         // Post Position Hover Tooltip - fixed per-row selector
         const currentCourse = document.getElementById('nextRaceCourse').value;
