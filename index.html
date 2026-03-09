@@ -3980,7 +3980,7 @@ function updateNextRaceRow(rowNum) {
         // Add * if comment exists, hover shows comment
         const jockeyComment = getJockeyComment(jockey) || '';
         const jockeyPctCell = document.getElementById(`jockeyPct-${rowNum}`);
-        jockeyPctCell.innerHTML = jockeyWinPct + (jockeyComment ? ' <span style="color:#eab308; font-weight:bold; cursor:pointer;" onclick="switchView(\'jockeys\'); document.getElementById(\'jockeyAnalysisFilter\').value = \'' + jockey + '\'; updateJockeyAnalysis();">*</span>' : '');
+jockeyPctCell.innerHTML = jockeyWinPct + (jockeyComment ? ' <span style="color:#eab308; font-weight:bold; cursor:pointer;" onclick="switchView(\'jockeys\'); document.getElementById(\'jockeyAnalysisFilter\').value = \'' + jockey + '\'; updateJockeyAnalysis();">*</span>' : '');
         jockeyPctCell.title = jockeyComment || '';
         jockeyPctCell.style.cursor = jockeyComment ? 'help' : 'default';
 
