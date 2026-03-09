@@ -4013,14 +4013,12 @@ function updateNextRaceRow(rowNum) {
         const siblingsCell = document.getElementById(`siblings-${rowNum}`);
         if (horseName && horseRaces.length > 0) {
             const dam = horseRaces[0].Filly || '';
-            console.log('Siblings debug - Horse:', horseName, 'Dam:', dam);
             const siblings = [];
             racingData.forEach(r => {
                 if (r.Filly === dam && r.Horse !== horseName && !siblings.includes(r.Horse)) {
                     siblings.push(r.Horse);
                 }
             });
-            console.log('Siblings debug - Found:', siblings.length, siblings);
             if (siblings.length > 0) {
                 siblingsCell.textContent = 'Y';
                 siblingsCell.title = 'Siblings: ' + siblings.join(', ');
@@ -4031,7 +4029,6 @@ function updateNextRaceRow(rowNum) {
                 siblingsCell.title = 'No siblings';
             }
         } else {
-            console.log('Siblings debug - skipped (no horse or no races)');
             siblingsCell.textContent = '';
             siblingsCell.title = '';
         }
