@@ -3810,7 +3810,7 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide all pages
+    // Hide ALL pages first
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'none';
@@ -3820,7 +3820,7 @@ function switchNextRaceView() {
         updatePredictionOverview(day);
     } else if (raceValue === 'selection') {
         document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces(); // Generate the 12 race rows
+        populateSelectionRaces(); // This creates the 12 race rows with inputs
     } else {
         const race = parseInt(raceValue) - 1;
 
