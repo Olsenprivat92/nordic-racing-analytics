@@ -2067,14 +2067,20 @@ function applySelection() {
 
     // Apply distances and classes
     for (let r = 1; r <= 12; r++) {
-        const dist = document.getElementById(`selDist-${r}`)?.value.trim() || '';
-        const cls = document.getElementById(`selClass-${r}`)?.value || '';
-        if (dist) nextRaceData.days[day].races[r-1].distance = dist;
-        if (cls) nextRaceData.days[day].races[r-1].class = cls;
+        const distInput = document.getElementById(`selDist-${r}`);
+        const classSelect = document.getElementById(`selClass-${r}`);
+        if (distInput) {
+            const dist = distInput.value.trim();
+            if (dist) nextRaceData.days[day].races[r-1].distance = dist;
+        }
+        if (classSelect) {
+            const cls = classSelect.value;
+            if (cls) nextRaceData.days[day].races[r-1].class = cls;
+        }
     }
 
     saveNextRaceData();
-    alert('Selection applied to Race Day ' + (day + 1) + '!');
+    alert('Selection applied to Race Day ' + (day + 1) + '! Switch to that day to see the pre-filled values.');
 }
         function populateNotesFilters() {
             const courses = new Set();
