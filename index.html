@@ -3917,10 +3917,6 @@ function updateNextRaceRow(rowNum) {
         trainerCell.innerHTML = trainer + (trainerComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
         trainerCell.title = trainerComment || '';
 
-        // Jockey with * and hover tooltip (already there)
-        const jockeyComment = getJockeyComment(jockeyName);
-        jockeyInput.title = jockeyComment || '';
-
         // Trainer Win % on the selected course only
         let trainerWinPct = 'N/A';
         if (selectedCourse) {
