@@ -3773,31 +3773,38 @@ if (filteredRaces.length > 0) {
             localStorage.setItem('nextRaceData', JSON.stringify(nextRaceData));
         }
 function switchNextRaceView() {
-    const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-    const raceValue = document.getElementById('raceSelect').value;
+    try {
+        const dayStr = document.getElementById('raceDaySelect').value;
+        const day = parseInt(dayStr) - 1;
+        const raceValue = document.getElementById('raceSelect').value;
 
-    // NEW: Fix invalid day (NaN or negative)
-    if (isNaN(day) || day < 0) {
-        console.warn('Invalid Race Day selected – defaulting to day 0');
-        return; // or set day = 0
-    }
-    // Hide all pages
-    document.getElementById('race-pages').style.display = 'none';
-    document.getElementById('overview-page').style.display = 'none';
-    document.getElementById('selection-page').style.display = 'none';
+        // Early validation
+        if (isNaN(day) || day < 0) {
+            console.warn('Invalid Race Day value:', dayStr);
+            return;
+        }
 
-    if (raceValue === 'overview') {
-        document.getElementById('overview-page').style.display = 'block';
-        updatePredictionOverview(day);
-    } else if (raceValue === 'selection') {
-        document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces(); // This generates the 12 race rows
-    } else {
-        const race = parseInt(raceValue) - 1;
+        // Hide pages
+        document.getElementById('race-pages').style.display = 'none';
+        document.getElementById('overview-page').style.display = 'none';
+        document.getElementById('selection-page').style.display = 'none';
 
-        // Safety: Initialize day and all 12 races if missing
-        if (!nextRaceData.days) nextRaceData.days = [];
-        if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
+        // Initialize days array
+        if (!nextRaceData.days || !Array.isArray(nextRaceData.days)) {
+            nextRaceData.days = [];
+        }
+
+        // Create day object + races array
+        if (!nextRaceData.days[day]) {
+            nextRaceData.days[day] = { races: [] };
+        }
+
+        // Ensure races is an array
+        if (!nextRaceData.days[day].races || !Array.isArray(nextRaceData.days[day].races)) {
+            nextRaceData.days[day].races = [];
+        }
+
+        // Create all 12 races
         while (nextRaceData.days[day].races.length < 12) {
             nextRaceData.days[day].races.push({
                 course: '',
@@ -3808,32 +3815,49 @@ function switchNextRaceView() {
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
             });
         }
-        saveNextRaceData();
 
-        const currentRace = nextRaceData.days[day].races[race];
+        saveNextRaceData(); // Save now
 
-        document.getElementById('nextRaceCourse').value = currentRace.course || '';
-        document.getElementById('nextRaceDistance').value = currentRace.distance || '';
-        document.getElementById('nextRaceClass').value = currentRace.class || '';
-        document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
+        if (raceValue === 'overview') {
+            document.getElementById('overview-page').style.display = 'block';
+            updatePredictionOverview(day);
+        } else if (raceValue === 'selection') {
+            document.getElementById('selection-page').style.display = 'block';
+            populateSelectionRaces();
+        } else {
+            const race = parseInt(raceValue) - 1;
+            if (isNaN(race) || race < 0 || race >= 12) {
+                console.warn('Invalid race number:', raceValue);
+                return;
+            }
 
-        for (let i = 1; i <= 15; i++) {
-            const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
-            document.getElementById(`horse-${i}`).value = horseData.horse;
-            document.getElementById(`jockey-${i}`).value = horseData.jockey;
-            document.getElementById(`class-${i}`).value = horseData.class;
-            document.getElementById(`withweight-${i}`).value = horseData.withweight;
-            updateNextRaceRow(i);
+            const currentRace = nextRaceData.days[day].races[race];
+
+            document.getElementById('nextRaceCourse').value = currentRace.course || '';
+            document.getElementById('nextRaceDistance').value = currentRace.distance || '';
+            document.getElementById('nextRaceClass').value = currentRace.class || '';
+            document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
+
+            for (let i = 1; i <= 15; i++) {
+                const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
+                document.getElementById(`horse-${i}`).value = horseData.horse;
+                document.getElementById(`jockey-${i}`).value = horseData.jockey;
+                document.getElementById(`class-${i}`).value = horseData.class;
+                document.getElementById(`withweight-${i}`).value = horseData.withweight;
+                updateNextRaceRow(i);
+            }
+
+            document.getElementById('predictionA').value = currentRace.prediction.a || '';
+            document.getElementById('predictionB').value = currentRace.prediction.b || '';
+            document.getElementById('predictionC').value = currentRace.prediction.c || '';
+            document.getElementById('predictionD').value = currentRace.prediction.d || '';
+            document.getElementById('predictionE').value = currentRace.prediction.e || '';
+
+            document.getElementById('race-pages').style.display = 'block';
+            updateNextRaceScenario();
         }
-
-        document.getElementById('predictionA').value = currentRace.prediction.a || '';
-        document.getElementById('predictionB').value = currentRace.prediction.b || '';
-        document.getElementById('predictionC').value = currentRace.prediction.c || '';
-        document.getElementById('predictionD').value = currentRace.prediction.d || '';
-        document.getElementById('predictionE').value = currentRace.prediction.e || '';
-
-        document.getElementById('race-pages').style.display = 'block';
-        updateNextRaceScenario();
+    } catch (e) {
+        console.error('switchNextRaceView crashed:', e.message, e.stack);
     }
 }
         function saveNextRaceFilters() {
