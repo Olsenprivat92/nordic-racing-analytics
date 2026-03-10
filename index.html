@@ -4862,6 +4862,43 @@ function showSelectionModal() {
     // Scroll to top of modal content
     modal.querySelector('div').scrollTop = 0;
 }
+        function populateSelectionRacesModal() {
+    const tableBody = document.getElementById('selectionRacesTableModal');
+    if (!tableBody) {
+        console.warn('selectionRacesTableModal not found');
+        return;
+    }
+
+    tableBody.innerHTML = '';
+    for (let r = 1; r <= 12; r++) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Race ${r}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                <input type="text" id="selDistModal-${r}" placeholder="e.g. 1400m" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+            </td>
+            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                <select id="selClassModal-${r}" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <option value="">Select Class</option>
+                    <option value="Ældre Vinder">Ældre Vinder</option>
+                    <option value="3 Års Maiden">3 Års Maiden</option>
+                    <option value="3 Års Vinder">3 Års Vinder</option>
+                    <option value="2 Års">2 Års</option>
+                    <option value="Class 1">Class 1</option>
+                    <option value="Class 2">Class 2</option>
+                    <option value="Class 3">Class 3</option>
+                    <option value="Class 4">Class 4</option>
+                    <option value="Class 5">Class 5</option>
+                    <option value="Noviseløb">Noviseløb</option>
+                    <option value="Ældre Maiden">Ældre Maiden</option>
+                    <option value="Max Hcp">Max Hcp</option>
+                </select>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    }
+    console.log('Selection rows generated – 12 races added');
+}
     </script>
 </body>
 </html>
