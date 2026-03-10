@@ -1310,6 +1310,60 @@
             <div id="predictionOverview" style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap;"></div>
         </div>
     </div>
+    <!-- Selection Modal – popup for quick race day setup -->
+<div id="selectionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0;">Quick Race Day Setup</h2>
+            <button onclick="closeSelectionModal()" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 1.2rem;">×</button>
+        </div>
+
+        <!-- Choose Race Day -->
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Race Day to configure:</label>
+            <select id="selectionDayModal" style="padding: 8px; width: 200px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <option value="0">Race Day 1</option>
+                <option value="1">Race Day 2</option>
+                <option value="2">Race Day 3</option>
+                <option value="3">Race Day 4</option>
+                <option value="4">Race Day 5</option>
+            </select>
+        </div>
+
+        <!-- Course -->
+        <div style="margin-bottom: 2rem;">
+            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Course for the whole day:</label>
+            <select id="selectionCourseModal" style="padding: 8px; width: 100%; max-width: 400px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                <option value="">Select Course</option>
+            </select>
+        </div>
+
+        <!-- Race table -->
+        <div>
+            <h4 style="margin-bottom: 1rem;">Distances and Classes per race</h4>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                <thead>
+                    <tr style="background: #f1f5f9;">
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Race</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Distance</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Class</th>
+                    </tr>
+                </thead>
+                <tbody id="selectionRacesTableModal"></tbody>
+            </table>
+        </div>
+
+        <!-- Buttons -->
+        <div style="margin-top: 2rem; text-align: right;">
+            <button onclick="closeSelectionModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 1rem;">
+                Cancel
+            </button>
+            <button onclick="applySelectionModal()" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                Apply Setup
+            </button>
+        </div>
+    </div>
+</div>
 </div>
      <!-- Selection Page – dedicated setup for a whole race day -->
 <div id="selection-page" style="display: none; margin-top: 2rem;">
@@ -4748,6 +4802,90 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
 
         postCell.onmouseout = hidePostTooltip;
     });
+}
+        function showSelectionModal() {
+    document.getElementById('selectionModal').style.display = 'flex';
+    populateSelectionRacesModal();
+    populateSelectionCourseModal();
+}
+
+function closeSelectionModal() {
+    document.getElementById('selectionModal').style.display = 'none';
+}
+
+function populateSelectionRacesModal() {
+    const tableBody = document.getElementById('selectionRacesTableModal');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '';
+    for (let r = 1; r <= 12; r++) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Race ${r}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                <input type="text" id="selDistModal-${r}" placeholder="e.g. 1400m" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+            </td>
+            <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">
+                <select id="selClassModal-${r}" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px;">
+                    <option value="">Select Class</option>
+                    <option value="Ældre Vinder">Ældre Vinder</option>
+                    <option value="3 Års Maiden">3 Års Maiden</option>
+                    <option value="3 Års Vinder">3 Års Vinder</option>
+                    <option value="2 Års">2 Års</option>
+                    <option value="Class 1">Class 1</option>
+                    <option value="Class 2">Class 2</option>
+                    <option value="Class 3">Class 3</option>
+                    <option value="Class 4">Class 4</option>
+                    <option value="Class 5">Class 5</option>
+                    <option value="Noviseløb">Noviseløb</option>
+                    <option value="Ældre Maiden">Ældre Maiden</option>
+                    <option value="Max Hcp">Max Hcp</option>
+                </select>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    }
+}
+
+function populateSelectionCourseModal() {
+    const select = document.getElementById('selectionCourseModal');
+    if (!select) return;
+
+    const source = document.getElementById('nextRaceCourse');
+    if (source) {
+        select.innerHTML = source.innerHTML;
+    }
+}
+
+function applySelectionModal() {
+    const day = parseInt(document.getElementById('selectionDayModal').value);
+    const course = document.getElementById('selectionCourseModal').value;
+
+    if (!course) {
+        alert('Please select a course.');
+        return;
+    }
+
+    // Apply course to all races
+    for (let r = 0; r < 12; r++) {
+        nextRaceData.days[day].races[r].course = course;
+    }
+
+    // Apply distances and classes
+    for (let r = 1; r <= 12; r++) {
+        const distInput = document.getElementById(`selDistModal-${r}`);
+        const classSelect = document.getElementById(`selClassModal-${r}`);
+        if (distInput && distInput.value.trim()) {
+            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
+        }
+        if (classSelect && classSelect.value) {
+            nextRaceData.days[day].races[r-1].class = classSelect.value;
+        }
+    }
+
+    saveNextRaceData();
+    closeSelectionModal();
+    alert(`Setup applied to Race Day ${day + 1}!`);
 }
     </script>
 </body>
