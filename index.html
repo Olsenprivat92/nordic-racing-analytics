@@ -3931,16 +3931,47 @@ function switchNextRaceView() {
         updateNextRaceScenario();
     }
 }
-        function saveNextRaceFilters() {
-            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-            const race = parseInt(document.getElementById('raceSelect').value) - 1;
-            const currentRace = nextRaceData.days[day].races[race];
-            currentRace.course = document.getElementById('nextRaceCourse').value;
-            currentRace.distance = document.getElementById('nextRaceDistance').value;
-            currentRace.class = document.getElementById('nextRaceClass').value;
-            currentRace.date = document.getElementById('nextRaceDate').value;
-            saveNextRaceData();
+ function saveNextRaceFilters() {
+    const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+    const race = parseInt(document.getElementById('raceSelect').value) - 1;
+
+    // Safety: Initialize day and race if missing
+    if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
+    if (!nextRaceData.days[day].races[race]) {
+        nextRaceData.days[day].races[race] = {
+            course: '',
+            distance: '',
+            class: '',
+            date: '2025-10-11',
+            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+            prediction: { a: '', b: '', c: '', d: '', e: '' }
+        };
+    }
+
+    const currentRace = nextRaceData.days[day].races[race];
+    const newCourse = document.getElementById('nextRaceCourse').value;
+    const newDistance = document.getElementById('nextRaceDistance').value;
+    const newClass = document.getElementById('nextRaceClass').value;
+    const newDate = document.getElementById('nextRaceDate').value;
+
+    // Save to current race
+    currentRace.course = newCourse;
+    currentRace.distance = newDistance;
+    currentRace.class = newClass;
+    currentRace.date = newDate;
+
+    // Auto-apply Course to ALL races on this day (your new request)
+    if (newCourse) {
+        for (let r = 0; r < 12; r++) {
+            if (r !== race) { // Skip the current race (already set)
+                nextRaceData.days[day].races[r].course = newCourse;
+            }
         }
+    }
+
+    saveNextRaceData();
+    updateNextRaceScenario();
+}
 function saveHorseData(rowNum) {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const race = parseInt(document.getElementById('raceSelect').value) - 1;
