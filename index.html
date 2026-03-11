@@ -2092,6 +2092,14 @@
         selectionCourse.innerHTML = '<option value="">Select Course</option>' +
             document.getElementById('nextRaceCourse').innerHTML.replace('<option value="">Select Course</option>', '');
     }
+        // Populate modal course dropdown
+const selectionCourseModal = document.getElementById('selectionCourseModal');
+if (selectionCourseModal) {
+    const source = document.getElementById('nextRaceCourse');
+    if (source) {
+        selectionCourseModal.innerHTML = source.innerHTML;
+    }
+}
         function populateJockeyFilters() {
     const jockeys = new Set();
     const courses = new Set();
@@ -4876,21 +4884,16 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
     });
 }
 function showSelectionModal() {
+    // Hide normal content
+    document.getElementById('race-pages').style.display = 'none';
+    document.getElementById('overview-page').style.display = 'none';
+
     const modal = document.getElementById('selectionModal');
-    if (!modal) {
-        console.error('Modal element not found!');
-        return;
+    if (modal) {
+        modal.style.display = 'flex';
+        populateSelectionRacesModal();
+        populateSelectionCourseModal();
     }
-
-    modal.style.display = 'flex';
-    modal.style.zIndex = '9999';
-    modal.style.background = 'rgba(0,0,0,0.8)';
-
-    populateSelectionRacesModal();
-    populateSelectionCourseModal();
-
-    // Scroll to top of modal content
-    modal.querySelector('div').scrollTop = 0;
 }
         function populateSelectionRacesModal() {
     const tableBody = document.getElementById('selectionRacesTableModal');
@@ -4928,6 +4931,36 @@ function showSelectionModal() {
         tableBody.appendChild(row);
     }
     console.log('Selection rows generated – 12 races added');
+}
+        function applySelectionModal() {
+    const day = parseInt(document.getElementById('selectionDayModal').value);
+    const course = document.getElementById('selectionCourseModal').value;
+
+    if (!course) {
+        alert('Please select a course.');
+        return;
+    }
+
+    // Apply course to all races on the day
+    for (let r = 0; r < 12; r++) {
+        nextRaceData.days[day].races[r].course = course;
+    }
+
+    // Apply distances and classes
+    for (let r = 1; r <= 12; r++) {
+        const distInput = document.getElementById(`selDistModal-${r}`);
+        const classSelect = document.getElementById(`selClassModal-${r}`);
+        if (distInput && distInput.value.trim()) {
+            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
+        }
+        if (classSelect && classSelect.value) {
+            nextRaceData.days[day].races[r-1].class = classSelect.value;
+        }
+    }
+
+    saveNextRaceData();
+    closeSelectionModal();
+    alert(`Setup applied to Race Day ${day + 1}!`);
 }
     </script>
 </body>
