@@ -4950,10 +4950,10 @@ function applySelectionModal() {
     closeSelectionModal();
     alert(`Setup applied to Race Day ${day + 1}!`);
 }
-// Hide Next Race content on all pages except Next Race view
+// Hide normal Next Race content on all non-Next-Race pages
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if we are on Next Race view (by checking if race-pages is supposed to be visible)
-    const isNextRace = document.getElementById('raceDaySelect') !== null; // raceDaySelect only exists in Next Race
+    // Check if we are in Next Race view (look for a unique element only in Next Race)
+    const isNextRace = document.getElementById('nextRaceCourse') !== null; // Course select is unique to Next Race
 
     if (!isNextRace) {
         const racePages = document.getElementById('race-pages');
