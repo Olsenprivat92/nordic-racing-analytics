@@ -1378,7 +1378,7 @@
                             <div class="filters-grid">
                                 <div class="filter-box">
                                     <div class="filter-title">🏁 Course</div>
-                                    <select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario()"> updateDistanceOptions()">
+                                    <select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
                                         <option value="">Select Course</option>
                                     </select>
                                 </div>
@@ -1964,52 +1964,6 @@
         selectionCourse.innerHTML = '<option value="">Select Course</option>' +
             document.getElementById('nextRaceCourse').innerHTML.replace('<option value="">Select Course</option>', '');
     }
-        function updateDistanceOptions() {
-    const course = document.getElementById('nextRaceCourse').value;
-    const distanceSelect = document.getElementById('nextRaceDistance');
-
-    if (!distanceSelect) return;
-
-    // Clear current options except the first ("Select Distance")
-    distanceSelect.innerHTML = '<option value="">Select Distance</option><option value="all">All Distances</option>';
-
-    if (!course) {
-        // If no course selected, show all distances from data
-        const allDistances = new Set();
-        racingData.forEach(row => {
-            if (row.Distance && row.Distance.trim()) allDistances.add(row.Distance.trim());
-        });
-        Array.from(allDistances).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dist => {
-            const option = document.createElement('option');
-            option.value = dist;
-            option.textContent = dist + 'm';
-            distanceSelect.appendChild(option);
-        });
-        return;
-    }
-
-    // Filter distances that exist on this course
-    const courseDistances = new Set();
-    racingData.forEach(row => {
-        let rowCourse = row.Course || '';
-        if (rowCourse.toLowerCase().includes('bro park') || rowCourse.toLowerCase().includes('øvrevoll')) {
-            const surface = (row.Surface || '').toLowerCase();
-            if (surface.includes('dirt') || surface.includes('sand')) rowCourse += ' (Dirt)';
-            else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs')) rowCourse += ' (Grass)';
-        }
-        if (rowCourse === course && row.Distance && row.Distance.trim()) {
-            courseDistances.add(row.Distance.trim());
-        }
-    });
-
-    // Populate dropdown with filtered distances
-    Array.from(courseDistances).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dist => {
-        const option = document.createElement('option');
-        option.value = dist;
-        option.textContent = dist + 'm';
-        distanceSelect.appendChild(option);
-    });
-}
         function populateJockeyFilters() {
     const jockeys = new Set();
     const courses = new Set();
@@ -3908,9 +3862,6 @@ function saveNextRaceFilters() {
 
     saveNextRaceData();
     updateNextRaceScenario();
-
-    // NEW: Refresh Distance options immediately after Course change
-    updateDistanceOptions();
 }
 function saveHorseData(rowNum) {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
@@ -4035,7 +3986,6 @@ row.innerHTML = `
         function updateNextRaceAnalysis() {
             for (let i = 1; i <= 15; i++) {
                 updateNextRaceRow(i);
-                updateDistanceOptions();
             }
         }
 function updateNextRaceRow(rowNum) {
