@@ -2240,9 +2240,9 @@ function populateNotesFilters() {
             favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>';
         }
 function loadScenarioNote() {
-    const course = document.getElementById('notesCourse').value;
-    const distance = document.getElementById('notesDistance').value;
-    const raceClass = document.getElementById('notesClass').value;
+    const course = document.getElementById('notesCourse')?.value || '';
+    const distance = document.getElementById('notesDistance')?.value || '';
+    const raceClass = document.getElementById('notesClass')?.value || '';
 
     if (!course || !raceClass) {
         document.getElementById('notesTextarea').value = '';
@@ -2250,28 +2250,44 @@ function loadScenarioNote() {
     }
 
     // Try exact match first, then fallbacks
-    let note = localStorage.getItem(`note_${course}_${distance}_${raceClass}`);
-    if (!note && distance !== 'all') note = localStorage.getItem(`note_${course}_all_${raceClass}`);
-    if (!note) note = localStorage.getItem(`note_${course}_${distance}_all`);
-    if (!note) note = localStorage.getItem(`note_${course}_all_all`);
-    if (!note) note = localStorage.getItem(`note_${course}_${distance}_${raceClass}`); // fallback
+    let noteKey = `note_${course}_${distance}_${raceClass}`;
+    let note = localStorage.getItem(noteKey);
+
+    if (!note && distance !== 'all') {
+        noteKey = `note_${course}_all_${raceClass}`;
+        note = localStorage.getItem(noteKey);
+    }
+    if (!note) {
+        noteKey = `note_${course}_${distance}_all`;
+        note = localStorage.getItem(noteKey);
+    }
+    if (!note) {
+        noteKey = `note_${course}_all_all`;
+        note = localStorage.getItem(noteKey);
+    }
 
     document.getElementById('notesTextarea').value = note || '';
+    console.log('Loaded note for key:', noteKey, 'value:', note || '(empty)');
 }
 function saveScenarioNote() {
-    const course = document.getElementById('notesCourse').value;
-    const distance = document.getElementById('notesDistance').value;
-    const raceClass = document.getElementById('notesClass').value;
-    const note = document.getElementById('notesTextarea').value.trim();
+    const course = document.getElementById('notesCourse')?.value || '';
+    const distance = document.getElementById('notesDistance')?.value || '';
+    const raceClass = document.getElementById('notesClass')?.value || '';
+    const note = document.getElementById('notesTextarea')?.value.trim() || '';
 
     if (!course || !raceClass) {
-        alert('Please select Course and Class.');
+        alert('Please select Course and Class before saving.');
         return;
     }
 
+    <button onclick="saveScenarioNote()" style="margin-top: 1rem; padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer;">
+    Save Note
+</button>
+    
     const noteKey = `note_${course}_${distance}_${raceClass}`;
     localStorage.setItem(noteKey, note);
     alert('Note saved successfully!');
+    console.log('Saved note for key:', noteKey, 'value:', note);
 }
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);
