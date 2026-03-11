@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    /* Hide normal Next Race content on all pages except Next Race view */
-#race-pages {
-    display: none !important;
-}
-
-/* Only show it when inside Next Race view */
-#next-race-view #race-pages {
-    display: block !important;
-}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nordic Racing Analytics Platform</title>
@@ -1280,112 +1271,92 @@
             </div>
         </div>
            
-<!-- Next Race View -->
-<div class="view-container" id="next-race-view">
-    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-        <select id="raceDaySelect" onchange="switchNextRaceView()">
-            <option value="1">Race Day 1</option>
-            <option value="2">Race Day 2</option>
-            <option value="3">Race Day 3</option>
-            <option value="4">Race Day 4</option>
-            <option value="5">Race Day 5</option>
-        </select>
-        <select id="raceSelect" onchange="switchNextRaceView()">
-            <option value="1">Race 1</option>
-            <option value="2">Race 2</option>
-            <option value="3">Race 3</option>
-            <option value="4">Race 4</option>
-            <option value="5">Race 5</option>
-            <option value="6">Race 6</option>
-            <option value="7">Race 7</option>
-            <option value="8">Race 8</option>
-            <option value="9">Race 9</option>
-            <option value="10">Race 10</option>
-            <option value="11">Race 11</option>
-            <option value="12">Race 12</option>
-        </select>
-    </div>
-
-    <div class="start-list-loader">
-        <h3>Load Start List</h3>
-        <select id="startListFormat">
-            <option value="danish">Danish (e.g. Klampenborg)</option>
-            <option value="norwegian">Norwegian (e.g. Øvrevoll)</option>
-            <option value="swedish">Swedish (e.g. Svensk Galopp)</option>
-        </select>
-        <textarea id="startListText" rows="10" placeholder="Paste the start list text here (copy from PDF or web page)"></textarea>
-        <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
-        <button onclick="parseAndFillStartList()">Parse and Fill Table</button>
-    </div>
+        <!-- Next Race View -->
+        <div class="view-container" id="next-race-view">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                <select id="raceDaySelect" onchange="switchNextRaceView()">
+                    <option value="1">Race Day 1</option>
+                    <option value="2">Race Day 2</option>
+                    <option value="3">Race Day 3</option>
+                    <option value="4">Race Day 4</option>
+                    <option value="5">Race Day 5</option>
+                </select>
+                <button onclick="showSelectionModal()" style="margin-left: 1rem; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+    Configure Race Day (Selection)
+</button>
+                <select id="raceSelect" onchange="switchNextRaceView()">
+                    <option value="1">Race 1</option>
+                    <option value="2">Race 2</option>
+                    <option value="3">Race 3</option>
+                    <option value="4">Race 4</option>
+                    <option value="5">Race 5</option>
+                    <option value="6">Race 6</option>
+                    <option value="7">Race 7</option>
+                    <option value="8">Race 8</option>
+                    <option value="9">Race 9</option>
+                    <option value="10">Race 10</option>
+                    <option value="11">Race 11</option>
+                    <option value="12">Race 12</option>
+                    <option value="overview">Overview</option>
+                </select>
+            </div>
+            <!-- Overview Page (shown only when "Overview" is selected) -->
+<div id="overview-page" style="display: none; margin-top: 2rem;">
     <div class="card">
         <div class="card-header">
-            <h2 class="card-title">🏇 Next Race Analysis</h2>
+            <h3>Race Day Overview (Predictions)</h3>
         </div>
         <div class="card-body">
-            <!-- All your existing filters, scenario, table, prediction, buttons -->
-            <!-- ... existing content ... -->
+            <div id="predictionOverview" style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap;"></div>
         </div>
     </div>
-    <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
-    <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
-</div>
-
-    <!-- Overview Page -->
-    <div id="overview-page" style="display: none; margin-top: 2rem;">
-        <div class="card">
-            <div class="card-header">
-                <h3>Race Day Overview (Predictions)</h3>
-            </div>
-            <div class="card-body">
-                <div id="predictionOverview" style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap;"></div>
-            </div>
+<!-- Selection Modal – popup for quick race day setup -->
+<div id="selectionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0;">Quick Race Day Setup</h2>
+            <button onclick="closeSelectionModal()" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 1.2rem;">×</button>
         </div>
-    </div>
 
-    <!-- Selection Modal -->
-    <div id="selectionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
-        <div style="background: white; border-radius: 12px; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="margin: 0;">Quick Race Day Setup</h2>
-                <button onclick="closeSelectionModal()" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 1.2rem;">×</button>
-            </div>
-            <div style="margin-bottom: 1.5rem;">
-                <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Race Day to configure:</label>
-                <select id="selectionDayModal" style="padding: 8px; width: 200px;">
-                    <option value="0">Race Day 1</option>
-                    <option value="1">Race Day 2</option>
-                    <option value="2">Race Day 3</option>
-                    <option value="3">Race Day 4</option>
-                    <option value="4">Race Day 5</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 2rem;">
-                <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Course for the whole day:</label>
-                <select id="selectionCourseModal" style="padding: 8px; width: 300px;">
-                    <option value="">Select Course</option>
-                </select>
-            </div>
-            <div>
-                <h4 style="margin-bottom: 1rem;">Distances and Classes per race</h4>
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
-                    <thead>
-                        <tr style="background: #f1f5f9;">
-                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Race</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Distance</th>
-                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Class</th>
-                        </tr>
-                    </thead>
-                    <tbody id="selectionRacesTableModal"></tbody>
-                </table>
-            </div>
-            <div style="margin-top: 2rem; text-align: right;">
-                <button onclick="closeSelectionModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 1rem;">
-                    Cancel
-                </button>
-                <button onclick="applySelectionModal()" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                    Apply Setup
-                </button>
-            </div>
+        <div style="margin-bottom: 1.5rem;">
+            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Race Day to configure:</label>
+            <select id="selectionDayModal" style="padding: 8px; width: 200px;">
+                <option value="0">Race Day 1</option>
+                <option value="1">Race Day 2</option>
+                <option value="2">Race Day 3</option>
+                <option value="3">Race Day 4</option>
+                <option value="4">Race Day 5</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Course for the whole day:</label>
+            <select id="selectionCourseModal" style="padding: 8px; width: 300px;">
+                <option value="">Select Course</option>
+            </select>
+        </div>
+
+        <div>
+            <h4 style="margin-bottom: 1rem;">Distances and Classes per race</h4>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                <thead>
+                    <tr style="background: #f1f5f9;">
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Race</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Distance</th>
+                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Class</th>
+                    </tr>
+                </thead>
+                <tbody id="selectionRacesTableModal"></tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: right;">
+            <button onclick="closeSelectionModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 1rem;">
+                Cancel
+            </button>
+            <button onclick="applySelectionModal()" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                Apply Setup
+            </button>
         </div>
     </div>
 </div>
@@ -2095,14 +2066,6 @@
         selectionCourse.innerHTML = '<option value="">Select Course</option>' +
             document.getElementById('nextRaceCourse').innerHTML.replace('<option value="">Select Course</option>', '');
     }
-        // Populate modal course dropdown
-const selectionCourseModal = document.getElementById('selectionCourseModal');
-if (selectionCourseModal) {
-    const source = document.getElementById('nextRaceCourse');
-    if (source) {
-        selectionCourseModal.innerHTML = source.innerHTML;
-    }
-}
         function populateJockeyFilters() {
     const jockeys = new Set();
     const courses = new Set();
@@ -2189,6 +2152,97 @@ function populateSelectionRaces() {
     }
 }
 
+function applySelection() {
+    const day = parseInt(document.getElementById('selectionDay').value);
+    const course = document.getElementById('selectionCourse').value;
+
+    if (!course) {
+        alert('Please select a course.');
+        return;
+    }
+
+    // Apply course to all races on the selected day
+    for (let r = 0; r < 12; r++) {
+        nextRaceData.days[day].races[r].course = course;
+    }
+
+    // Apply per-race distance and class
+    for (let r = 1; r <= 12; r++) {
+        const distInput = document.getElementById(`selDist-${r}`);
+        const classSelect = document.getElementById(`selClass-${r}`);
+        if (distInput && distInput.value.trim()) {
+            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
+        }
+        if (classSelect && classSelect.value) {
+            nextRaceData.days[day].races[r-1].class = classSelect.value;
+        }
+    }
+
+    saveNextRaceData();
+    alert(`Setup applied to Race Day ${day + 1}!`);
+}
+
+function applySelection() {
+    const day = parseInt(document.getElementById('selectionDay').value);
+    const course = document.getElementById('selectionCourse').value;
+
+    if (!course) {
+        alert('Please select a course for the day.');
+        return;
+    }
+
+    // Apply course to all races on the selected day
+    for (let r = 0; r < 12; r++) {
+        nextRaceData.days[day].races[r].course = course;
+    }
+
+    // Apply per-race distance and class
+    for (let r = 1; r <= 12; r++) {
+        const distInput = document.getElementById(`selDist-${r}`);
+        const classSelect = document.getElementById(`selClass-${r}`);
+        if (distInput && distInput.value.trim()) {
+            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
+        }
+        if (classSelect && classSelect.value) {
+            nextRaceData.days[day].races[r-1].class = classSelect.value;
+        }
+    }
+
+    saveNextRaceData();
+    alert(`Setup applied to Race Day ${day + 1}! Switch to that day to see the pre-filled values.`);
+}
+
+function applySelection() {
+    const day = parseInt(document.getElementById('selectionDay').value);
+    const course = document.getElementById('selectionCourse').value;
+
+    if (!course) {
+        alert('Please select a course.');
+        return;
+    }
+
+    // Apply course to all races on the day
+    for (let r = 0; r < 12; r++) {
+        nextRaceData.days[day].races[r].course = course;
+    }
+
+    // Apply distances and classes
+    for (let r = 1; r <= 12; r++) {
+        const distInput = document.getElementById(`selDist-${r}`);
+        const classSelect = document.getElementById(`selClass-${r}`);
+        if (distInput) {
+            const dist = distInput.value.trim();
+            if (dist) nextRaceData.days[day].races[r-1].distance = dist;
+        }
+        if (classSelect) {
+            const cls = classSelect.value;
+            if (cls) nextRaceData.days[day].races[r-1].class = cls;
+        }
+    }
+
+    saveNextRaceData();
+    alert('Selection applied to Race Day ' + (day + 1) + '! Switch to that day to see the pre-filled values.');
+}
         function populateNotesFilters() {
             const courses = new Set();
             const distances = new Set();
@@ -3883,94 +3937,71 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    const race = parseInt(raceValue) - 1;
+    // Hide all pages
+    document.getElementById('race-pages').style.display = 'none';
+    document.getElementById('overview-page').style.display = 'none';
+    document.getElementById('selection-page').style.display = 'none';
 
-    // Safety: Initialize day and all 12 races if missing
-    if (!nextRaceData.days) nextRaceData.days = [];
-    if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
-    while (nextRaceData.days[day].races.length < 12) {
-        nextRaceData.days[day].races.push({
-            course: '',
-            distance: '',
-            class: '',
-            date: '2025-10-11',
-            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
-            prediction: { a: '', b: '', c: '', d: '', e: '' }
-        });
-    }
-    saveNextRaceData();
+    if (raceValue === 'overview') {
+        document.getElementById('overview-page').style.display = 'block';
+        updatePredictionOverview(day);
+    } else if (raceValue === 'selection') {
+        document.getElementById('selection-page').style.display = 'block';
+        populateSelectionRaces(); // Generate the 12 race rows
+    } else {
+        const race = parseInt(raceValue) - 1;
 
-    const currentRace = nextRaceData.days[day].races[race];
-
-    document.getElementById('nextRaceCourse').value = currentRace.course || '';
-    document.getElementById('nextRaceDistance').value = currentRace.distance || '';
-    document.getElementById('nextRaceClass').value = currentRace.class || '';
-    document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
-
-    for (let i = 1; i <= 15; i++) {
-        const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
-        document.getElementById(`horse-${i}`).value = horseData.horse;
-        document.getElementById(`jockey-${i}`).value = horseData.jockey;
-        document.getElementById(`class-${i}`).value = horseData.class;
-        document.getElementById(`withweight-${i}`).value = horseData.withweight;
-        updateNextRaceRow(i);
-    }
-
-    document.getElementById('predictionA').value = currentRace.prediction.a || '';
-    document.getElementById('predictionB').value = currentRace.prediction.b || '';
-    document.getElementById('predictionC').value = currentRace.prediction.c || '';
-    document.getElementById('predictionD').value = currentRace.prediction.d || '';
-    document.getElementById('predictionE').value = currentRace.prediction.e || '';
-
-    document.getElementById('race-pages').style.display = 'block';
-    updateNextRaceScenario();
-}
-function saveNextRaceFilters() {
-    const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
-    const race = parseInt(document.getElementById('raceSelect').value) - 1;
-
-    const currentRace = nextRaceData.days[day].races[race];
-    currentRace.course = document.getElementById('nextRaceCourse').value;
-    currentRace.distance = document.getElementById('nextRaceDistance').value;
-    currentRace.class = document.getElementById('nextRaceClass').value;
-    currentRace.date = document.getElementById('nextRaceDate').value;
-
-    // Auto-fill Course for all races on this day
-    const newCourse = currentRace.course;
-    if (newCourse) {
-        for (let r = 0; r < 12; r++) {
-            nextRaceData.days[day].races[r].course = newCourse;
+        // Safety: Initialize day and all 12 races if missing
+        if (!nextRaceData.days) nextRaceData.days = [];
+        if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
+        while (nextRaceData.days[day].races.length < 12) {
+            nextRaceData.days[day].races.push({
+                course: '',
+                distance: '',
+                class: '',
+                date: '2025-10-11',
+                horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
+                prediction: { a: '', b: '', c: '', d: '', e: '' }
+            });
         }
-    }
+        saveNextRaceData();
 
-    saveNextRaceData();
-    updateNextRaceScenario();
-}
+        const currentRace = nextRaceData.days[day].races[race];
 
-    const currentRace = nextRaceData.days[day].races[race];
-    const newCourse = document.getElementById('nextRaceCourse').value;
-    const newDistance = document.getElementById('nextRaceDistance').value;
-    const newClass = document.getElementById('nextRaceClass').value;
-    const newDate = document.getElementById('nextRaceDate').value;
+        document.getElementById('nextRaceCourse').value = currentRace.course || '';
+        document.getElementById('nextRaceDistance').value = currentRace.distance || '';
+        document.getElementById('nextRaceClass').value = currentRace.class || '';
+        document.getElementById('nextRaceDate').value = currentRace.date || '2025-10-11';
 
-    // Save to current race
-    currentRace.course = newCourse;
-    currentRace.distance = newDistance;
-    currentRace.class = newClass;
-    currentRace.date = newDate;
-
-    // Auto-apply Course to ALL races on this day (your new request)
-    if (newCourse) {
-        for (let r = 0; r < 12; r++) {
-            if (r !== race) { // Skip the current race (already set)
-                nextRaceData.days[day].races[r].course = newCourse;
-            }
+        for (let i = 1; i <= 15; i++) {
+            const horseData = currentRace.horses[i - 1] || { horse: '', jockey: '', class: '', withweight: '' };
+            document.getElementById(`horse-${i}`).value = horseData.horse;
+            document.getElementById(`jockey-${i}`).value = horseData.jockey;
+            document.getElementById(`class-${i}`).value = horseData.class;
+            document.getElementById(`withweight-${i}`).value = horseData.withweight;
+            updateNextRaceRow(i);
         }
-    }
 
-    saveNextRaceData();
-    updateNextRaceScenario();
+        document.getElementById('predictionA').value = currentRace.prediction.a || '';
+        document.getElementById('predictionB').value = currentRace.prediction.b || '';
+        document.getElementById('predictionC').value = currentRace.prediction.c || '';
+        document.getElementById('predictionD').value = currentRace.prediction.d || '';
+        document.getElementById('predictionE').value = currentRace.prediction.e || '';
+
+        document.getElementById('race-pages').style.display = 'block';
+        updateNextRaceScenario();
+    }
 }
+        function saveNextRaceFilters() {
+            const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+            const race = parseInt(document.getElementById('raceSelect').value) - 1;
+            const currentRace = nextRaceData.days[day].races[race];
+            currentRace.course = document.getElementById('nextRaceCourse').value;
+            currentRace.distance = document.getElementById('nextRaceDistance').value;
+            currentRace.class = document.getElementById('nextRaceClass').value;
+            currentRace.date = document.getElementById('nextRaceDate').value;
+            saveNextRaceData();
+        }
 function saveHorseData(rowNum) {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const race = parseInt(document.getElementById('raceSelect').value) - 1;
@@ -4849,17 +4880,21 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
     });
 }
 function showSelectionModal() {
-    // Hide normal content
-    document.getElementById('race-pages').style.display = 'none';
-    document.getElementById('overview-page').style.display = 'none';
-    document.getElementById('selection-page').style.display = 'none';
-
     const modal = document.getElementById('selectionModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        populateSelectionRacesModal();
-        populateSelectionCourseModal();
+    if (!modal) {
+        console.error('Modal element not found!');
+        return;
     }
+
+    modal.style.display = 'flex';
+    modal.style.zIndex = '9999';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+
+    populateSelectionRacesModal();
+    populateSelectionCourseModal();
+
+    // Scroll to top of modal content
+    modal.querySelector('div').scrollTop = 0;
 }
         function populateSelectionRacesModal() {
     const tableBody = document.getElementById('selectionRacesTableModal');
@@ -4898,63 +4933,6 @@ function showSelectionModal() {
     }
     console.log('Selection rows generated – 12 races added');
 }
-        function populateSelectionCourseModal() {
-    const select = document.getElementById('selectionCourseModal');
-    if (!select) return;
-
-    const source = document.getElementById('nextRaceCourse');
-    if (source) {
-        select.innerHTML = source.innerHTML;
-    }
-}
-
-function closeSelectionModal() {
-    document.getElementById('selectionModal').style.display = 'none';
-}
-
-function applySelectionModal() {
-    const day = parseInt(document.getElementById('selectionDayModal').value);
-    const course = document.getElementById('selectionCourseModal').value;
-
-    if (!course) {
-        alert('Please select a course.');
-        return;
-    }
-
-    // Apply course to all races on the selected day
-    for (let r = 0; r < 12; r++) {
-        nextRaceData.days[day].races[r].course = course;
-    }
-
-    // Apply distances and classes
-    for (let r = 1; r <= 12; r++) {
-        const distInput = document.getElementById(`selDistModal-${r}`);
-        const classSelect = document.getElementById(`selClassModal-${r}`);
-        if (distInput && distInput.value.trim()) {
-            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
-        }
-        if (classSelect && classSelect.value) {
-            nextRaceData.days[day].races[r-1].class = classSelect.value;
-        }
-    }
-
-    saveNextRaceData();
-    closeSelectionModal();
-    alert(`Setup applied to Race Day ${day + 1}!`);
-}
-// Hide normal Next Race content on all non-Next-Race pages
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if we are in Next Race view (look for a unique element only in Next Race)
-    const isNextRace = document.getElementById('nextRaceCourse') !== null; // Course select is unique to Next Race
-
-    if (!isNextRace) {
-        const racePages = document.getElementById('race-pages');
-        if (racePages) {
-            racePages.style.display = 'none';
-            console.log('Next Race content hidden on non-Next-Race page');
-        }
-    }
-});
     </script>
 </body>
 </html>
