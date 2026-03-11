@@ -3820,28 +3820,31 @@ if (filteredRaces.length > 0) {
             localStorage.setItem('nextRaceData', JSON.stringify(nextRaceData));
         }
 function switchNextRaceView() {
-    const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
+    const dayStr = document.getElementById('raceDaySelect').value;
+    const day = parseInt(dayStr) - 1;
     const raceValue = document.getElementById('raceSelect').value;
+
+    // Early safety: Validate day
+    if (isNaN(day) || day < 0 || day > 4) {
+        console.warn('Invalid Race Day:', dayStr);
+        return;
+    }
 
     // Hide all pages
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'none';
+    document.getElementById('selectionModal').style.display = 'none';
 
-    if (raceValue === 'overview') {
-        document.getElementById('overview-page').style.display = 'block';
-        updatePredictionOverview(day);
-    } else if (raceValue === 'selection') {
-        document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces(); // Generate the 12 race rows
-    } else {
-        const race = parseInt(raceValue) - 1;
-
-        // Safety: Initialize day and all 12 races if missing
-        if (!nextRaceData.days) nextRaceData.days = [];
-        if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
-        while (nextRaceData.days[day].races.length < 12) {
-            nextRaceData.days[day].races.push({
+    // Force full initialization for ALL 5 days on every switch (this fixes Race Day 3+)
+    if (!nextRaceData.days || !Array.isArray(nextRaceData.days)) {
+        nextRaceData.days = [];
+    }
+    for (let d = 0; d < 5; d++) {
+        if (!nextRaceData.days[d]) nextRaceData.days[d] = { races: [] };
+        if (!Array.isArray(nextRaceData.days[d].races)) nextRaceData.days[d].races = [];
+        while (nextRaceData.days[d].races.length < 12) {
+            nextRaceData.days[d].races.push({
                 course: '',
                 distance: '',
                 class: '',
@@ -3850,7 +3853,21 @@ function switchNextRaceView() {
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
             });
         }
-        saveNextRaceData();
+    }
+    saveNextRaceData();
+
+    if (raceValue === 'overview') {
+        document.getElementById('overview-page').style.display = 'block';
+        updatePredictionOverview(day);
+    } else if (raceValue === 'selection') {
+        document.getElementById('selection-page').style.display = 'block';
+        populateSelectionRaces();
+    } else {
+        const race = parseInt(raceValue) - 1;
+        if (isNaN(race) || race < 0 || race >= 12) {
+            console.warn('Invalid race:', raceValue);
+            return;
+        }
 
         const currentRace = nextRaceData.days[day].races[race];
 
@@ -3876,9 +3893,6 @@ function switchNextRaceView() {
 
         document.getElementById('race-pages').style.display = 'block';
         updateNextRaceScenario();
-        
-        // NEW: Lock the selected distance so it sticks
-        lockDistanceSelection();
     }
 }
 function saveNextRaceFilters() {
