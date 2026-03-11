@@ -1313,9 +1313,7 @@
                 <div class="start-list-loader">
                     <h3>Load Start List</h3>
                     <select id="startListFormat">
-                        <option value="danish">Danish (e.g. Klampenborg)</option>
-                        <option value="norwegian">Norwegian (e.g. Øvrevoll)</option>
-                        <option value="swedish">Swedish (e.g. Svensk Galopp)</option>
+                        <!-- ... -->
                     </select>
                     <textarea id="startListText" rows="10" placeholder="Paste the start list text here (copy from PDF or web page)"></textarea>
                     <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
@@ -1326,139 +1324,15 @@
                         <h2 class="card-title">🏇 Next Race Analysis</h2>
                     </div>
                     <div class="card-body">
-                        <!-- Race Condition Filters -->
-                        <div class="filters">
-                            <div class="filters-grid">
-                                <div class="filter-box">
-                                    <div class="filter-title">🏁 Course</div>
-                                    <select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                        <option value="">Select Course</option>
-                                    </select>
-                                </div>
-                                <div class="filter-box">
-                                    <div class="filter-title">📏 Distance</div>
-                                    <select id="nextRaceDistance" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                        <option value="">Select Distance</option>
-                                    </select>
-                                </div>
-                                <div class="filter-box">
-                                    <div class="filter-title">🏆 Class</div>
-                                    <select id="nextRaceClass" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                        <option value="">Select Class</option>
-                                        <option value="Ældre Vinder">Ældre Vinder</option>
-                                        <option value="3 Års Maiden">3 Års Maiden</option>
-                                        <option value="3 Års Vinder">3 Års Vinder</option>
-                                        <option value="2 Års">2 Års</option>
-                                        <option value="Class 1">Class 1</option>
-                                        <option value="Class 2">Class 2</option>
-                                        <option value="Class 3">Class 3</option>
-                                        <option value="Class 4">Class 4</option>
-                                        <option value="Class 5">Class 5</option>
-                                        <option value="Noviseløb">Noviseløb</option>
-                                        <option value="Ældre Maiden">Ældre Maiden</option>
-                                        <option value="Max Hcp">Max Hcp</option>
-                                    </select>
-                                </div>
-                                <div class="filter-box">
-                                    <div class="filter-title">📅 Date</div>
-                                    <input type="date" id="nextRaceDate" value="2025-10-11" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Scenario Analysis -->
-                        <div class="card" style="margin-bottom: 2rem;">
-                            <div class="card-header">
-                                <h3>Scenario Analysis</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="analysis-grid">
-                                    <div class="analysis-box">
-                                        <h3>📝 Notes</h3>
-                                        <div id="nextRaceNotes" class="scrollable">
-                                            <p>No notes available.</p>
-                                        </div>
-                                    </div>
-                                    <div class="analysis-box">
-                                        <h3>📊 Post Position Analysis</h3>
-                                        <div id="nextRacePostPosition" class="scrollable">
-                                            <p>Select course and distance to see analysis.</p>
-                                        </div>
-                                    </div>
-                                    <div class="analysis-box">
-                                        <h3>🎯 Favorite Performance</h3>
-                                        <div id="nextRaceFavoritePerformance" class="scrollable">
-                                            <p>Select course and class to see analysis.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Global Filter for Last 5 Races -->
-                        <div class="filter-box" style="margin-bottom: 1rem;">
-                            <div class="filter-title">🌱 Filter Last 5 Races by Surface</div>
-                            <select id="nextRaceSurfaceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
-                                <option value="all" selected>All Surfaces</option>
-                                <option value="Grass">Grass</option>
-                                <option value="Dirt">Dirt</option>
-                            </select>
-                        </div>
-                        <div class="filter-box" style="margin-bottom: 2rem;">
-                            <div class="filter-title">📏 Filter Last 5 Races by Distance</div>
-                            <select id="nextRaceDistanceFilter" multiple size="3" onchange="updateNextRaceAnalysis()">
-                                <option value="all" selected>All Distances</option>
-                                <option value="Sprint">Sprint</option>
-                                <option value="Middle">Middle</option>
-                                <option value="Stay">Stay</option>
-                            </select>
-                        </div>
-                        <!-- Horse and Jockey Inputs -->
-                        <div class="card" style="margin-bottom: 2rem;">
-                            <div class="card-header">
-                                <h3>Enter Horses and Jockeys</h3>
-                            </div>
-                            <div class="card-body">
-                                <table id="nextRaceTable">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Horse / Jockey / Weight / Last 5 Races</th>
-                                            <th>Avg Ranking</th>
-                                            <th>Comment</th>
-                                            <th>Wins/Races</th>
-                                            <th>Trainer</th>
-                                            <th>Trainer %</th>
-                                            <th>Jockey %</th>
-                                            <th>Class</th>
-                                            <th>Siblings</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Rows will be added here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="card" style="margin-top: 2rem;">
-                            <div class="card-header">
-                                <h3>Prediction</h3>
-                            </div>
-                            <div class="card-body">
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                                    <div><label>A:</label> <input type="text" id="predictionA" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>B:</label> <input type="text" id="predictionB" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>C:</label> <input type="text" id="predictionC" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>D:</label> <input type="text" id="predictionD" style="width: 100%;" onchange="savePrediction()"></div>
-                                    <div><label>E:</label> <input type="text" id="predictionE" style="width: 100%;" onchange="savePrediction()"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
-                        <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
+                        <!-- your filters, scenario analysis, table, prediction, buttons -->
+                        <!-- ... existing content ... -->
                     </div>
                 </div>
+                <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
+                <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
             </div>
 
-            <!-- Overview Page (shown only when "Overview" is selected) -->
+            <!-- Overview Page (already added by you) -->
             <div id="overview-page" style="display: none; margin-top: 2rem;">
                 <div class="card">
                     <div class="card-header">
