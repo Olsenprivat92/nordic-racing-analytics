@@ -2186,36 +2186,6 @@ function populateSelectionRaces() {
     }
 }
 
-function applySelection() {
-    const day = parseInt(document.getElementById('selectionDay').value);
-    const course = document.getElementById('selectionCourse').value;
-
-    if (!course) {
-        alert('Please select a course.');
-        return;
-    }
-
-    // Apply course to all races on the selected day
-    for (let r = 0; r < 12; r++) {
-        nextRaceData.days[day].races[r].course = course;
-    }
-
-    // Apply per-race distance and class
-    for (let r = 1; r <= 12; r++) {
-        const distInput = document.getElementById(`selDist-${r}`);
-        const classSelect = document.getElementById(`selClass-${r}`);
-        if (distInput && distInput.value.trim()) {
-            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
-        }
-        if (classSelect && classSelect.value) {
-            nextRaceData.days[day].races[r-1].class = classSelect.value;
-        }
-    }
-
-    saveNextRaceData();
-    alert(`Setup applied to Race Day ${day + 1}!`);
-}
-
         function populateNotesFilters() {
             const courses = new Set();
             const distances = new Set();
@@ -3910,7 +3880,7 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide ALL content first
+    // Hide all pages
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'none';
@@ -3922,30 +3892,22 @@ function switchNextRaceView() {
         document.getElementById('selection-page').style.display = 'block';
         populateSelectionRaces(); // Generate the 12 race rows
     } else {
-        // Normal race – add minimal safety to avoid crash
-        if (isNaN(day) || day < 0) {
-            console.warn('Invalid day');
-            return;
-        }
         const race = parseInt(raceValue) - 1;
-        if (isNaN(race) || race < 0 || race >= 12) {
-            console.warn('Invalid race');
-            return;
-        }
 
-        // Safety: Initialize day and race if missing
+        // Safety: Initialize day and all 12 races if missing
         if (!nextRaceData.days) nextRaceData.days = [];
         if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
-        if (!nextRaceData.days[day].races[race]) {
-            nextRaceData.days[day].races[race] = {
+        while (nextRaceData.days[day].races.length < 12) {
+            nextRaceData.days[day].races.push({
                 course: '',
                 distance: '',
                 class: '',
                 date: '2025-10-11',
                 horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
-            };
+            });
         }
+        saveNextRaceData();
 
         const currentRace = nextRaceData.days[day].races[race];
 
@@ -4960,14 +4922,17 @@ function closeSelectionModal() {
 function applySelectionModal() {
     const day = parseInt(document.getElementById('selectionDayModal').value);
     const course = document.getElementById('selectionCourseModal').value;
+
     if (!course) {
         alert('Please select a course.');
         return;
     }
-    // Apply course to all races on the day
+
+    // Apply course to all races on the selected day
     for (let r = 0; r < 12; r++) {
         nextRaceData.days[day].races[r].course = course;
     }
+
     // Apply distances and classes
     for (let r = 1; r <= 12; r++) {
         const distInput = document.getElementById(`selDistModal-${r}`);
@@ -4979,6 +4944,7 @@ function applySelectionModal() {
             nextRaceData.days[day].races[r-1].class = classSelect.value;
         }
     }
+
     saveNextRaceData();
     closeSelectionModal();
     alert(`Setup applied to Race Day ${day + 1}!`);
