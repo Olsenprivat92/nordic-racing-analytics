@@ -1529,35 +1529,31 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">🏁 Course</div>
-                                <select id="notesCourse" onchange="loadScenarioNote()">
-                                    <option value="">Select Course</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">📏 Distance</div>
-                                <select id="notesDistance" onchange="loadScenarioNote()">
-                                    <option value="">Select Distance</option>
-                                    <option value="all">All Distances</option>
-                                </select>
-                            </div>
-                            <div class="filter-box">
-                                <div class="filter-title">🏆 Class</div>
-                                <select id="notesClass" onchange="loadScenarioNote()">
-                                    <option value="">Select Class</option>
-                                    <option value="all">All Classes</option>
-                                    <option value="Ældre Vinder">Ældre Vinder</option>
-                                    <option value="3 Års Maiden">3 Års Maiden</option>
-                                    <option value="3 Års Vinder">3 Års Vinder</option>
-                                    <option value="2 Års">2 Års</option>
-                                    <option value="Class 1">Class 1</option>
-                                    <option value="Class 2">Class 2</option>
-                                    <option value="Class 3">Class 3</option>
-                                    <option value="Class 4">Class 4</option>
-                                    <option value="Class 5">Class 5</option>
-                                    <option value="Noviseløb">Noviseløb</option>
-                                    <option value="Ældre Maiden">Ældre Maiden</option>
-                                    <option value="Max Hcp">Max Hcp</option>
-                                </select>
+<select id="notesCourse" onchange="loadScenarioNote()">
+    <option value="">Select Course</option>
+</select>
+
+<select id="notesDistance" onchange="loadScenarioNote()">
+    <option value="">Select Distance</option>
+    <option value="all">All Distances</option>
+</select>
+
+<select id="notesClass" onchange="loadScenarioNote()">
+    <option value="">Select Class</option>
+    <option value="all">All Classes</option>
+    <option value="Ældre Vinder">Ældre Vinder</option>
+    <option value="3 Års Maiden">3 Års Maiden</option>
+    <option value="3 Års Vinder">3 Års Vinder</option>
+    <option value="2 Års">2 Års</option>
+    <option value="Class 1">Class 1</option>
+    <option value="Class 2">Class 2</option>
+    <option value="Class 3">Class 3</option>
+    <option value="Class 4">Class 4</option>
+    <option value="Class 5">Class 5</option>
+    <option value="Noviseløb">Noviseløb</option>
+    <option value="Ældre Maiden">Ældre Maiden</option>
+    <option value="Max Hcp">Max Hcp</option>
+</select>
                             </div>
                         </div>
                     </div>
@@ -2129,36 +2125,42 @@ function applySelection() {
     saveNextRaceData();
     alert('Selection applied to Race Day ' + (day + 1) + '!');
 }
-        function populateNotesFilters() {
-            const courses = new Set();
-            const distances = new Set();
-            racingData.forEach(row => {
-                if (row.Course && row.Course.trim()) {
-                    let courseName = row.Course.trim();
-                    if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
-                        const surface = (row.Surface || '').toLowerCase();
-                        const track = (row.Track || '').toLowerCase();
-                        const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
-                        if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                            track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                            courseName += ' (Dirt)';
-                        } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                                   track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                            courseName += ' (Grass)';
-                        }
-                    }
-                    courses.add(courseName);
+function populateNotesFilters() {
+    const courses = new Set();
+    const distances = new Set();
+    racingData.forEach(row => {
+        if (row.Course && row.Course.trim()) {
+            let courseName = row.Course.trim();
+            if (courseName.toLowerCase().includes('bro park') || courseName.toLowerCase().includes('øvrevoll')) {
+                const surface = (row.Surface || '').toLowerCase();
+                const track = (row.Track || '').toLowerCase();
+                const conditions = (row.Conditions || row['Track Condition'] || '').toLowerCase();
+                if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                    track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                    courseName += ' (Dirt)';
+                } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                           track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                    courseName += ' (Grass)';
                 }
-                if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
-            });
-            const notesCourse = document.getElementById('notesCourse');
-            notesCourse.innerHTML = '<option value="">Select Course</option>' +
-                Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
-            const notesDistance = document.getElementById('notesDistance');
-            notesDistance.innerHTML = '<option value="">Select Distance</option>' +
-                '<option value="all">All Distances</option>' +
-                Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
+            }
+            courses.add(courseName);
         }
+        if (row.Distance && row.Distance.trim()) distances.add(row.Distance.trim());
+    });
+
+    const notesCourse = document.getElementById('notesCourse');
+    if (notesCourse) {
+        notesCourse.innerHTML = '<option value="">Select Course</option>' +
+            Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+    }
+
+    const notesDistance = document.getElementById('notesDistance');
+    if (notesDistance) {
+        notesDistance.innerHTML = '<option value="">Select Distance</option>' +
+            '<option value="all">All Distances</option>' +
+            Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
+    }
+}
         function updateNextRaceScenario() {
             const course = document.getElementById('nextRaceCourse').value;
             const distance = document.getElementById('nextRaceDistance').value;
@@ -2237,31 +2239,40 @@ function applySelection() {
 
             favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>';
         }
-        function loadScenarioNote() {
-            const course = document.getElementById('notesCourse').value;
-            const distance = document.getElementById('notesDistance').value;
-            const raceClass = document.getElementById('notesClass').value;
-            if (!course || !distance || !raceClass) {
-                document.getElementById('notesTextarea').value = '';
-                return;
-            }
-            const noteKey = `note_${course}_${distance}_${raceClass}`;
-            const note = localStorage.getItem(noteKey) || '';
-            document.getElementById('notesTextarea').value = note;
-        }
-        function saveScenarioNote() {
-            const course = document.getElementById('notesCourse').value;
-            const distance = document.getElementById('notesDistance').value;
-            const raceClass = document.getElementById('notesClass').value;
-            const note = document.getElementById('notesTextarea').value;
-            if (!course || !distance || !raceClass) {
-                alert('Please select course, distance, and class.');
-                return;
-            }
-            const noteKey = `note_${course}_${distance}_${raceClass}`;
-            localStorage.setItem(noteKey, note);
-            alert('Note saved!');
-        }
+function loadScenarioNote() {
+    const course = document.getElementById('notesCourse').value;
+    const distance = document.getElementById('notesDistance').value;
+    const raceClass = document.getElementById('notesClass').value;
+
+    if (!course || !raceClass) {
+        document.getElementById('notesTextarea').value = '';
+        return;
+    }
+
+    // Try exact match first, then fallbacks
+    let note = localStorage.getItem(`note_${course}_${distance}_${raceClass}`);
+    if (!note && distance !== 'all') note = localStorage.getItem(`note_${course}_all_${raceClass}`);
+    if (!note) note = localStorage.getItem(`note_${course}_${distance}_all`);
+    if (!note) note = localStorage.getItem(`note_${course}_all_all`);
+    if (!note) note = localStorage.getItem(`note_${course}_${distance}_${raceClass}`); // fallback
+
+    document.getElementById('notesTextarea').value = note || '';
+}
+function saveScenarioNote() {
+    const course = document.getElementById('notesCourse').value;
+    const distance = document.getElementById('notesDistance').value;
+    const raceClass = document.getElementById('notesClass').value;
+    const note = document.getElementById('notesTextarea').value.trim();
+
+    if (!course || !raceClass) {
+        alert('Please select Course and Class.');
+        return;
+    }
+
+    const noteKey = `note_${course}_${distance}_${raceClass}`;
+    localStorage.setItem(noteKey, note);
+    alert('Note saved successfully!');
+}
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);
             if (!select) return [];
