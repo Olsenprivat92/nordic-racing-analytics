@@ -1384,10 +1384,9 @@
                                 </div>
                                 <div class="filter-box">
                                     <div class="filter-title">📏 Distance</div>
-<select id="nextRaceDistance" onchange="saveNextRaceFilters(); updateNextRaceScenario(); updateDistanceOptions()">
-    <option value="">Select Distance</option>
-    <option value="all">All Distances</option>
-</select>
+                                    <select id="nextRaceDistance" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
+                                        <option value="">Select Distance</option>
+                                    </select>
                                 </div>
                                 <div class="filter-box">
                                     <div class="filter-title">🏆 Class</div>
@@ -1965,19 +1964,32 @@
         selectionCourse.innerHTML = '<option value="">Select Course</option>' +
             document.getElementById('nextRaceCourse').innerHTML.replace('<option value="">Select Course</option>', '');
     }
-function updateDistanceOptions() {
+        function updateDistanceOptions() {
     const course = document.getElementById('nextRaceCourse').value;
     const distanceSelect = document.getElementById('nextRaceDistance');
 
     if (!distanceSelect) return;
 
-    // Save current value before repopulating
-    const currentValue = distanceSelect.value;
-
-    // Clear options except first two
+    // Clear current options except the first ("Select Distance")
     distanceSelect.innerHTML = '<option value="">Select Distance</option><option value="all">All Distances</option>';
 
-    const distances = new Set();
+    if (!course) {
+        // If no course selected, show all distances from data
+        const allDistances = new Set();
+        racingData.forEach(row => {
+            if (row.Distance && row.Distance.trim()) allDistances.add(row.Distance.trim());
+        });
+        Array.from(allDistances).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dist => {
+            const option = document.createElement('option');
+            option.value = dist;
+            option.textContent = dist + 'm';
+            distanceSelect.appendChild(option);
+        });
+        return;
+    }
+
+    // Filter distances that exist on this course
+    const courseDistances = new Set();
     racingData.forEach(row => {
         let rowCourse = row.Course || '';
         if (rowCourse.toLowerCase().includes('bro park') || rowCourse.toLowerCase().includes('øvrevoll')) {
@@ -1985,36 +1997,17 @@ function updateDistanceOptions() {
             if (surface.includes('dirt') || surface.includes('sand')) rowCourse += ' (Dirt)';
             else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs')) rowCourse += ' (Grass)';
         }
-        if ((!course || rowCourse === course) && row.Distance && row.Distance.trim()) {
-            distances.add(row.Distance.trim());
+        if (rowCourse === course && row.Distance && row.Distance.trim()) {
+            courseDistances.add(row.Distance.trim());
         }
     });
 
-    Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dist => {
+    // Populate dropdown with filtered distances
+    Array.from(courseDistances).sort((a, b) => parseInt(a) - parseInt(b)).forEach(dist => {
         const option = document.createElement('option');
         option.value = dist;
         option.textContent = dist + 'm';
         distanceSelect.appendChild(option);
-    });
-
-    // Restore previous selection if it still exists
-    if (currentValue && Array.from(distanceSelect.options).some(opt => opt.value === currentValue)) {
-        distanceSelect.value = currentValue;
-    }
-}
-        function lockDistanceSelection() {
-    const distanceSelect = document.getElementById('nextRaceDistance');
-    if (!distanceSelect) return;
-
-    // After any repopulation, force keep the current value
-    const currentValue = distanceSelect.dataset.currentValue || '';
-    if (currentValue) {
-        distanceSelect.value = currentValue;
-    }
-
-    // Save current value on change
-    distanceSelect.addEventListener('change', () => {
-        distanceSelect.dataset.currentValue = distanceSelect.value;
     });
 }
         function populateJockeyFilters() {
@@ -3820,31 +3813,28 @@ if (filteredRaces.length > 0) {
             localStorage.setItem('nextRaceData', JSON.stringify(nextRaceData));
         }
 function switchNextRaceView() {
-    const dayStr = document.getElementById('raceDaySelect').value;
-    const day = parseInt(dayStr) - 1;
+    const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
-
-    // Early safety: Validate day
-    if (isNaN(day) || day < 0 || day > 4) {
-        console.warn('Invalid Race Day:', dayStr);
-        return;
-    }
 
     // Hide all pages
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'none';
-    document.getElementById('selectionModal').style.display = 'none';
 
-    // Force full initialization for ALL 5 days on every switch (this fixes Race Day 3+)
-    if (!nextRaceData.days || !Array.isArray(nextRaceData.days)) {
-        nextRaceData.days = [];
-    }
-    for (let d = 0; d < 5; d++) {
-        if (!nextRaceData.days[d]) nextRaceData.days[d] = { races: [] };
-        if (!Array.isArray(nextRaceData.days[d].races)) nextRaceData.days[d].races = [];
-        while (nextRaceData.days[d].races.length < 12) {
-            nextRaceData.days[d].races.push({
+    if (raceValue === 'overview') {
+        document.getElementById('overview-page').style.display = 'block';
+        updatePredictionOverview(day);
+    } else if (raceValue === 'selection') {
+        document.getElementById('selection-page').style.display = 'block';
+        populateSelectionRaces(); // Generate the 12 race rows
+    } else {
+        const race = parseInt(raceValue) - 1;
+
+        // Safety: Initialize day and all 12 races if missing
+        if (!nextRaceData.days) nextRaceData.days = [];
+        if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
+        while (nextRaceData.days[day].races.length < 12) {
+            nextRaceData.days[day].races.push({
                 course: '',
                 distance: '',
                 class: '',
@@ -3853,21 +3843,7 @@ function switchNextRaceView() {
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
             });
         }
-    }
-    saveNextRaceData();
-
-    if (raceValue === 'overview') {
-        document.getElementById('overview-page').style.display = 'block';
-        updatePredictionOverview(day);
-    } else if (raceValue === 'selection') {
-        document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces();
-    } else {
-        const race = parseInt(raceValue) - 1;
-        if (isNaN(race) || race < 0 || race >= 12) {
-            console.warn('Invalid race:', raceValue);
-            return;
-        }
+        saveNextRaceData();
 
         const currentRace = nextRaceData.days[day].races[race];
 
