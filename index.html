@@ -1531,6 +1531,7 @@
                                 <div class="filter-title">🏁 Course</div>
 <select id="notesCourse" onchange="loadScenarioNote()">
     <option value="">Select Course</option>
+    <!-- populated by populateNotesFilters() -->
 </select>
 
 <select id="notesDistance" onchange="loadScenarioNote()">
@@ -1655,7 +1656,8 @@
                 switchNextRaceView();
                 updateNextRaceAnalysis();
             } else if (view === 'notes') {
-                populateNotesFilters();
+populateNotesFilters();
+loadScenarioNote(); // optional: load immediately if filters pre-selected
             } else if (view === 'predictor') {
                 // Nothing yet
             }
@@ -2151,15 +2153,17 @@ function populateNotesFilters() {
     const notesCourse = document.getElementById('notesCourse');
     if (notesCourse) {
         notesCourse.innerHTML = '<option value="">Select Course</option>' +
-            Array.from(courses).sort().map(course => `<option value="${course}">${course}</option>`).join('');
+            Array.from(courses).sort().map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
     const notesDistance = document.getElementById('notesDistance');
     if (notesDistance) {
         notesDistance.innerHTML = '<option value="">Select Distance</option>' +
             '<option value="all">All Distances</option>' +
-            Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(dist => `<option value="${dist}">${dist}m</option>`).join('');
+            Array.from(distances).sort((a, b) => parseInt(a) - parseInt(b)).map(d => `<option value="${d}">${d}m</option>`).join('');
     }
+
+    // Classes are static, so no need to populate dynamically unless you have dynamic ones
 }
         function updateNextRaceScenario() {
             const course = document.getElementById('nextRaceCourse').value;
@@ -2240,38 +2244,63 @@ function populateNotesFilters() {
             favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>';
         }
 function loadScenarioNote() {
-    const course = document.getElementById('notesCourse').value;
-    const distance = document.getElementById('notesDistance').value;
-    const raceClass = document.getElementById('notesClass').value;
+    const course = document.getElementById('notesCourse')?.value?.trim() || '';
+    const distance = document.getElementById('notesDistance')?.value?.trim() || '';
+    const raceClass = document.getElementById('notesClass')?.value?.trim() || '';
 
     if (!course || !raceClass) {
         document.getElementById('notesTextarea').value = '';
         return;
     }
 
-    // Try exact match first, then fallbacks
-    let note = localStorage.getItem(`note_${course}_${distance}_${raceClass}`);
-    if (!note && distance !== 'all') note = localStorage.getItem(`note_${course}_all_${raceClass}`);
-    if (!note) note = localStorage.getItem(`note_${course}_${distance}_all`);
-    if (!note) note = localStorage.getItem(`note_${course}_all_all`);
-    if (!note) note = localStorage.getItem(`note_${course}_${distance}_${raceClass}`); // fallback
+    // Try exact match first, then fallbacks (more specific → less specific)
+    let note = null;
+    let keyUsed = '';
+
+    // 1. Full exact key
+    let key = `note_${course}_${distance}_${raceClass}`;
+    note = localStorage.getItem(key);
+    if (note) keyUsed = key;
+
+    // 2. Course + Class (ignore distance)
+    if (!note) {
+        key = `note_${course}_all_${raceClass}`;
+        note = localStorage.getItem(key);
+        if (note) keyUsed = key;
+    }
+
+    // 3. Course + Distance (ignore class)
+    if (!note) {
+        key = `note_${course}_${distance}_all`;
+        note = localStorage.getItem(key);
+        if (note) keyUsed = key;
+    }
+
+    // 4. Course only (most general)
+    if (!note) {
+        key = `note_${course}_all_all`;
+        note = localStorage.getItem(key);
+        if (note) keyUsed = key;
+    }
 
     document.getElementById('notesTextarea').value = note || '';
+    console.log('Notes Editor: Loaded from key:', keyUsed || '(no match)', 'value:', note || '(empty)');
 }
 function saveScenarioNote() {
-    const course = document.getElementById('notesCourse').value;
-    const distance = document.getElementById('notesDistance').value;
-    const raceClass = document.getElementById('notesClass').value;
-    const note = document.getElementById('notesTextarea').value.trim();
+    const course = document.getElementById('notesCourse')?.value?.trim() || '';
+    const distance = document.getElementById('notesDistance')?.value?.trim() || '';
+    const raceClass = document.getElementById('notesClass')?.value?.trim() || '';
+    const note = document.getElementById('notesTextarea')?.value.trim() || '';
 
     if (!course || !raceClass) {
-        alert('Please select Course and Class.');
+        alert('Please select both Course and Class before saving.');
         return;
     }
 
     const noteKey = `note_${course}_${distance}_${raceClass}`;
     localStorage.setItem(noteKey, note);
     alert('Note saved successfully!');
+    console.log('Notes Editor: Saved to key:', noteKey, 'value:', note);
 }
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);
