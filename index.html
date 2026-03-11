@@ -422,7 +422,6 @@
             <div class="sync-status" id="syncStatus">
                 Ready
             </div>
-        </div>
     </header>
     <nav class="nav">
         <div class="nav-content">
@@ -1561,8 +1560,10 @@
                     <div class="analysis-box">
                         <h3>Edit Note</h3>
                         <textarea id="notesTextarea" rows="10" style="width: 100%; padding: 1rem;"></textarea>
-                        <button style="margin-top: 1rem;" onclick="saveScenarioNote()">Save Note</button>
-                    </div>
+<button onclick="saveScenarioNote()" style="margin-top: 1rem; padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer;">
+        Save Note
+    </button>
+</div>
                 </div>
             </div>
         </div>
@@ -2244,39 +2245,38 @@ function populateNotesFilters() {
             favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>';
         }
 function loadScenarioNote() {
+    console.log('loadScenarioNote called');
     const course = document.getElementById('notesCourse')?.value?.trim() || '';
     const distance = document.getElementById('notesDistance')?.value?.trim() || '';
     const raceClass = document.getElementById('notesClass')?.value?.trim() || '';
 
+    console.log('Filters:', { course, distance, raceClass });
+
     if (!course || !raceClass) {
+        console.log('Missing course or class – clearing textarea');
         document.getElementById('notesTextarea').value = '';
         return;
     }
 
-    // Try exact match first, then fallbacks (more specific → less specific)
     let note = null;
     let keyUsed = '';
 
-    // 1. Full exact key
     let key = `note_${course}_${distance}_${raceClass}`;
     note = localStorage.getItem(key);
     if (note) keyUsed = key;
 
-    // 2. Course + Class (ignore distance)
-    if (!note) {
+    if (!note && distance !== 'all') {
         key = `note_${course}_all_${raceClass}`;
         note = localStorage.getItem(key);
         if (note) keyUsed = key;
     }
 
-    // 3. Course + Distance (ignore class)
     if (!note) {
         key = `note_${course}_${distance}_all`;
         note = localStorage.getItem(key);
         if (note) keyUsed = key;
     }
 
-    // 4. Course only (most general)
     if (!note) {
         key = `note_${course}_all_all`;
         note = localStorage.getItem(key);
@@ -2284,23 +2284,25 @@ function loadScenarioNote() {
     }
 
     document.getElementById('notesTextarea').value = note || '';
-    console.log('Notes Editor: Loaded from key:', keyUsed || '(no match)', 'value:', note || '(empty)');
+    console.log('Loaded from key:', keyUsed || '(no match)', 'value:', note || '(empty)');
 }
-function saveScenarioNote() {
+        function saveScenarioNote() {
     const course = document.getElementById('notesCourse')?.value?.trim() || '';
     const distance = document.getElementById('notesDistance')?.value?.trim() || '';
     const raceClass = document.getElementById('notesClass')?.value?.trim() || '';
     const note = document.getElementById('notesTextarea')?.value.trim() || '';
 
+    console.log('saveScenarioNote called with:', { course, distance, raceClass, note });
+
     if (!course || !raceClass) {
-        alert('Please select both Course and Class before saving.');
+        alert('Please select Course and Class before saving.');
         return;
     }
 
     const noteKey = `note_${course}_${distance}_${raceClass}`;
     localStorage.setItem(noteKey, note);
     alert('Note saved successfully!');
-    console.log('Notes Editor: Saved to key:', noteKey, 'value:', note);
+    console.log('Note saved to key:', noteKey, 'value:', note);
 }
         function getSelectedValues(selectId) {
             const select = document.getElementById(selectId);
