@@ -3604,38 +3604,22 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
+    // Hide both pages
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
 
+    // Full initialization for the day and races
     if (!nextRaceData.days) {
         nextRaceData.days = [];
     }
-
+    // Create the day object if missing
     if (!nextRaceData.days[day]) {
         nextRaceData.days[day] = { races: [] };
     }
-
-    while (nextRaceData.days[day].races.length < 12) {
-        nextRaceData.days[day].races.push({
-            course: '',
-            distance: '',
-            class: '',
-            date: '2025-10-11',
-            horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
-            prediction: { a: '', b: '', c: '', d: '', e: '' }
-        });
-    }
-
-    saveNextRaceData();
-
-    if (raceValue === 'overview') {
-        document.getElementById('overview-page').style.display = 'block';
-        updatePredictionOverview(day);
-    } else {
-        const race = parseInt(raceValue) - 1;
-
-        if (!nextRaceData.days[day].races[race]) {
-            nextRaceData.days[day].races[race] = {
+    // Create ALL 12 races if missing (this fixes Race 1 & 2 on Day 1)
+    for (let r = 0; r < 12; r++) {
+        if (!nextRaceData.days[day].races[r]) {
+            nextRaceData.days[day].races[r] = {
                 course: '',
                 distance: '',
                 class: '',
@@ -3643,8 +3627,15 @@ function switchNextRaceView() {
                 horses: Array.from({length: 15}, () => ({ horse: '', jockey: '', class: '', withweight: '' })),
                 prediction: { a: '', b: '', c: '', d: '', e: '' }
             };
-            saveNextRaceData();
         }
+    }
+    saveNextRaceData(); // Save immediately so data persists
+
+    if (raceValue === 'overview') {
+        document.getElementById('overview-page').style.display = 'block';
+        updatePredictionOverview(day);
+    } else {
+        const race = parseInt(raceValue) - 1;
 
         const currentRace = nextRaceData.days[day].races[race];
 
@@ -3816,12 +3807,7 @@ function updateNextRaceRow(rowNum) {
             clearNextRaceRow(rowNum);
             return;
         }
-        if (!horseRaces || horseRaces.length === 0) {
-            document.getElementById(`avgRanking-${rowNum}`).textContent = 'N/A';
-            document.getElementById(`comment-${rowNum}`).textContent = 'N/A';
-            clearNextRaceRow(rowNum);
-            return;
-        }
+
         const selectedCourse = document.getElementById('nextRaceCourse').value;
         const surfaceValues = getSelectedValues('nextRaceSurfaceFilter');
         const distValues = getSelectedValues('nextRaceDistanceFilter');
