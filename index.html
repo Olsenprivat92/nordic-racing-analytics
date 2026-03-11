@@ -4884,7 +4884,7 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
     });
 }
 function showSelectionModal() {
-    // Hide normal content and other views
+    // Hide normal race content and other views
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
 
@@ -4893,6 +4893,7 @@ function showSelectionModal() {
         modal.style.display = 'flex';
         populateSelectionRacesModal();
         populateSelectionCourseModal();
+        console.log('Modal opened – normal content hidden');
     } else {
         console.error('Modal not found');
     }
@@ -4951,17 +4952,14 @@ function closeSelectionModal() {
 function applySelectionModal() {
     const day = parseInt(document.getElementById('selectionDayModal').value);
     const course = document.getElementById('selectionCourseModal').value;
-
     if (!course) {
         alert('Please select a course.');
         return;
     }
-
     // Apply course to all races on the day
     for (let r = 0; r < 12; r++) {
         nextRaceData.days[day].races[r].course = course;
     }
-
     // Apply distances and classes
     for (let r = 1; r <= 12; r++) {
         const distInput = document.getElementById(`selDistModal-${r}`);
@@ -4973,37 +4971,6 @@ function applySelectionModal() {
             nextRaceData.days[day].races[r-1].class = classSelect.value;
         }
     }
-
-    saveNextRaceData();
-    closeSelectionModal();
-    alert(`Setup applied to Race Day ${day + 1}!`);
-}
-        function applySelectionModal() {
-    const day = parseInt(document.getElementById('selectionDayModal').value);
-    const course = document.getElementById('selectionCourseModal').value;
-
-    if (!course) {
-        alert('Please select a course.');
-        return;
-    }
-
-    // Apply course to all races on the day
-    for (let r = 0; r < 12; r++) {
-        nextRaceData.days[day].races[r].course = course;
-    }
-
-    // Apply distances and classes
-    for (let r = 1; r <= 12; r++) {
-        const distInput = document.getElementById(`selDistModal-${r}`);
-        const classSelect = document.getElementById(`selClassModal-${r}`);
-        if (distInput && distInput.value.trim()) {
-            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
-        }
-        if (classSelect && classSelect.value) {
-            nextRaceData.days[day].races[r-1].class = classSelect.value;
-        }
-    }
-
     saveNextRaceData();
     closeSelectionModal();
     alert(`Setup applied to Race Day ${day + 1}!`);
