@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    /* Hide normal Next Race content on all pages except Next Race view */
+#race-pages {
+    display: none !important;
+}
+
+/* Only show it when inside Next Race view */
+#next-race-view #race-pages {
+    display: block !important;
+}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nordic Racing Analytics Platform</title>
