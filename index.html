@@ -3880,8 +3880,10 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide ALL views first (including normal content)
+    // Force hide normal content in ALL cases
     document.getElementById('race-pages').style.display = 'none';
+
+    // Hide other pages
     document.getElementById('overview-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'none';
     document.getElementById('selectionModal').style.display = 'none';
