@@ -1271,92 +1271,118 @@
             </div>
         </div>
            
-        <!-- Next Race View -->
-        <div class="view-container" id="next-race-view">
-            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                <select id="raceDaySelect" onchange="switchNextRaceView()">
-                    <option value="1">Race Day 1</option>
-                    <option value="2">Race Day 2</option>
-                    <option value="3">Race Day 3</option>
-                    <option value="4">Race Day 4</option>
-                    <option value="5">Race Day 5</option>
-                </select>
-                <button onclick="showSelectionModal()" style="margin-left: 1rem; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
-    Configure Race Day (Selection)
-</button>
-                <select id="raceSelect" onchange="switchNextRaceView()">
-                    <option value="1">Race 1</option>
-                    <option value="2">Race 2</option>
-                    <option value="3">Race 3</option>
-                    <option value="4">Race 4</option>
-                    <option value="5">Race 5</option>
-                    <option value="6">Race 6</option>
-                    <option value="7">Race 7</option>
-                    <option value="8">Race 8</option>
-                    <option value="9">Race 9</option>
-                    <option value="10">Race 10</option>
-                    <option value="11">Race 11</option>
-                    <option value="12">Race 12</option>
-                    <option value="overview">Overview</option>
-                </select>
-            </div>
-            <!-- Overview Page (shown only when "Overview" is selected) -->
-<div id="overview-page" style="display: none; margin-top: 2rem;">
-    <div class="card">
-        <div class="card-header">
-            <h3>Race Day Overview (Predictions)</h3>
+<!-- Next Race View -->
+<div class="view-container" id="next-race-view">
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+        <select id="raceDaySelect" onchange="switchNextRaceView()">
+            <option value="1">Race Day 1</option>
+            <option value="2">Race Day 2</option>
+            <option value="3">Race Day 3</option>
+            <option value="4">Race Day 4</option>
+            <option value="5">Race Day 5</option>
+        </select>
+        <button onclick="showSelectionModal()" style="margin-left: 1rem; padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Configure Race Day (Selection)
+        </button>
+        <select id="raceSelect" onchange="switchNextRaceView()">
+            <option value="1">Race 1</option>
+            <option value="2">Race 2</option>
+            <option value="3">Race 3</option>
+            <option value="4">Race 4</option>
+            <option value="5">Race 5</option>
+            <option value="6">Race 6</option>
+            <option value="7">Race 7</option>
+            <option value="8">Race 8</option>
+            <option value="9">Race 9</option>
+            <option value="10">Race 10</option>
+            <option value="11">Race 11</option>
+            <option value="12">Race 12</option>
+            <option value="overview">Overview</option>
+        </select>
+    </div>
+
+    <!-- Normal race content (default view) -->
+    <div id="race-pages">
+        <div class="start-list-loader">
+            <h3>Load Start List</h3>
+            <select id="startListFormat">
+                <option value="danish">Danish (e.g. Klampenborg)</option>
+                <option value="norwegian">Norwegian (e.g. Øvrevoll)</option>
+                <option value="swedish">Swedish (e.g. Svensk Galopp)</option>
+            </select>
+            <textarea id="startListText" rows="10" placeholder="Paste the start list text here (copy from PDF or web page)"></textarea>
+            <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
+            <button onclick="parseAndFillStartList()">Parse and Fill Table</button>
         </div>
-        <div class="card-body">
-            <div id="predictionOverview" style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap;"></div>
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🏇 Next Race Analysis</h2>
+            </div>
+            <div class="card-body">
+                <!-- All your existing filters, scenario, table, prediction, buttons -->
+                <!-- ... paste your full card-body content here ... -->
+            </div>
+        </div>
+        <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
+        <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
+    </div>
+
+    <!-- Overview Page -->
+    <div id="overview-page" style="display: none; margin-top: 2rem;">
+        <div class="card">
+            <div class="card-header">
+                <h3>Race Day Overview (Predictions)</h3>
+            </div>
+            <div class="card-body">
+                <div id="predictionOverview" style="font-size: 1rem; line-height: 1.8; white-space: pre-wrap;"></div>
+            </div>
         </div>
     </div>
-<!-- Selection Modal – popup for quick race day setup -->
-<div id="selectionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; border-radius: 12px; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2 style="margin: 0;">Quick Race Day Setup</h2>
-            <button onclick="closeSelectionModal()" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 1.2rem;">×</button>
-        </div>
 
-        <div style="margin-bottom: 1.5rem;">
-            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Race Day to configure:</label>
-            <select id="selectionDayModal" style="padding: 8px; width: 200px;">
-                <option value="0">Race Day 1</option>
-                <option value="1">Race Day 2</option>
-                <option value="2">Race Day 3</option>
-                <option value="3">Race Day 4</option>
-                <option value="4">Race Day 5</option>
-            </select>
-        </div>
-
-        <div style="margin-bottom: 2rem;">
-            <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Course for the whole day:</label>
-            <select id="selectionCourseModal" style="padding: 8px; width: 300px;">
-                <option value="">Select Course</option>
-            </select>
-        </div>
-
-        <div>
-            <h4 style="margin-bottom: 1rem;">Distances and Classes per race</h4>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
-                <thead>
-                    <tr style="background: #f1f5f9;">
-                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Race</th>
-                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Distance</th>
-                        <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Class</th>
-                    </tr>
-                </thead>
-                <tbody id="selectionRacesTableModal"></tbody>
-            </table>
-        </div>
-
-        <div style="margin-top: 2rem; text-align: right;">
-            <button onclick="closeSelectionModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 1rem;">
-                Cancel
-            </button>
-            <button onclick="applySelectionModal()" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer;">
-                Apply Setup
-            </button>
+    <!-- Selection Modal -->
+    <div id="selectionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: white; border-radius: 12px; width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">Quick Race Day Setup</h2>
+                <button onclick="closeSelectionModal()" style="background: #ef4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 1.2rem;">×</button>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Race Day to configure:</label>
+                <select id="selectionDayModal" style="padding: 8px; width: 200px;">
+                    <option value="0">Race Day 1</option>
+                    <option value="1">Race Day 2</option>
+                    <option value="2">Race Day 3</option>
+                    <option value="3">Race Day 4</option>
+                    <option value="4">Race Day 5</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 2rem;">
+                <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Course for the whole day:</label>
+                <select id="selectionCourseModal" style="padding: 8px; width: 300px;">
+                    <option value="">Select Course</option>
+                </select>
+            </div>
+            <div>
+                <h4 style="margin-bottom: 1rem;">Distances and Classes per race</h4>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                    <thead>
+                        <tr style="background: #f1f5f9;">
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Race</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Distance</th>
+                            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0;">Class</th>
+                        </tr>
+                    </thead>
+                    <tbody id="selectionRacesTableModal"></tbody>
+                </table>
+            </div>
+            <div style="margin-top: 2rem; text-align: right;">
+                <button onclick="closeSelectionModal()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; margin-right: 1rem;">
+                    Cancel
+                </button>
+                <button onclick="applySelectionModal()" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    Apply Setup
+                </button>
+            </div>
         </div>
     </div>
 </div>
