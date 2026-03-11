@@ -2182,67 +2182,6 @@ function applySelection() {
     alert(`Setup applied to Race Day ${day + 1}!`);
 }
 
-function applySelection() {
-    const day = parseInt(document.getElementById('selectionDay').value);
-    const course = document.getElementById('selectionCourse').value;
-
-    if (!course) {
-        alert('Please select a course for the day.');
-        return;
-    }
-
-    // Apply course to all races on the selected day
-    for (let r = 0; r < 12; r++) {
-        nextRaceData.days[day].races[r].course = course;
-    }
-
-    // Apply per-race distance and class
-    for (let r = 1; r <= 12; r++) {
-        const distInput = document.getElementById(`selDist-${r}`);
-        const classSelect = document.getElementById(`selClass-${r}`);
-        if (distInput && distInput.value.trim()) {
-            nextRaceData.days[day].races[r-1].distance = distInput.value.trim();
-        }
-        if (classSelect && classSelect.value) {
-            nextRaceData.days[day].races[r-1].class = classSelect.value;
-        }
-    }
-
-    saveNextRaceData();
-    alert(`Setup applied to Race Day ${day + 1}! Switch to that day to see the pre-filled values.`);
-}
-
-function applySelection() {
-    const day = parseInt(document.getElementById('selectionDay').value);
-    const course = document.getElementById('selectionCourse').value;
-
-    if (!course) {
-        alert('Please select a course.');
-        return;
-    }
-
-    // Apply course to all races on the day
-    for (let r = 0; r < 12; r++) {
-        nextRaceData.days[day].races[r].course = course;
-    }
-
-    // Apply distances and classes
-    for (let r = 1; r <= 12; r++) {
-        const distInput = document.getElementById(`selDist-${r}`);
-        const classSelect = document.getElementById(`selClass-${r}`);
-        if (distInput) {
-            const dist = distInput.value.trim();
-            if (dist) nextRaceData.days[day].races[r-1].distance = dist;
-        }
-        if (classSelect) {
-            const cls = classSelect.value;
-            if (cls) nextRaceData.days[day].races[r-1].class = cls;
-        }
-    }
-
-    saveNextRaceData();
-    alert('Selection applied to Race Day ' + (day + 1) + '! Switch to that day to see the pre-filled values.');
-}
         function populateNotesFilters() {
             const courses = new Set();
             const distances = new Set();
