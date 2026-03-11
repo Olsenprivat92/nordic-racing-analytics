@@ -3880,17 +3880,18 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide all pages
+    // Hide ALL views first (including normal content)
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
     document.getElementById('selection-page').style.display = 'none';
+    document.getElementById('selectionModal').style.display = 'none';
 
     if (raceValue === 'overview') {
         document.getElementById('overview-page').style.display = 'block';
         updatePredictionOverview(day);
     } else if (raceValue === 'selection') {
         document.getElementById('selection-page').style.display = 'block';
-        populateSelectionRaces(); // Generate the 12 race rows
+        populateSelectionRaces();
     } else {
         const race = parseInt(raceValue) - 1;
 
@@ -4854,18 +4855,16 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
     });
 }
 function showSelectionModal() {
-    // Hide normal race content and other views
+    // Hide normal content
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
+    document.getElementById('selection-page').style.display = 'none';
 
     const modal = document.getElementById('selectionModal');
     if (modal) {
         modal.style.display = 'flex';
         populateSelectionRacesModal();
         populateSelectionCourseModal();
-        console.log('Selection modal opened – normal content hidden');
-    } else {
-        console.error('Modal element not found');
     }
 }
         function populateSelectionRacesModal() {
