@@ -4884,7 +4884,7 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
     });
 }
 function showSelectionModal() {
-    // Hide normal content
+    // Hide normal content and other views
     document.getElementById('race-pages').style.display = 'none';
     document.getElementById('overview-page').style.display = 'none';
 
@@ -4893,6 +4893,8 @@ function showSelectionModal() {
         modal.style.display = 'flex';
         populateSelectionRacesModal();
         populateSelectionCourseModal();
+    } else {
+        console.error('Modal not found');
     }
 }
         function populateSelectionRacesModal() {
