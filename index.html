@@ -1317,7 +1317,7 @@
                         <div class="filters-grid">
                             <div class="filter-box">
                                 <div class="filter-title">🏁 Course</div>
-<select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario()">
+<select id="nextRaceCourse" onchange="saveNextRaceFilters(); updateNextRaceScenario(); updateDistanceOptions()">
     <option value="">Select Course</option>
     <!-- options populated by populateNextRaceFilters() -->
 </select>
@@ -3653,6 +3653,69 @@ function saveNextRaceFilters() {
 
     saveNextRaceData();
     updateNextRaceScenario();
+}
+        function updateDistanceOptions() {
+    const course = document.getElementById('nextRaceCourse').value.trim();
+    const distanceSelect = document.getElementById('nextRaceDistance');
+
+    if (!distanceSelect) return;
+
+    // Save current selected value (so we can try to restore it)
+    const previousValue = distanceSelect.value;
+
+    // Clear all options except the first two
+    distanceSelect.innerHTML = '<option value="">Select Distance</option><option value="all">All Distances</option>';
+
+    if (!course) {
+        // No course selected → show all possible distances from data
+        const allDistances = new Set();
+        racingData.forEach(row => {
+            if (row.Distance && row.Distance.trim()) allDistances.add(row.Distance.trim());
+        });
+        Array.from(allDistances)
+            .sort((a, b) => parseInt(a) - parseInt(b))
+            .forEach(dist => {
+                const opt = document.createElement('option');
+                opt.value = dist;
+                opt.textContent = `${dist}m`;
+                distanceSelect.appendChild(opt);
+            });
+        // Restore previous if it still makes sense
+        if (previousValue && distanceSelect.querySelector(`option[value="${previousValue}"]`)) {
+            distanceSelect.value = previousValue;
+        }
+        return;
+    }
+
+    // Course selected → only distances that exist on this course
+    const courseDistances = new Set();
+    racingData.forEach(row => {
+        let rowCourse = row.Course?.trim() || '';
+        if (rowCourse.toLowerCase().includes('bro park') || rowCourse.toLowerCase().includes('øvrevoll')) {
+            const surface = (row.Surface || '').toLowerCase();
+            if (surface.includes('dirt') || surface.includes('sand')) rowCourse += ' (Dirt)';
+            else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs')) rowCourse += ' (Grass)';
+        }
+        if (rowCourse === course && row.Distance && row.Distance.trim()) {
+            courseDistances.add(row.Distance.trim());
+        }
+    });
+
+    Array.from(courseDistances)
+        .sort((a, b) => parseInt(a) - parseInt(b))
+        .forEach(dist => {
+            const opt = document.createElement('option');
+            opt.value = dist;
+            opt.textContent = `${dist}m`;
+            distanceSelect.appendChild(opt);
+        });
+
+    // Try to keep previous selection if it still exists for this course
+    if (previousValue && distanceSelect.querySelector(`option[value="${previousValue}"]`)) {
+        distanceSelect.value = previousValue;
+    } else {
+        distanceSelect.value = ''; // Reset to "Select Distance" if old value no longer valid
+    }
 }
 function saveHorseData(rowNum) {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
