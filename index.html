@@ -1415,8 +1415,9 @@
                                         <th>Trainer</th>
                                         <th>Trainer %</th>
                                         <th>Jockey %</th>
-                                        <th>Class</th>
+                                        <th>Sire</th>
                                         <th>Siblings</th>
+                                        <th>Class</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -3806,25 +3807,26 @@ function saveHorseData(rowNum) {
             tbody.innerHTML = '';
             for (let i = 1; i <= 15; i++) {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${i}</td>
-                    <td>
-                        <div class="horse-jockey-container">
-                            <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
-                            <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
-                            <input type="text" id="withweight-${i}" placeholder="Weight" onchange="saveHorseData(${i})">
-                        </div>
-                        <div id="last5-${i}"></div>
-                    </td>
-                    <td id="avgRanking-${i}"></td>
-                    <td id="comment-${i}"></td>
-                    <td id="winsRaces-${i}"></td>
-                    <td id="trainer-${i}"></td>
-                    <td id="trainerPct-${i}"></td>
-                    <td id="jockeyPct-${i}"></td>
-                    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
-                    <td id="siblings-${i}" title="" style="cursor: help;"></td>
-                `;
+row.innerHTML = `
+    <td>${i}</td>
+    <td>
+        <div class="horse-jockey-container">
+            <input list="horseList" id="horse-${i}" placeholder="Horse" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+            <input list="jockeyList" id="jockey-${i}" placeholder="Jockey" onchange="updateNextRaceRow(${i}); saveHorseData(${i})">
+            <input type="text" id="withweight-${i}" placeholder="Weight" onchange="saveHorseData(${i})">
+        </div>
+        <div id="last5-${i}"></div>
+    </td>
+    <td id="avgRanking-${i}"></td>
+    <td id="comment-${i}"></td>
+    <td id="winsRaces-${i}"></td>
+    <td id="trainer-${i}"></td>
+    <td id="trainerPct-${i}"></td>
+    <td id="jockeyPct-${i}"></td>
+    <td id="sire-${i}" title="" style="cursor: help;"></td> <!-- ← New Sire cell -->
+    <td><input type="text" class="small-input" id="class-${i}" placeholder="e.g. 4.5" onchange="saveHorseData(${i})"></td>
+    <td id="siblings-${i}" title="" style="cursor: help;"></td>
+`;
                 tbody.appendChild(row);
             }
             console.log('Table rows created:', document.querySelectorAll('#nextRaceTable tbody tr').length);
@@ -3966,6 +3968,24 @@ function updateNextRaceRow(rowNum) {
         const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
         document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
 
+        // Sire cell: name + * if comment exists, hover shows comment
+const sireCell = document.getElementById(`sire-${rowNum}`);
+if (horseName && horseRaces.length > 0) {
+    const sire = horseRaces[0].Sire || 'N/A';
+    const sireComment = localStorage.getItem(`sireComment_${sire}`) || '';
+    if (sire !== 'N/A') {
+        sireCell.innerHTML = sire + (sireComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
+        sireCell.title = sireComment || '';
+        sireCell.style.cursor = sireComment ? 'help' : 'default';
+    } else {
+        sireCell.textContent = 'N/A';
+        sireCell.title = '';
+    }
+} else {
+    sireCell.textContent = '';
+    sireCell.title = '';
+}
+        
         // Post Position Hover Tooltip - fixed per-row selector
         const currentCourse = document.getElementById('nextRaceCourse').value;
         const currentDistance = document.getElementById('nextRaceDistance').value;
