@@ -3943,31 +3943,44 @@ function updateNextRaceRow(rowNum) {
         }
         document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
 
-        // Jockey %
-        const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
-        let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
-        if (selectedCourse) {
-            jockeyRaces = jockeyRaces.filter(race => {
-                let raceCourse = race.Course || '';
-                if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
-                    const surface = (race.Surface || '').toLowerCase();
-                    const track = (race.Track || '').toLowerCase();
-                    const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
-                    if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                        track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                        raceCourse += ' (Dirt)';
-                    } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                               track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                        raceCourse += ' (Grass)';
-                    }
-                }
-                return raceCourse === selectedCourse;
-            });
-        }
-        const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-        const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-        document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
+// Jockey Win % on the selected course only + comment * and hover tooltip
+const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
+let jockeyWinPct = 'N/A';
+let jockeyComment = '';
 
+if (jockey !== '') {
+    let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
+
+    if (selectedCourse) {
+        jockeyRaces = jockeyRaces.filter(race => {
+            let raceCourse = race.Course || '';
+            if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+                const surface = (race.Surface || '').toLowerCase();
+                const track = (race.Track || '').toLowerCase();
+                const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
+                if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
+                    track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
+                    raceCourse += ' (Dirt)';
+                } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
+                           track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
+                    raceCourse += ' (Grass)';
+                }
+            }
+            return raceCourse === selectedCourse;
+        });
+    }
+
+    const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
+    jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
+
+    // Get comment from Jockey Analysis (localStorage)
+    jockeyComment = localStorage.getItem(`jockeyComment_${jockey}`) || '';
+}
+
+const jockeyPctCell = document.getElementById(`jockeyPct-${rowNum}`);
+jockeyPctCell.innerHTML = jockeyWinPct + (jockeyComment ? ' <span style="color:#eab308; font-weight:bold">*</span>' : '');
+jockeyPctCell.title = jockeyComment || '';
+jockeyPctCell.style.cursor = jockeyComment ? 'help' : 'default';
         // Sire cell: name + * if comment exists, hover shows comment
 const sireCell = document.getElementById(`sire-${rowNum}`);
 if (horseName && horseRaces.length > 0) {
