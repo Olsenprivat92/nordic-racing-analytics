@@ -2105,49 +2105,68 @@
             updateTopTrainers(filtered);
             updateFavoriteAnalysis();
         }
-        function updatePostPositions(data, elementId = 'postPositionAnalysis') {
-            const postStats = {};
+function updatePostPositions(data, elementId = 'nextRacePostPosition') {
+    const selectedCourse = document.getElementById('nextRaceCourse').value.trim();
+    const selectedDistance = document.getElementById('nextRaceDistance').value.trim();
 
-            data.forEach(race => {
-                const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
-                const field = parseInt(race.Field) || 0;
+    if (!selectedCourse || !selectedDistance) {
+        document.getElementById(elementId).innerHTML = '<p>Select course and distance to see analysis.</p>';
+        return;
+    }
 
-                if (post > 0 && field > 0 && post <= field) {
-                    if (!postStats[post]) {
-                        postStats[post] = { runs: 0, wins: 0, expected: 0 };
-                    }
-                    postStats[post].runs++;
-                    if (race.Place === '1' || race.Place === 1) postStats[post].wins++;
-                    postStats[post].expected += (1 / field);   // fair share for this race
-                }
-            });
+    // Normalize selected course the same way as in populateNextRaceFilters()
+    let normalizedSelectedCourse = selectedCourse;
+    if (normalizedSelectedCourse.toLowerCase().includes('bro park') || normalizedSelectedCourse.toLowerCase().includes('øvrevoll')) {
+        // We don't have surface here, but we can assume the selected course already has (Grass)/(Dirt) if needed
+        // Historical rows will be normalized similarly
+    }
 
-            let html = '<table><tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win %</th><th>Expected %</th><th>Differential</th></tr>';
-
-            for (let i = 1; i <= 20; i++) {
-                const p = postStats[i] || { runs: 0, wins: 0, expected: 0 };
-
-                if (p.runs > 0) {
-                    const winPct = (p.wins / p.runs * 100).toFixed(1);
-                    const expPct = (p.expected / p.runs * 100).toFixed(1);
-                    const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
-
-                    const diffColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
-
-                    html += `<tr>
-                        <td><strong>${i}</strong></td>
-                        <td>${p.runs}</td>
-                        <td>${p.wins}</td>
-                        <td>${winPct}%</td>
-                        <td>${expPct}%</td>
-                        <td style="color:${diffColor}; font-weight:600">${diff > 0 ? '+' : ''}${diff}%</td>
-                    </tr>`;
-                }
-            }
-
-            html += '</table>';
-            document.getElementById(elementId).innerHTML = html || '<p>No post position data available</p>';
+    const postStats = {};
+    data.forEach(race => {
+        // Normalize historical course the same way
+        let raceCourse = race.Course || '';
+        if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
+            const surface = (race.Surface || '').toLowerCase();
+            if (surface.includes('dirt') || surface.includes('sand')) raceCourse += ' (Dirt)';
+            else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs')) raceCourse += ' (Grass)';
         }
+
+        // Match normalized course and exact distance
+        if (raceCourse === selectedCourse && race.Distance === selectedDistance) {
+            const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
+            const field = parseInt(race.Field) || 0;
+            if (post > 0 && field > 0 && post <= field) {
+                if (!postStats[post]) postStats[post] = { runs: 0, wins: 0, expected: 0 };
+                postStats[post].runs++;
+                if (race.Place === '1' || race.Place === 1) postStats[post].wins++;
+                postStats[post].expected += (1 / field);
+            }
+        }
+    });
+
+    let html = '<table><tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win %</th><th>Expected %</th><th>Differential</th></tr>';
+    let hasData = false;
+    for (let i = 1; i <= 20; i++) {
+        const p = postStats[i] || { runs: 0, wins: 0, expected: 0 };
+        if (p.runs > 0) {
+            hasData = true;
+            const winPct = (p.wins / p.runs * 100).toFixed(1);
+            const expPct = (p.expected / p.runs * 100).toFixed(1);
+            const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
+            const diffColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
+            html += `<tr>
+                <td><strong>${i}</strong></td>
+                <td>${p.runs}</td>
+                <td>${p.wins}</td>
+                <td>${winPct}%</td>
+                <td>${expPct}%</td>
+                <td style="color:${diffColor}; font-weight:600">${diff > 0 ? '+' : ''}${diff}%</td>
+            </tr>`;
+        }
+    }
+    html += '</table>';
+    document.getElementById(elementId).innerHTML = hasData ? html : '<p>No post position data available for this course/distance.</p>';
+}
         function updateTopJockeys(data) {
             const jockeyStats = {};
  
