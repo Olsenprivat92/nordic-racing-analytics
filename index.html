@@ -3929,42 +3929,33 @@ function updateNextRaceRow(rowNum) {
         const jockeyComment = getJockeyComment(jockeyName);
         jockeyInput.title = jockeyComment || '';
 
-        // Trainer Win % on the selected course only
-        let trainerWinPct = 'N/A';
-        if (selectedCourse) {
-            const trainerRacesOnCourse = racingData.filter(r =>
-                (r.Trainer || r.Owner) === trainer &&
-                normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
-            );
-            const trainerWinsOnCourse = trainerRacesOnCourse.filter(r => r.Place === '1' || r.Place === 1).length;
-            trainerWinPct = trainerRacesOnCourse.length > 0 ? ((trainerWinsOnCourse / trainerRacesOnCourse.length) * 100).toFixed(1) + '%' : 'N/A';
-        }
-        document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
+// Trainer Win % on the selected course only
+let trainerWinPct = 'N/A';
+if (selectedCourse && trainer !== 'N/A') {
+    const trainerRacesOnCourse = racingData.filter(r =>
+        (r.Trainer || r.Owner) === trainer &&
+        normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
+    );
+    const trainerWinsOnCourse = trainerRacesOnCourse.filter(r => r.Place === '1' || r.Place === 1).length;
+    trainerWinPct = trainerRacesOnCourse.length > 0 
+        ? ((trainerWinsOnCourse / trainerRacesOnCourse.length) * 100).toFixed(1) + '%' 
+        : 'N/A';
+}
+document.getElementById(`trainerPct-${rowNum}`).textContent = trainerWinPct;
 
-        // Jockey %
-        const jockey = jockeyName || (horseRaces[0] ? horseRaces[0].Jockey : '');
-        let jockeyRaces = racingData.filter(r => r.Jockey === jockey);
-        if (selectedCourse) {
-            jockeyRaces = jockeyRaces.filter(race => {
-                let raceCourse = race.Course || '';
-                if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
-                    const surface = (race.Surface || '').toLowerCase();
-                    const track = (race.Track || '').toLowerCase();
-                    const conditions = (race.Conditions || race['Track Condition'] || '').toLowerCase();
-                    if (surface.includes('dirt') || surface.includes('sand') || track.includes('dirt') ||
-                        track.includes('sand') || conditions.includes('dirt') || conditions.includes('sand')) {
-                        raceCourse += ' (Dirt)';
-                    } else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs') ||
-                               track.includes('grass') || track.includes('turf') || conditions.includes('grass')) {
-                        raceCourse += ' (Grass)';
-                    }
-                }
-                return raceCourse === selectedCourse;
-            });
-        }
-        const jockeyWins = jockeyRaces.filter(r => r.Place === '1' || r.Place === 1).length;
-        const jockeyWinPct = jockeyRaces.length > 0 ? ((jockeyWins / jockeyRaces.length) * 100).toFixed(1) + '%' : 'N/A';
-        document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
+// Jockey Win % on the selected course only
+let jockeyWinPct = 'N/A';
+if (selectedCourse && jockey !== '') {
+    const jockeyRacesOnCourse = racingData.filter(r =>
+        r.Jockey === jockey &&
+        normalizeCourseName(r.Course || '', r.Surface || '') === selectedCourse
+    );
+    const jockeyWinsOnCourse = jockeyRacesOnCourse.filter(r => r.Place === '1' || r.Place === 1).length;
+    jockeyWinPct = jockeyRacesOnCourse.length > 0 
+        ? ((jockeyWinsOnCourse / jockeyRacesOnCourse.length) * 100).toFixed(1) + '%' 
+        : 'N/A';
+}
+document.getElementById(`jockeyPct-${rowNum}`).textContent = jockeyWinPct;
 
         // Post Position Hover Tooltip - fixed per-row selector
         const currentCourse = document.getElementById('nextRaceCourse').value;
