@@ -1788,18 +1788,26 @@
  
             return data;
         }
-        function normalizeCourseName(course, surface = '') {
+function normalizeCourseName(course, surface = '') {
     if (!course) return course || '';
     let name = course.trim();
+
+    // Bro Park / Øvrevoll suffixes (your existing logic)
     if (name.toLowerCase().includes('bro park') || name.toLowerCase().includes('øvrevoll')) {
         const s = (surface || '').toLowerCase();
         if (s.includes('græs') || s.includes('grass') || s.includes('turf')) {
             return name + ' (Grass)';
         }
-        if (s.includes('dirt')) {
+        if (s.includes('dirt') || s.includes('sand')) {
             return name + ' (Dirt)';
         }
     }
+
+    // NEW: Jægersro normalization (handle common spelling variants)
+    if (name.toLowerCase().includes('jægersro') || name.toLowerCase().includes('jaegersro') || name.toLowerCase().includes('jägersro')) {
+        return 'Jægersro';  // Standardize to your dropdown value
+    }
+
     return name;
 }
         function populateFilters() {
@@ -1970,52 +1978,71 @@
             });
             updatePostPositions(filteredData, 'nextRacePostPosition');
 
-            // === Favorite Performance - strict match like in Course Analysis ===
-            const favoriteContainer = document.getElementById('nextRaceFavoritePerformance');
-            if (!favoriteContainer) return;
+// === Favorite Performance - normalized & fallback match ===
+const favoriteContainer = document.getElementById('nextRaceFavoritePerformance');
+if (!favoriteContainer) return;
 
-            const selectedCourses = [course]; // Only the current selected course
-            let filteredTrends = favoriteTrendsData.filter(item => {
-                // Strict exact match on the normalized Course name
-                return selectedCourses.includes(item.Course);
-            });
+const selectedCourseRaw = document.getElementById('nextRaceCourse').value.trim();
+const selectedClass = document.getElementById('nextRaceClass').value.trim();
 
-            let html = '';
-            if (filteredTrends.length === 0) {
-                html += '<p>No favorite data for this course.</p>';
-            } else {
-                const courseGroups = {};
-                filteredTrends.forEach(item => {
-                    const key = item.Course;
-                    if (!courseGroups[key]) courseGroups[key] = [];
-                    courseGroups[key].push(item);
-                });
+if (!selectedCourseRaw || !selectedClass) {
+    favoriteContainer.innerHTML = '<p>Select course and class to see analysis.</p>';
+    return;
+}
 
-                Object.keys(courseGroups).forEach(course => {
-                    const courseData = courseGroups[course];
-                    html += `<div style="margin-bottom:1.5rem;">`;
-                    html += `<h4 style="color:#1e40af;margin-bottom:0.5rem;">🏁 ${course}</h4>`;
-                    html += '<table style="font-size:0.875rem;width:100%;"><tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
-                    courseData.forEach(item => {
-                        const top25Color = item.Top25 < 40 ? '#ef4444' : item.Top25 <= 60 ? '#0f172a' : '#22c55e';
-                        const range2650Color = item.Range26_50 < 20 ? '#ef4444' : item.Range26_50 <= 35 ? '#0f172a' : '#22c55e';
-                        const range5175Color = item.Range51_75 < 10 ? '#ef4444' : item.Range51_75 <= 20 ? '#0f172a' : '#22c55e';
-                        const range76100Color = item.Range76_100 < 5 ? '#ef4444' : item.Range76_100 <= 13 ? '#0f172a' : '#22c55e';
+// Normalize the selected course
+const selectedCourse = normalizeCourseName(selectedCourseRaw);
 
-                        html += `<tr>
-                            <td>${item.Class}</td>
-                            <td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>
-                            <td style="color:${range2650Color}; font-weight:600">${item.Range26_50.toFixed(1)}%</td>
-                            <td style="color:${range5175Color}; font-weight:600">${item.Range51_75.toFixed(1)}%</td>
-                            <td style="color:${range76100Color}; font-weight:600">${item.Range76_100.toFixed(1)}%</td>
-                            <td>${item.Total}</td>
-                        </tr>`;
-                    });
-                    html += '</table></div>';
-                });
-            }
+// Fallback names for Jægersro (add more if needed)
+const jægersroVariants = ['Jægersro', 'Jaegersro', 'Jägersro', 'Jægersro Galopp'];
 
-            favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>';
+let filteredTrends = favoriteTrendsData.filter(item => {
+    const itemCourse = item.Course || '';
+    const normItem = normalizeCourseName(itemCourse);
+
+    // Exact match or Jægersro variant match
+    const courseMatch = normItem === selectedCourse ||
+                        (jægersroVariants.includes(normItem) && jægersroVariants.includes(selectedCourse));
+
+    return courseMatch;
+});
+
+let html = '';
+if (filteredTrends.length === 0) {
+    html += '<p>No favorite data for this course.</p>';
+} else {
+    // Group by normalized course name
+    const courseGroups = {};
+    filteredTrends.forEach(item => {
+        const key = normalizeCourseName(item.Course);
+        if (!courseGroups[key]) courseGroups[key] = [];
+        courseGroups[key].push(item);
+    });
+
+    Object.keys(courseGroups).forEach(course => {
+        const courseData = courseGroups[course];
+        html += `<div style="margin-bottom:1.5rem;">`;
+        html += `<h4 style="color:#1e40af;margin-bottom:0.5rem;">🏁 ${course}</h4>`;
+        html += '<table style="font-size:0.875rem;width:100%;"><tr><th>Class</th><th>Top 25%</th><th>26-50%</th><th>51-75%</th><th>76-100%</th><th>Total</th></tr>';
+        courseData.forEach(item => {
+            const top25Color = item.Top25 < 40 ? '#ef4444' : item.Top25 <= 60 ? '#0f172a' : '#22c55e';
+            const range2650Color = item.Range26_50 < 20 ? '#ef4444' : item.Range26_50 <= 35 ? '#0f172a' : '#22c55e';
+            const range5175Color = item.Range51_75 < 10 ? '#ef4444' : item.Range51_75 <= 20 ? '#0f172a' : '#22c55e';
+            const range76100Color = item.Range76_100 < 5 ? '#ef4444' : item.Range76_100 <= 13 ? '#0f172a' : '#22c55e';
+            html += `<tr>
+                <td>${item.Class}</td>
+                <td style="color:${top25Color}; font-weight:600">${item.Top25.toFixed(1)}%</td>
+                <td style="color:${range2650Color}; font-weight:600">${item.Range26_50.toFixed(1)}%</td>
+                <td style="color:${range5175Color}; font-weight:600">${item.Range51_75.toFixed(1)}%</td>
+                <td style="color:${range76100Color}; font-weight:600">${item.Range76_100.toFixed(1)}%</td>
+                <td>${item.Total}</td>
+            </tr>`;
+        });
+        html += '</table></div>';
+    });
+}
+
+favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>';
         }
         function loadScenarioNote() {
             const course = document.getElementById('notesCourse').value;
