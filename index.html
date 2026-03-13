@@ -2157,24 +2157,25 @@ favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>'
             updateFavoriteAnalysis();
         }
 function updatePostPositions(data, elementId = 'nextRacePostPosition') {
-    const selectedCourse = document.getElementById('nextRaceCourse').value.trim();
-    const selectedDistance = document.getElementById('nextRaceDistance').value.trim();
-
-    if (!selectedCourse || !selectedDistance) {
-        document.getElementById(elementId).innerHTML = '<p>Select course and distance to see analysis.</p>';
+    const container = document.getElementById(elementId);
+    if (!container) {
+        console.warn(`Element #${elementId} not found`);
         return;
     }
 
-    // Normalize selected course the same way as in populateNextRaceFilters()
-    let normalizedSelectedCourse = selectedCourse;
-    if (normalizedSelectedCourse.toLowerCase().includes('bro park') || normalizedSelectedCourse.toLowerCase().includes('øvrevoll')) {
-        // We don't have surface here, but we can assume the selected course already has (Grass)/(Dirt) if needed
-        // Historical rows will be normalized similarly
+    // Clear loading/initial content
+    container.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p>No races match the selected filters. Try broadening Course, Distance, Class, or Date Range.</p>';
+        console.log(`No data for Post Position in ${elementId} – filtered length: 0`);
+        return;
     }
+
+    console.log(`Post Position data loaded: ${data.length} races for ${elementId}`);
 
     const postStats = {};
     data.forEach(race => {
-        // Normalize historical course the same way
         let raceCourse = race.Course || '';
         if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
             const surface = (race.Surface || '').toLowerCase();
@@ -2182,8 +2183,12 @@ function updatePostPositions(data, elementId = 'nextRacePostPosition') {
             else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs')) raceCourse += ' (Grass)';
         }
 
-        // Match normalized course and exact distance
-        if (raceCourse === selectedCourse && race.Distance === selectedDistance) {
+        // For Course Analysis, use the selected course from filters (if called from there)
+        const selectedCourse = elementId === 'postPositionAnalysis' 
+            ? document.getElementById('courseFilter')?.value || '' 
+            : document.getElementById('nextRaceCourse')?.value || '';
+
+        if (raceCourse === selectedCourse || selectedCourse === 'all') {
             const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
             const field = parseInt(race.Field) || 0;
             if (post > 0 && field > 0 && post <= field) {
@@ -2216,7 +2221,8 @@ function updatePostPositions(data, elementId = 'nextRacePostPosition') {
         }
     }
     html += '</table>';
-    document.getElementById(elementId).innerHTML = hasData ? html : '<p>No post position data available for this course/distance.</p>';
+
+    container.innerHTML = hasData ? html : '<p>No post position data available for the selected filters.</p>';
 }
         function updateTopJockeys(data) {
             const jockeyStats = {};
