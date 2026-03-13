@@ -2159,20 +2159,22 @@ favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>'
 function updatePostPositions(data, elementId = 'nextRacePostPosition') {
     const container = document.getElementById(elementId);
     if (!container) {
-        console.warn(`Element #${elementId} not found`);
+        console.warn(`Post Position container not found: #${elementId}`);
         return;
     }
 
-    // Clear "Loading..." or any initial content
+    console.log(`updatePostPositions called for #${elementId} with ${data ? data.length : 'no'} races`);
+
+    // Clear loading text
     container.innerHTML = '';
 
     if (!data || data.length === 0) {
-        container.innerHTML = '<p>No post position data – no races match the current filters. Try adjusting Course, Distance, Class, or Date Range.</p>';
-        console.log(`No post position data for ${elementId} – filtered races: 0`);
+        container.innerHTML = '<p style="color: #dc2626;">No races match the current filters. Try removing some filters or selecting a broader date range.</p>';
+        console.log(`No post position data – filtered races: 0`);
         return;
     }
 
-    console.log(`Post Position loaded: ${data.length} races for ${elementId}`);
+    console.log(`Processing ${data.length} races for post stats`);
 
     const postStats = {};
     data.forEach(race => {
