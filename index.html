@@ -3622,13 +3622,22 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide both normal and overview (inside Next Race view)
-    document.getElementById('race-pages').style.display = 'none';
-    document.getElementById('raceDayOverview').style.display = 'none';
+  // Hide all pages – safely (no crash if element missing)
+    const hide = (id) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    };
+    hide('race-pages');
+    hide('raceDayOverview');
 
     if (raceValue === 'overview') {
-        document.getElementById('raceDayOverview').style.display = 'block';
-        updateRaceDayOverview(day);
+        const overviewEl = document.getElementById('raceDayOverview');
+        if (overviewEl) {
+            overviewEl.style.display = 'block';
+            updateRaceDayOverview(day);
+        } else {
+            console.warn('raceDayOverview not found – check HTML ID');
+        }
     } else {
         const race = parseInt(raceValue) - 1;
 
