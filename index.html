@@ -1308,6 +1308,17 @@
                 <input type="number" id="startListRaceNum" min="1" placeholder="Race Number (if multiple)" style="width: 150px; margin-right: 1rem;">
                 <button onclick="parseAndFillStartList()">Parse and Fill Table</button>
             </div>
+                <!-- Race Day Overview – shown when "Overview" is selected in Race dropdown -->
+    <div id="raceDayOverview" style="display: none; margin-top: 2rem;">
+        <div class="card">
+            <div class="card-header">
+                <h3>Race Day Overview – Predictions</h3>
+            </div>
+            <div class="card-body">
+                <div id="raceDayPredictions" style="font-size: 1.1rem; line-height: 1.8;"></div>
+            </div>
+        </div>
+    </div>
             <div class="card">
                 <div class="card-header">
                     <h2 class="card-title">🏇 Next Race Analysis</h2>
@@ -1443,17 +1454,6 @@
                     </div>
                     <button style="margin-top: 2rem; margin-right: 1rem;" onclick="clearCurrentRace()">Clear Info Race</button>
                     <button style="margin-top: 2rem;" onclick="clearCurrentRaceday()">Clear Info Raceday</button>
-                </div>
-            </div>
-        </div>
-                <!-- Race Day Overview – shown when "Overview" is selected in Race dropdown -->
-        <div id="raceDayOverview" style="display: none; margin-top: 2rem;">
-            <div class="card">
-                <div class="card-header">
-                    <h3>Race Day Overview – Predictions</h3>
-                </div>
-                <div class="card-body">
-                    <div id="raceDayPredictions" style="font-size: 1.1rem; line-height: 1.8;"></div>
                 </div>
             </div>
         </div>
@@ -3622,7 +3622,7 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-  // Hide all pages – safely (no crash if element missing)
+    // Safe hide
     const hide = (id) => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -3631,17 +3631,14 @@ function switchNextRaceView() {
     hide('raceDayOverview');
 
     if (raceValue === 'overview') {
-        const overviewEl = document.getElementById('raceDayOverview');
-        if (overviewEl) {
-            overviewEl.style.display = 'block';
+        const overview = document.getElementById('raceDayOverview');
+        if (overview) {
+            overview.style.display = 'block';
             updateRaceDayOverview(day);
-        } else {
-            console.warn('raceDayOverview not found – check HTML ID');
         }
     } else {
         const race = parseInt(raceValue) - 1;
 
-        // Safety init...
         if (!nextRaceData.days) nextRaceData.days = [];
         if (!nextRaceData.days[day]) nextRaceData.days[day] = { races: [] };
         while (nextRaceData.days[day].races.length < 12) {
@@ -4644,7 +4641,7 @@ function showPostTooltip(e, postNum, stats, course, distance, gateColor) {
         postCell.onmouseout = hidePostTooltip;
     });
 }
-        function updateRaceDayOverview(day) {
+function updateRaceDayOverview(day) {
     const div = document.getElementById('raceDayPredictions');
     if (!div) return;
 
