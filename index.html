@@ -2151,7 +2151,7 @@ favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>'
         }
         function updateCourseAnalysis() {
             const filtered = getFilteredData();
-            updatePostPositions(filtered);
+            updatePostPositions(filtered, 'postPositionAnalysis');
             updateTopJockeys(filtered);
             updateTopTrainers(filtered);
             updateFavoriteAnalysis();
