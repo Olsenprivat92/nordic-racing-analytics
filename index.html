@@ -1446,6 +1446,17 @@
                 </div>
             </div>
         </div>
+                <!-- Race Day Overview – shown when "Overview" is selected in Race dropdown -->
+        <div id="raceDayOverview" style="display: none; margin-top: 2rem;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Race Day Overview – Predictions</h3>
+                </div>
+                <div class="card-body">
+                    <div id="raceDayPredictions" style="font-size: 1.1rem; line-height: 1.8;"></div>
+                </div>
+            </div>
+        </div>
         <!-- Notes Editor View -->
         <div class="view-container" id="notes-view">
             <div class="card">
@@ -3611,13 +3622,22 @@ function switchNextRaceView() {
     const day = parseInt(document.getElementById('raceDaySelect').value) - 1;
     const raceValue = document.getElementById('raceSelect').value;
 
-    // Hide everything first
-    document.getElementById('race-pages').style.display = 'none';
-    document.getElementById('raceDayOverview').style.display = 'none';
+    // Hide everything first – safely (no crash if element missing)
+    const hide = (id) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    };
+    hide('race-pages');
+    hide('raceDayOverview');
 
     if (raceValue === 'overview') {
-        document.getElementById('raceDayOverview').style.display = 'block';
-        updateRaceDayOverview(day);
+        const overviewEl = document.getElementById('raceDayOverview');
+        if (overviewEl) {
+            overviewEl.style.display = 'block';
+            updateRaceDayOverview(day);
+        } else {
+            console.warn('raceDayOverview element not found');
+        }
     } else {
         const race = parseInt(raceValue) - 1;
 
