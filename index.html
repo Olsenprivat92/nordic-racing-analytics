@@ -2163,40 +2163,26 @@ function updatePostPositions(data, elementId = 'nextRacePostPosition') {
         return;
     }
 
-    // Clear loading/initial content
+    // Clear "Loading..." or any initial content
     container.innerHTML = '';
 
     if (!data || data.length === 0) {
-        container.innerHTML = '<p>No races match the selected filters. Try broadening Course, Distance, Class, or Date Range.</p>';
-        console.log(`No data for Post Position in ${elementId} – filtered length: 0`);
+        container.innerHTML = '<p>No post position data available – no races match the current filters.</p>';
+        console.log(`No post position data for ${elementId} – filtered races: 0`);
         return;
     }
 
-    console.log(`Post Position data loaded: ${data.length} races for ${elementId}`);
+    console.log(`Post Position loaded: ${data.length} races for ${elementId}`);
 
     const postStats = {};
     data.forEach(race => {
-        let raceCourse = race.Course || '';
-        if (raceCourse.toLowerCase().includes('bro park') || raceCourse.toLowerCase().includes('øvrevoll')) {
-            const surface = (race.Surface || '').toLowerCase();
-            if (surface.includes('dirt') || surface.includes('sand')) raceCourse += ' (Dirt)';
-            else if (surface.includes('grass') || surface.includes('turf') || surface.includes('græs')) raceCourse += ' (Grass)';
-        }
-
-        // For Course Analysis, use the selected course from filters (if called from there)
-        const selectedCourse = elementId === 'postPositionAnalysis' 
-            ? document.getElementById('courseFilter')?.value || '' 
-            : document.getElementById('nextRaceCourse')?.value || '';
-
-        if (raceCourse === selectedCourse || selectedCourse === 'all') {
-            const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
-            const field = parseInt(race.Field) || 0;
-            if (post > 0 && field > 0 && post <= field) {
-                if (!postStats[post]) postStats[post] = { runs: 0, wins: 0, expected: 0 };
-                postStats[post].runs++;
-                if (race.Place === '1' || race.Place === 1) postStats[post].wins++;
-                postStats[post].expected += (1 / field);
-            }
+        const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
+        const field = parseInt(race.Field) || 0;
+        if (post > 0 && field > 0 && post <= field) {
+            if (!postStats[post]) postStats[post] = { runs: 0, wins: 0, expected: 0 };
+            postStats[post].runs++;
+            if (race.Place === '1' || race.Place === 1) postStats[post].wins++;
+            postStats[post].expected += (1 / field);
         }
     });
 
