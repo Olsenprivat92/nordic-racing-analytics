@@ -4129,75 +4129,88 @@ function clearNextRaceRow(rowNum) {
         if (element) element.textContent = '';
     });
 }
-        function parseAndFillStartList() {
-            const format = document.getElementById('startListFormat').value;
-            const text = document.getElementById('startListText').value.trim();
-            const raceNumInput = document.getElementById('startListRaceNum').value.trim();
-            const raceNum = raceNumInput ? parseInt(raceNumInput) : 1;
-            if (!text) {
-                alert('Please paste the start list text.');
-                return;
-            }
-            let raceBlocks;
-            let raceRegex;
-            let lineRegex;
-            if (format === 'danish') {
-                raceRegex = /#### Løb (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
-            } else if (format === 'norwegian') {
-                raceRegex = /\*\*Løp (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
-            } else if (format === 'swedish') {
-                raceRegex = /Race (\d+):/g;
-                lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
-            }
-            const races = [];
-            let match;
-            let currentRace = [];
-            let lines = text.split('\n');
-            let currentRaceIndex = 0;
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.match(raceRegex)) {
-                    races.push(currentRace);
-                    currentRace = [];
-                    currentRaceIndex++;
-                } else if (line) { // skip empty lines
-                    const m = line.match(lineRegex);
-                    if (m) {
-                        let horse = m[2].trim();
-                        const country = m[3] ? ` (${m[3]})` : '';
-                        horse += country;
-                        const jockey = m[4].trim();
-                        const weight = m[5] ? m[5].replace(',', '.') : '';
-                        currentRace.push({horse, jockey, weight});
-                    } else {
-                        console.log('Line not matched: ' + line);
-                    }
-                }
-            });
+function parseAndFillStartList() {
+    const format = document.getElementById('startListFormat').value;
+    const text = document.getElementById('startListText').value.trim();
+    const raceNumInput = document.getElementById('startListRaceNum').value.trim();
+    const raceNum = raceNumInput ? parseInt(raceNumInput) : 1;
+
+    if (!text) {
+        alert('Please paste the start list text.');
+        return;
+    }
+
+    let raceRegex;
+    let lineRegex;
+
+    if (format === 'danish') {
+        // Updated to match your actual format: "Løb 1:" or "Løb 1 :"
+        raceRegex = /Løb\s*(\d+):?/gi;
+        // Line format: "Horse - Jockey weight kg"
+        lineRegex = /(.+?)\s*-\s*(.+?)\s*(\d+[\.,]?\d*)\s*kg?/i;
+    } 
+    else if (format === 'norwegian') {
+        raceRegex = /\*\*Løp (\d+):/g;
+        lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
+    } 
+    else if (format === 'swedish') {
+        raceRegex = /Race (\d+):/g;
+        lineRegex = /(\d+)\.\s*([^-]+?)(?:\s*\(([^)]+)\))?\s*-\s*([^0-9]+?)\s*(\d+[\.,]?\d*)\s*kg?/;
+    }
+
+    const races = [];
+    let currentRace = [];
+    const lines = text.split('\n');
+
+    lines.forEach(line => {
+        line = line.trim();
+        if (!line) return;
+
+        const raceMatch = line.match(raceRegex);
+        if (raceMatch) {
             if (currentRace.length > 0) races.push(currentRace);
-            races.shift(); // remove empty first
-            if (races.length === 0) {
-                alert('No races found in the pasted text.');
-                return;
+            currentRace = [];
+        } 
+        else {
+            const m = line.match(lineRegex);
+            if (m) {
+                let horse = m[1].trim();
+                let jockey = m[2].trim();
+                let weight = m[3] ? m[3].replace(',', '.') : '';
+                currentRace.push({ horse, jockey, weight });
+            } else {
+                console.log('Line not matched:', line);
             }
-            const selectedRace = races[raceNum - 1] || races[0];
-            if (!selectedRace) {
-                alert('Invalid race number.');
-                return;
-            }
-            selectedRace.forEach((entry, index) => {
-                const row = index + 1;
-                if (row > 15) return;
-                document.getElementById(`horse-${row}`).value = entry.horse;
-                document.getElementById(`jockey-${row}`).value = entry.jockey;
-                document.getElementById(`withweight-${row}`).value = entry.weight;
-                updateNextRaceRow(row);
-                saveHorseData(row);
-            });
-            alert(`Filled table with Race ${raceNum} (${selectedRace.length} entries)`);
         }
+    });
+
+    if (currentRace.length > 0) races.push(currentRace);
+
+    if (races.length === 0) {
+        alert('No races found in the pasted text.\n\nMake sure the format matches Danish (Løb 1:)\nExample:\nLøb 1:\nHorse - Jockey 59 kg');
+        return;
+    }
+
+    const selectedRace = races[raceNum - 1] || races[0];
+    if (!selectedRace) {
+        alert('Invalid race number.');
+        return;
+    }
+
+    selectedRace.forEach((entry, index) => {
+        const row = index + 1;
+        if (row > 15) return;
+
+        document.getElementById(`horse-${row}`).value = entry.horse;
+        document.getElementById(`jockey-${row}`).value = entry.jockey;
+        document.getElementById(`withweight-${row}`).value = entry.weight;
+
+        updateNextRaceRow(row);
+        saveHorseData(row);
+    });
+
+    alert(`Filled table with Race ${raceNum} (${selectedRace.length} entries)`);
+}
         function filterSelectOptions(selectId, searchTerm) {
             const select = document.getElementById(selectId);
             const options = Array.from(select.options);
