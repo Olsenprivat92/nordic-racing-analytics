@@ -2159,58 +2159,89 @@ favoriteContainer.innerHTML = html || '<p>No favorite data for this course.</p>'
 function updatePostPositions(data, elementId = 'nextRacePostPosition') {
     const container = document.getElementById(elementId);
     if (!container) {
-        console.warn(`Post Position container not found: #${elementId}`);
+        console.warn(`Element #${elementId} not found`);
         return;
     }
 
-    console.log(`updatePostPositions called for #${elementId} with ${data ? data.length : 'no'} races`);
-
-    // Clear loading text
+    // Clear previous content
     container.innerHTML = '';
 
     if (!data || data.length === 0) {
-        container.innerHTML = '<p style="color: #dc2626;">No races match the current filters. Try removing some filters or selecting a broader date range.</p>';
-        console.log(`No post position data – filtered races: 0`);
+        container.innerHTML = '<p>No races match the current filters.</p>';
         return;
     }
 
-    console.log(`Processing ${data.length} races for post stats`);
-
     const postStats = {};
+
     data.forEach(race => {
-        const post = parseInt(race.Startspor) || parseInt(race['Post Position']) || 0;
+        // Prefer the new Dynamic Startspor column
+        // Fall back to the old columns just in case
+        const post = parseInt(race['Dynamic Startspor']) ||
+                     parseInt(race.Startspor) ||
+                     parseInt(race['Post Position']) || 0;
+
         const field = parseInt(race.Field) || 0;
-        if (post > 0 && field > 0 && post <= field) {
-            if (!postStats[post]) postStats[post] = { runs: 0, wins: 0, expected: 0 };
+
+        // Only count if we have a valid post and field
+        if (post > 0 && field > 0) {
+            if (!postStats[post]) {
+                postStats[post] = { runs: 0, wins: 0, expected: 0 };
+            }
+
             postStats[post].runs++;
-            if (race.Place === '1' || race.Place === 1) postStats[post].wins++;
+
+            if (race.Place === '1' || race.Place === 1) {
+                postStats[post].wins++;
+            }
+
+            // Expected win share based on field size
             postStats[post].expected += (1 / field);
         }
     });
 
-    let html = '<table><tr><th>Post</th><th>Runs</th><th>Wins</th><th>Win %</th><th>Expected %</th><th>Differential</th></tr>';
+    // Build the table
+    let html = `
+        <table>
+            <tr>
+                <th>Post</th>
+                <th>Runs</th>
+                <th>Wins</th>
+                <th>Win %</th>
+                <th>Expected %</th>
+                <th>Differential</th>
+            </tr>`;
+
     let hasData = false;
+
     for (let i = 1; i <= 20; i++) {
         const p = postStats[i] || { runs: 0, wins: 0, expected: 0 };
+
         if (p.runs > 0) {
             hasData = true;
             const winPct = (p.wins / p.runs * 100).toFixed(1);
             const expPct = (p.expected / p.runs * 100).toFixed(1);
             const diff = (parseFloat(winPct) - parseFloat(expPct)).toFixed(1);
             const diffColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : '#64748b';
-            html += `<tr>
-                <td><strong>${i}</strong></td>
-                <td>${p.runs}</td>
-                <td>${p.wins}</td>
-                <td>${winPct}%</td>
-                <td>${expPct}%</td>
-                <td style="color:${diffColor}; font-weight:600">${diff > 0 ? '+' : ''}${diff}%</td>
-            </tr>`;
+
+            html += `
+                <tr>
+                    <td><strong>${i}</strong></td>
+                    <td>${p.runs}</td>
+                    <td>${p.wins}</td>
+                    <td>${winPct}%</td>
+                    <td>${expPct}%</td>
+                    <td style="color:${diffColor}; font-weight:600">
+                        ${diff > 0 ? '+' : ''}${diff}%
+                    </td>
+                </tr>`;
         }
     }
+
     html += '</table>';
 
-    container.innerHTML = hasData ? html : '<p>No post position data available for the selected filters.</p>';
+    container.innerHTML = hasData
+        ? html
+        : '<p>No post position data available for the selected filters.</p>';
 }
         function updateTopJockeys(data) {
             const jockeyStats = {};
