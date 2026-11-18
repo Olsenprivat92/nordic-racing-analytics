@@ -82,3 +82,29 @@ This section **supersedes** any earlier draft references to using a universal se
 **Sign convention:** new v2 higher-is-better observed score 116 versus expected 121 → proposed going improvement **+5 new rating points**. In legacy low-is-better ranking, a slow day commonly used a **negative** offset (e.g. `−4`); signs **cannot be copied** between the two scales. Show the old vs new convention explicitly when comparing. The user-facing going control is points, **not seconds/1000m**. The new point-based correction must still be validated across distances.
 
 **Future aspiration only:** automation may later extract reliably verifiable manual-equivalent times directly from race video or other sources. Until experimentally demonstrated, human checked times are required. No change to the live Race Studio scoring or existing cross-device edits in this phase.
+
+
+## Empirical weight-bias backtest and going interaction hypotheses (2026-11-18)
+
+Research-only audit of v86 manual ratings (18,387 manually validated rankings; unchanged). Source code and detailed results available in local reproducible package `Nordic_Racing_Vaegt_og_Baneforhold_Research_v1.zip`. Important distinction: race-time **going calibration compares raw, not weight-normalized, winner times** to class/distance standards; an individual-horse 59kg-equivalent historical performance rating may apply a *separate, calibrated* kg effect afterward.
+
+Legacy ranking-time weight coefficient = **0.20 seconds/kg on every distance**. User suspects systematic overstatement for heavy-carried-weight horses; heavy-weight runners also win more often. The latter is expected confounding by assigned HCP and class, so do not infer the correct physical kg effect from naive winning percentages.
+
+Retrospective chronological candidate comparison: 12,675 qualified graded horse starts after 8 research-only extreme-time exclusions (five courses with exact old standard curves). Each new race predicts from mean previous up to three rated runs **strictly earlier than race date**; no same-race outcome in predictors. However previous manually chosen meeting offsets are available, later course standards may contaminate true historical knowledge, and name matching/identity quality has limitations. This is **not yet a fully blind forward test**. Evaluation only races with at least three history-rated runners; all candidate coefficients evaluated on same horse-pairs.
+
+| 2026 holdout metric | Existing 0.20 s/kg | Candidate 0.12 s/kg | Difference |
+|---|---:|---:|---:|
+| Pairwise correct ordering (11,815 pairs, 468 races) | 62.201% | 62.459% | +0.258 percentage points |
+| Top-form candidate wins (442 races where winner history-rated) | 28.959% | 28.959% | no difference |
+
+In-sample (historical, 2024/2025) paired concordance 0.12 vs 0.20: 61.576% vs 61.022% (2024) and 61.150% vs 60.648% (2025). The 2026 holdout favors smaller coefficients only marginally; **0.00 s/kg is also competitive** (2026 62.548% pairwise), so **0.12 is a research hypothesis, not a validated unique optimum**. Year-by-year win rate has non-monotonic behavior. Preserve baseline and evaluate uncertainty and independent future fixture data.
+
+An exploratory race-and-horse fixed-effects model (12,481 starts, 1,330 horses, 1,673 races) estimated conditional *association* ~0.058 seconds/kg; by distance: <=1400 m ~0.040; 1401–2000m ~0.081; >2000m ~0.102. This is **not causally identified**; pre-race HCP, form, going, tactical pace, and changing distances matter. Use only to inform candidate ranges and systematic checks.
+
+User-supplied MWP length/kg values at 1010,1200,1400,1600m correspond to **0.10 / 0.11 / 0.12 / 0.14 s/kg**, *if* one assumes 0.20 s/length; this seconds-per-length assumption is **not yet calibrated**. In new point scale, e.g. 1200m weight effect `0.55 / 0.40 = 1.375 rating points/kg`, which is **not identical** to 2 ratingpoints/off-HCP-point (ability-scale mapping). Avoid mixing these interpretations.
+
+**Going hypothesis to test, not established:** `lengths per ratingpoint`, `lengths per kg`, `seconds per length` may change on soft/heavy going compared with firm. Do NOT use historical manual day offset as a proxy for *official going*, and do not infer effects from a single soft fixture. Collect official ground readings, surface, course, date, pace and distance strata, then test `weight × going` and `distance × going` interactions with chronologically held out meetings. Prioritize comparing performance within same race and horse (with HCP controls where possible), followed by out-of-sample predictive gain. Protect original manual times and overrides.
+
+Klampenborg Oct 17 example revision: Biot official pre-HCP86, assigned weight63. MWP(HCP86)=123, while **weight performance adjustment** at 1200m is `(63-59)*1.375=5.5 points`, yielding nominal expected at carried weight **117.5 ≈ 118** rather than **117**, which came from treating HCP-point ↔ MWP mapping as a weight effect. Raw uncorrected time performance, using provisional seconds/length, remains ~62.75 ≈ 63. Thus an illustrative implied +55 model point gap, **not a validated going correction**. For 1800m, MWP lengths/kg are not yet established; don't invent a precise coefficient.
+
+Implementation gates: 1) calibrate time-per-length against independently checked manual finish times/placements by distance/surface/going, 2) estimate going interactions from officially recorded ground state across multiple race days, 3) pick weight coefficient using training years only and test on untouched later dates, 4) compare win and pairwise rank outcomes against old method; 5) only then consider new historical integer rating conversion or live rollout.
