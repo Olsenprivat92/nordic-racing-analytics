@@ -122,3 +122,25 @@ Across 15 officially measured 2026 Klampenborg dates (907 manually timed starts 
 **Kg holdout (2026):** legacy .20 s/kg 62.192% vs research .12 s/kg 62.442% for pairwise finish order, improvement +0.250 percentage points (95% race bootstrap CI −0.153 to +0.689); no statistically established win. Distance-varying candidate trained on 2024–25 did not improve 2026 relative to fixed 0.12.
 
 **DO NOT directly map −4.25 old points to a fixed NEW-point correction.** The current handicap class-step to MWP-rating relation and unvalidated seconds/length conversion imply incompatible seconds per NEW rating point; use new integer scores only after separate empirical calibration. Keep live mode and historical manual inputs unchanged.
+
+
+## OVERRIDING model decision: NEW rating points, distance-corrected weight, NO official going measurements (2026-11-18)
+**This supersedes all prior drafts that proposed showing or fitting a legacy 0–11 point day-offset in the rating-v2 workflow, or using official going-stick/going-number measurements for variant inference.** The user explicitly rejected both. The v2 going correction must be computed directly on the new MWP-inspired **higher-is-better** integer rating scale. Existing legacy offsets remain immutable archival data *only*, not inputs to the v2 correction model. Similarly official going numbers are not inputs, labels, priors, or validation targets for v2. They may be preserved in raw meeting metadata, but must not influence correction.
+
+**Distance-aware kg effect:** MWP-confirmed length/kg: 1010m .50; 1200m .55; 1400m .60; 1600m .70. Corresponding length/new-rating-point .35, .40, .50, .65. For 1800m and beyond length/kg is NOT yet user-confirmed; use sensitivity scenarios with prominent uncertainty (1800m temporary .75, interpolate .725 length/new-rating-point between 1600 .65 and 2000 .80). Do not apply uniform .20 sec/kg.
+
+**New direct pilot, Klampenborg 17 October 2026:** Use verified raw manual winner time compared to fixed class time at course+surface+distance (no pre-weight adjustment). Expected new rating `R(official_pre_race_hcp) - (analysis_base_kg-59)*lengths_per_kg/lengths_per_new_ratingpoint`. Raw observed new rating `R(numeric_analysis_class_midpoint_hcp) - (manual_seconds - class_standard_seconds)/[(2.50m*manual_seconds/distance_m)*lengths_per_new_ratingpoint]`. Then race correction = expected minus raw, day proposal = median across five valid handicap races. Assumed effective length 2.50m is *not measured*, and total race average speed may differ from speed at the finish; sensitivity 2.35–2.70m. No official going values or legacy negative offset used.
+
+Preliminary NEW-point calculations (round only for display):
+- R1 Biot 1200m: expected 117.50, raw 47.95, suggested +69.55 ≈ **+70**.
+- R4 Wolis Hamoriko 1800m: expected 83.76, raw 16.99, +66.77 ≈ **+67**.
+- R5 Mumbo Jumbo 1800m: expected 107.07, raw 52.64, +54.43 ≈ **+54**.
+- R7 Bianca 1800m: expected 63.90, raw 4.07, +59.83 ≈ **+60**.
+- R8 Finn Ind Forever 1800m: expected 86.03, raw 29.18, +56.85 ≈ **+57**.
+- **Median +59.83 -> +60 NEW rating points**. Sensitivity for assumed effective length 2.35–2.70m and 1800m weight factor .70–.80 lengths/kg: approx **+56..+63 NEW points**. It is a *research proposal*, not an approved track variant; original 2026 race data unmodified. R2 lacks 2800m class standard; R3 2yo winner no HCP; R6 nonnumeric class — exclude with reasons.
+
+**Additional distance-specific kg holdout**: re-rank each past manually timed performance using its own race distance and time: `secPerKg ≈ effective_length_m * manual_time_sec / distance_m * lengths_per_kg(distance)`. The lengths/kg estimates above 1600m are unverified extrapolations, not new empirical facts. 2026 next-start out-of-sample pairwise finish order: 0.20 sec/kg baseline 62.192% vs fixed .12 sec/kg 62.442% vs distance+speed proxy 62.425% over 11,815 pairs / 468 races; distance proxy gain +.233 percentage points, race bootstrap 95% CI approx −.232..+.707, **not statistically significant**. For pairs using only 1010–1600m prior MWP-confirmed distances, 62.883% vs 63.075%. Users should not interpret these as causally measured kg effects or a final weight factor.
+
+**Output available:** separate public research review `https://olsenprivat92.github.io/nordic-racing-analytics/klampenborg-new-rating-v2-review.html`. It has a slider for effective length and 1800m kg assumption, exclusion toggles, proposed +/− NEW rating points, local-only manual override and JSON export. **No sync to Supabase and no changes to active Race Studio.** It is a calibrated research UI, not the production rating engine.
+
+**Further calibration needed:** physical length/time conversion using independent end-of-race margins or sectionals; robust pace outlier exclusions; more dates for distance bands and independent horse-class race standards; reliability of numeric class HCP midpoint to rating. The model may be adjusted before approved output.
