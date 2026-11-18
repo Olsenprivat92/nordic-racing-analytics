@@ -51,3 +51,18 @@ Current live Race Studio is intentionally unchanged.
 - Preserve old ranking (0–12 half-step, low=better), manually timed results, user overrides, sync values, and original model unchanged during research. A new `v2_rating_integer` is separate.
 - Distinguish **historical performance ratings computed after the meeting** (going allowance may use the day's race times) from **pre-race projections** (must only use information available before the respective race; never use same-day future results).
 - Later compare two day-correction candidates: A) categorical going-only, B) categorical + robust meeting-time variant; stratify on course, surface, distance and validate by chronological holdouts. Keep B only if out-of-sample improvement is demonstrated.
+
+
+## Confirmed revision — 2026-11-18: winner raw-time versus handicap-anchored expectation
+Source read: Connected Google Sheet `index` spreadsheet ID `1DuHZC6EjYRX5UHr5hyjejBRY9BKPIyyfhP46jfDp_p8`, tab `Handicap` (gid=1329435406): grade 2 => "22-26", interpreted using user's signed class convention as −22 to −26. User example: official HCP 83.5, weight 59kg -> W−H = −24.5 -> class 2, *illustrative* MWP-like expected score about 121 at standard conditions.
+
+**Corrected approach supersedes any earlier instruction to normalize winner's manual time to 59 kg before consulting the class standard table:**
+1. Compare winner's **unadjusted verified manual race time** directly to course × turf/dirt × distance **fixed class winner-time standards**, whose standard does not vary with winner's actual carried weight.
+2. Separately construct the **expected 59kg-equivalent class / target performance rating**, using *pre-race* official handicap plus race's declared weights; ensure no apprentice-claim ambiguity. User's current signed proxy for an individual horse is `carried_weight_kg - official_pre_start_hcp`, with −24.5 indicating a class-2 reference. The original single example 121↔HCP83.5 is a provisional anchor, *not* an established general mapping.
+3. Convert raw time-versus-standard into provisional **integer-scale observed score**, with a *fractional* internal value before last-step rounding. If expected 121 and observed 116, the preliminary shortfall is `+5 rating points of required positive going correction`.
+4. Estimate `meeting × surface` going/day variant from **multiple races** (winner-first, considering other runners where reliable); convert each race's point shortfall to seconds using that distance/course's rating-points/sec relation. Use a robust estimator and exclusions/flags for tactical pace, unreliable winners, 2yo/maiden, implausible HCP, non-comparable distances, and insufficient races. Calibrate no double-counting of weight: raw measured time isn't weight-normalized; if a race's reference score embeds weight via W−H, do not adjust it a second time.
+5. Provisional score for each horse = **observed** raw-time score + estimated **same-day correction** on corresponding distance, then apply correctly defined horse-level weight/race performance adjustments separately if needed for a published 59kg-equivalent figure; prevent double counting. Keep *observed* and *standardized* ratings distinct.
+6. Display: per-race expected level, raw score, implied difference, confidence/exclusion reason; per day consensus variant in secs/1000m and equivalent point adjustments per distance; permit user override and capture both values with provenance.
+7. Don't equate `+5 points needed` from one race directly to a universal 5-point track variant at every distance. Distances have different sec/point scales. A race-time gap can also reflect pace or horse ability, so independently evaluate predictions on holdout days.
+
+No live model or original manual time/rating data changes.
