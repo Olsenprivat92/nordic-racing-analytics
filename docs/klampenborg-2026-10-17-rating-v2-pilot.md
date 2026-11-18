@@ -1,4 +1,7 @@
 # Klampenborg 17 October 2026 — MWP-inspired ranking v2 calibration pilot
+
+> **IMPORTANT 2026-11-18 REVISION — supersedes the provisional +48 headline below:** The original pilot used `MWP(HCP - (weight - 59))`, which effectively assumes ~2 new rating points per kg. This mixes the separate HCP-to-ability and kg-to-performance scales. User's MWP observations imply **1.375 new rating points/kg at 1200m**; 1800m point/kg is uncalibrated. Using the corrected separation for Biot alone yields **expected ~118**, raw-time ~63 and **provisional +55** (still assuming unverified 0.20 sec/length). Therefore **the 5-race +48 is NOT a valid approved meeting correction** and must be fully recalibrated after obtaining appropriate distance/going-specific kg and length/speed coefficients. See [weight-and-going research](weight-and-going-research-2026-11-18.md).
+
 Status: **RESEARCH ONLY — not validated, not approved, no production changes** (2026-11-18)
 
 ## Sources / precedence
