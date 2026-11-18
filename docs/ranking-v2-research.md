@@ -40,3 +40,14 @@ Do not deploy new rating scale until:
 - model, course, surface and projection semantics are documented.
 
 Current live Race Studio is intentionally unchanged.
+
+
+## Confirmed design decisions — 2026-11-18
+- **Keep existing track-specific time tables**, split by course × surface × distance. Do not replace them with a one-size-fits-all continuous par model. Upgrade the conversion of timed performance into finer rating points, using verified manual source times.
+- **Use a meeting-specific going/time allowance** for firm/good/soft/heavy days. The official going description is an initial categorical input; validate the actual clock-speed effect with multiple races on the card and known historic standards. Do not infer a whole-day offset from one tactical/slowly run race.
+- Treat ground as a `meeting × surface × racecourse section` quantity; differences in distance should scale consistently (e.g. seconds per 1000m or a robust proportional-speed factor, subject to validation). If information is weak or mixed, label low confidence and use conservative fallback.
+- **Display final rating as integer only**, e.g. 121, not 121.4. Compute with full precision internally and round **only at the end** (prefer documented deterministic rounding), not at each intermediate stage.
+- **High = better** in the new rating. User's observed Mr World Pool 121 ≈ official HCP 83.5 is a single illustrative anchor, not a constant mapping.
+- Preserve old ranking (0–12 half-step, low=better), manually timed results, user overrides, sync values, and original model unchanged during research. A new `v2_rating_integer` is separate.
+- Distinguish **historical performance ratings computed after the meeting** (going allowance may use the day's race times) from **pre-race projections** (must only use information available before the respective race; never use same-day future results).
+- Later compare two day-correction candidates: A) categorical going-only, B) categorical + robust meeting-time variant; stratify on course, surface, distance and validate by chronological holdouts. Keep B only if out-of-sample improvement is demonstrated.
