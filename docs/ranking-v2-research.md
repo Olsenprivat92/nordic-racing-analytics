@@ -108,3 +108,17 @@ User-supplied MWP length/kg values at 1010,1200,1400,1600m correspond to **0.10 
 Klampenborg Oct 17 example revision: Biot official pre-HCP86, assigned weight63. MWP(HCP86)=123, while **weight performance adjustment** at 1200m is `(63-59)*1.375=5.5 points`, yielding nominal expected at carried weight **117.5 ≈ 118** rather than **117**, which came from treating HCP-point ↔ MWP mapping as a weight effect. Raw uncorrected time performance, using provisional seconds/length, remains ~62.75 ≈ 63. Thus an illustrative implied +55 model point gap, **not a validated going correction**. For 1800m, MWP lengths/kg are not yet established; don't invent a precise coefficient.
 
 Implementation gates: 1) calibrate time-per-length against independently checked manual finish times/placements by distance/surface/going, 2) estimate going interactions from officially recorded ground state across multiple race days, 3) pick weight coefficient using training years only and test on untouched later dates, 4) compare win and pairwise rank outcomes against old method; 5) only then consider new historical integer rating conversion or live rollout.
+
+
+## 2026 Klampenborg winner-clock / official going empirical checkpoint
+See [2026 going and weight validation](klampenborg-2026-going-and-weight-v2-validation.md) for the worked proof and reproducer.
+
+**Confirmed, no weight adjustment before winner-time/table comparison:** with 5 matching handicap winners on Klampenborg 17 October, distance-specific legacy time table implies **−4.25 old ranking points** versus user's original **−4.0**. Winner clock and class/time table alone, no legacy offset model input.
+
+Across 15 officially measured 2026 Klampenborg dates (907 manually timed starts / 122 races), 53 eligible winner-time standards produce day suggestions with mean absolute difference **0.378 legacy points** versus user's historic day offsets; 11/15 within 0.5 and all 15 within 1.0. This validates reproducing the *old workflow*, not new predictive accuracy.
+
+**Official going is now grounded for 15 dates** in Dansk Galop's report, numerical going 3.0–5.0. Raw time vs class standard *without old offsets* has medians +2.05s (good/light), +3.40s (mixed) and +5.80s (soft/deep). The new going vs kg interaction remains inconclusive; overlapping race-cluster uncertainties.
+
+**Kg holdout (2026):** legacy .20 s/kg 62.192% vs research .12 s/kg 62.442% for pairwise finish order, improvement +0.250 percentage points (95% race bootstrap CI −0.153 to +0.689); no statistically established win. Distance-varying candidate trained on 2024–25 did not improve 2026 relative to fixed 0.12.
+
+**DO NOT directly map −4.25 old points to a fixed NEW-point correction.** The current handicap class-step to MWP-rating relation and unvalidated seconds/length conversion imply incompatible seconds per NEW rating point; use new integer scores only after separate empirical calibration. Keep live mode and historical manual inputs unchanged.
