@@ -207,3 +207,7 @@ Important results:
 - Official Øvrevoll winner times from public results (2024-04-25 69.5s, 2025-11-06 69.3s, 2026-10-01 69.6s) differ from manual 69.5/69.4/69.9 by 0/0.1/0.3s, *not a reason to overwrite manual timings* given user's explicitly documented official-timing concerns.
 
 **DECISION: keep 18 approved time-table edits and the precise 102-race filter. Do not exclude these six or edit the 0.5s old grade-step.** Next test: meeting-specific sprint-vs-middle-distance effects and race-class x distance across years without reusing training data for validation, before new MWP calibration. Detailed [source audit](six-fast-races-official-hcp-and-meeting-audit-2026-11-19.md).
+
+
+## Meeting-level sprint sensitivity after six-race QA
+Across **30** eligible Bro Park dirt days with 1200m and >=1 other-distance ordinary HCP race, median within-meeting adjusted sprint-other residual **−0.301 old points**. **2025-09-14: −1.579 (most extreme, 1/30)**, **2025-11-16: −1.365 (2/30, two qualifying 1200m races both fast)**, but **2024-10-20: −0.400 (~14/30)**. Across **39** such Øvrevoll dirt 1100m meetings median **−0.355**; **2026-10-01: −1.328 (2/39)**, **2025-11-06: −0.646 (~10/39)**, **2024-04-25: −0.580 (~16/39)**. Not official going or proof of causal track speed. Supports reviewing atypical *meeting × sprint distance* effects before any global class slope changes. No additional horse/race exclusion, old rating edit, or MWP/weight change approved. See [updated six-race report](six-fast-races-official-hcp-and-meeting-audit-2026-11-19.md).
