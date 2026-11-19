@@ -49,3 +49,9 @@ Under a hypothetical additional **+0.1s** at all populated grade1–11 levels, a
 Continue to preserve user's deferred questions: Klampenborg 1100m may be too easy but has only 3 ordinary numeric HCP races and has already received a −0.2s change; and Klampenborg's seconds-per-half-grade by distance (0.5/0.6/0.7/0.8/0.9/1.0) may relate to lengths/kg (0.5 at sprint to ~1 at 2400m). Revisit explicitly during distinct **MWP/weight/distance** calibration; do not confuse seconds per half-old-grade with lengths per kg. No official going measurement is used.
 
 **Reproduction:** attached conversation research ZIP `Nordic_Racing_Standardtider_Efter_16_Rettelser_Research.zip` contains the new scripts and source derived CSVs. The large user-owned frozen v86 history is not replicated in this small ZIP.
+
+
+### Manual ranking-offset context for the two 2024 Aarhus outliers
+- **2024-05-05 race 4, Aarhus turf 2000m, class 2.5:** frozen unadjusted old time grades among top5 = 9, 10, 11, 11, 11; user-recorded offsets are −4.5 for first four and −3.5 for fifth, yielding top5 mean old ranking **6.1**. This is a very slow raw-time race even after significant day/user offset, suggesting race-specific pace and/or time-quality review.
+- **2024-06-29 race 9, Aarhus turf 2000m, class 3:** frozen raw time grades among top5 = 5, 5, 5, 6, 6; all recorded offsets **+1.5**, yielding top5 mean old ranking **6.9**. This is a different mechanism from May's slow raw time. **Do not overwrite or re-interpret these user offsets**; inspect them alongside other races on these dates if the user elects to audit individual races.
+- Therefore a whole-distance standard-time change would mix at least two distinct patterns. The archived per-horse offsets can sometimes differ within a single race due to deliberate manual exceptions; do not assume a single uniform race-day offset is always the whole stored value.
