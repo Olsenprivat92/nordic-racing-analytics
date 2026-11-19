@@ -37,6 +37,15 @@ Gennemgangen viderefører den godkendte analyse med **9.833 starter og 1.225 alm
 - **Øvrevoll 06-11-2025:** Klasse 5 på 1100 m er **−1,17**, men **klasse 5 på 2400 m samme dag +0,72**. Kontrasten på cirka **−1,89** gamle point mellem samme interne raceklasse er stor og kan ikke tilskrives en ensartet dagsoffset.
 - **Øvrevoll 01-10-2026:** Klasse 5 på 1100 m **−1,10**, mens **klasse 5 på 1750 m samme dag +0,90** (kontrast −2,00). Også 1100m klasse 3,5 er hurtig (−0,73). En forklaring alene med klasse 5 er derfor utilstrækkelig.
 
+## 2b. Sprintbanens særlige løbsdage — sammenlignet med andre møder
+
+For hvert møde i det **filtrerede** datamateriale er de normale 1200/1100-meterløbs gennemsnitlige justerede residual sammenlignet med **andre distancer samme løbsdag**. Her tæller et møde kun én gang, uanset hvor mange sprinterløb det indeholder.
+
+- **Bro Park dirt 1200 m:** 30 sammenlignelige løbsdage, median sprint-minus-øvrige distancer **−0,30** gamle point. **14. september 2025 (−1,58)** er det mest negative møde (**1/30**); **16. november 2025 (−1,37)** det næstmest negative (**2/30**), og der var to hurtige 1200m-løb samme dag. **20. oktober 2024 (−0,40)** ligger derimod midt i fordelingen (14/30). Det taler for **enkelte sprint-specifikke løbsdagsforhold i 2025**, ikke et kronisk problem på enhver 1200m-dag.
+- **Øvrevoll dirt 1100 m:** 39 sammenlignelige møder, median **−0,35**. **1. oktober 2026 (−1,33)** er næstmest ekstrem (**2/39**); **6. november 2025 (−0,65)** er omkring 10/39, og **25. april 2024 (−0,58)** er omkring 16/39. Den udvalgte 2026-dag er særskilt usædvanlig, men den generelle 1100m-forskel kan ikke alene forklares af disse tre datoer.
+
+**Fortolkningsgrænse:** Samme-dags-kontrasten kontrollerer ikke fuldt for hestepopulation eller forskel på afviklet tempo i den længere distance. Den siger **ikke**, at banen fysisk var hurtigere i sprintløbene, eller at noget bestemt løb er kunstigt. Den skal bruges som signal om, hvor manuel video-/tidsgennemgang giver mest værdi. Se `10_sprint_vs_other_distances_by_meeting.csv`.
+
 ## 3. Hestenes officielle handicapformtal (ingen vægtmodel)
 
 Officielle *før-start-formtal* fra projektets v43-kildedatabase er brugt rent **diagnostisk**, ikke til at genestimere kilo eller ændre gamle rankings. For hver af de seks løb havde top 5-hestene gennemsnitlige formtal som følger:
