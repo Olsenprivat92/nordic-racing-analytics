@@ -144,3 +144,16 @@ Preliminary NEW-point calculations (round only for display):
 **Output available:** separate public research review `https://olsenprivat92.github.io/nordic-racing-analytics/klampenborg-new-rating-v2-review.html`. It has a slider for effective length and 1800m kg assumption, exclusion toggles, proposed +/− NEW rating points, local-only manual override and JSON export. **No sync to Supabase and no changes to active Race Studio.** It is a calibrated research UI, not the production rating engine.
 
 **Further calibration needed:** physical length/time conversion using independent end-of-race margins or sectionals; robust pace outlier exclusions; more dates for distance bands and independent horse-class race standards; reliability of numeric class HCP midpoint to rating. The model may be adjusted before approved output.
+
+## Dependency before further v2 calibration: audit course × distance bias in legacy ratings (2026-11-19)
+Per user direction, investigate whether old ranking is systematically easier/harder to obtain at certain courses/distances **before** setting the new absolute performance calibration. Research is in [legacy course/distance audit](legacy-ranking-course-distance-bias-2024-2026.md).
+
+In 9,592 manual-ranked 2024–26 starts from 1,140 horses, with numeric race class and verified pre-start official handicap, a **within-horse** fixed effects comparison controlling handicap/class/finish percentile/weight/age/year shows:
+- Göteborg turf 2,200 m worse (higher old rank) than 1,400 m by about +0.77 old points, same sign all 3 years.
+- Jægersro dirt 1,200 m worse than 1,600 m by about +0.69 old points, same sign all 3 years.
+- Øvrevoll dirt 1,600 m worse than 1,100 m by about +0.39 old points, same sign all 3 years.
+- Other contrasts are less stable by year; no blanket automatic normalization.
+
+**Use legacy points for the diagnostic audit only.** The v2 production design stays MWP-inspired higher-is-better whole rating numbers. Do not transplant old relative biases or −4 meeting offsets into the v2 numerical unit. Keep manual times and official pre-race HCP sources, **do not use official going measurements as a correction input**, maintain distance-specific weights, assess race-day going in **new points** and solicit user's approval before applying any correction.
+
+Next quality gate: review standards and pace/track preferences for those three reproducible contrasts, evaluate whether recalibrating base course-distance time standards produces more stable rating equivalence in held-out 2026 days. Leave original raw/ranked data untouched.
